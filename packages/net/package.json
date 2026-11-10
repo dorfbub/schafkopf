@@ -1,0 +1,14 @@
+{
+  "name": "@schafkopf/net",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./trystero": "./src/trysteroTransport.ts"
+  },
+  "dependencies": {
+    "@schafkopf/core": "*",
+    "trystero": "^0.26.0"
+  }
+}
