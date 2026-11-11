@@ -1,6 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
-Stand November 2026. Reiner Entwurf – noch nichts davon ist umgesetzt. Die Regeln selbst stehen in
+Stand November 2026. Umgesetzt ist bisher K3a (Umbau ohne Verhaltensänderung), siehe §12. Die
+Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
 Sonderfälle quer durch `hand.ts` und `scoring.ts` entstehen. Die Pakete dazu stehen in
@@ -457,3 +458,46 @@ K3a Umbau ──► H1 Eisenbahner ──► K3b Ramsch ──► K3c Stock ─�
 
 Alle Pakete berühren `packages/core` und laufen nacheinander. H1 kommt früh, weil es als reiner
 Eintrag zeigt, dass der Umbau trägt. B3 (Bots) kann nach K5 parallel laufen.
+
+## 12. Umsetzungsstand und Abweichungen
+
+**K3a (Umbau, November 2026)** hat eingezogen: `BID_ORDER` statt `rank`; `biddable`, `parties`,
+`tariff`, `trumps(contract, trick)`, `laufendeTrumps`, `eligible` und `outcome` in
+`ModeDefinition`; `orderFor(contract, trick)` überall mit Stich-Index; `HandResult` in Stufen;
+`HandCarry`, `HandState.carry`, `HandLog.carry`, `TableState.pot`, `TableView.pot` und `settle`;
+die Registry `ALL_PASSED` mit `zusammenwerfen`; `DEFAULT_RULES.contracts` ausdrücklich. Abgesichert
+durch 500 Referenzspiele (`packages/core/test/reference.test.ts`). `PROTOCOL_VERSION` 6,
+`HOST_SNAPSHOT_VERSION` 6.
+
+Noch nicht eingezogen, weil erst das jeweilige Paket sie braucht (ohne Verhalten wären es tote
+Zweige): Vorspiel-Hook und Phase `'prelude'` (§4, K5), `Auction.yielded` (K5), `suit2`/`suitCount`
+(H2), `suitChoices(hand, { forced })` und `Auction.forced` (K3d), `goal: 'fewestPoints'` und
+`RamschDetails` (K3b), die Schrittarten `play`, `forced`, `fallback` in `AllPassedStep` (K3b, K3d),
+`doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
+
+Abweichungen von den Skizzen oben, mit Grund:
+
+- **Stufe 3, Formel (§6).** „Jeder Verlierer zahlt `value` an jeden Gewinner“ stimmt bei 1:3 und
+  3:1, ergäbe beim Sauspiel (2:2) aber das Doppelte von heute. Umgesetzt ist die heutige Regel in
+  allgemeiner Form: Jeder auf der **größeren** Seite zahlt bzw. bekommt `value × Faktoren`, die
+  kleinere Seite teilt sich die Gegensumme (2:2 je `value`, 1:3 dreifach für den Einzelnen). Für
+  Ramsch (1 Verlierer, 3 Gewinner) und Durchmarsch (umgekehrt) ist das dasselbe wie im Entwurf.
+- **`bidValue` (§2).** Rang = Index in `BID_ORDER` **+ 1**, damit 0 weiter „noch nichts genannt“
+  heißen kann (`legalCalls` vergleicht mit 0, solange kein Zweikampf lief). `bidValue` wirft bei
+  einer nicht ansagbaren Spielart.
+- **`tariff` (§3).** Typ `TariffClass = Exclude<keyof Tariff, 'extra'>` statt einer festen Liste:
+  `'ramsch'` wird gültig, sobald K3b `Tariff.ramsch` anlegt.
+- **`Outcome.parts`.** Bestandteile mit den Namen `grundtarif`, `schneider`, `schwarz`, `laufende`,
+  `tout` (Aufschlag = Grundtarif + Laufende) und `sie` (Aufschlag = 3 × Grundtarif); sie ergeben
+  zusammen `value`. `details` trägt `type: 'party'`, damit `RamschDetails` (K3b) unterscheidbar wird.
+- **Stich-Index in Sichten.** `HandView` hat kein eigenes Feld; `tricksPlayed(view)` (Summe von
+  `tricksWon`) liefert den Index für Bots und die Hand-Sortierung (`sortHand(hand, contract, trick)`).
+- **Bots.** Der Heuristik-Bot bewertet nur die Spielarten in seiner Liste `KNOWN_KINDS` (§8) –
+  neue Spielarten in `BID_ORDER` sagt er nicht von selbst an.
+- **Offen für K3c.** Stufe 3 teilt den Pott zu gleichen Teilen auf die Spielerpartei. Bei einem
+  Pott, der sich nicht glatt teilen lässt (ungerade bei zwei Spielern), entstünden gebrochene Cent.
+  Mit `Pott = 4 × Einsatz` kommt das nicht vor; K3c sichert das ab (Prüfung im Speicherstand oder
+  Regel für den Rest) – nicht raten, sondern bei Bedarf nachfragen.
+- **Speicherstand.** `parseHostSnapshot` prüft zusätzlich, dass `rules.allPassed` ein Eintrag in
+  `ALL_PASSED` ist und `carry` gültig ist (Pott ≥ 0, Faktor ≥ 1), sonst würde ein beschädigter Stand
+  erst bei „alle weiter“ abstürzen.

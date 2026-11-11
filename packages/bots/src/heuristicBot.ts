@@ -4,6 +4,7 @@ import {
   type Card,
   type CardOrder,
   type Contract,
+  type ContractKind,
   type EffectiveSuit,
   type HandView,
   type PlayerAction,
@@ -11,7 +12,8 @@ import {
   type Seat,
   type Suit,
   type Trick,
-  CONTRACT_KINDS,
+  BID_ORDER,
+  CLASSIC_CONTRACTS,
   MODES,
   SUITS,
   bidValue,
@@ -25,6 +27,7 @@ import {
   strength,
   suitOf,
   trickWinnerIndex,
+  tricksPlayed,
 } from '@schafkopf/core';
 
 /**
@@ -96,7 +99,7 @@ function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: numb
 }
 
 function updateMemory(memory: Memory, view: HandView): void {
-  const completed = view.tricksWon.reduce((a, b) => a + b, 0);
+  const completed = tricksPlayed(view);
   // Neues Spiel: Ansage läuft, oder es sind weniger Stiche gespielt als zuletzt gesehen.
   if (
     view.phase === 'bidding' ||
@@ -107,23 +110,30 @@ function updateMemory(memory: Memory, view: HandView): void {
     if (view.phase === 'bidding') return;
   }
   if (!view.contract) return;
-  const order = orderFor(view.contract);
   const players = view.handSizes.length;
   if (completed > memory.tricksSeen && view.lastTrick) {
-    noteTrick(memory, view.lastTrick, order, players);
+    noteTrick(memory, view.lastTrick, orderFor(view.contract, completed - 1), players);
   }
   memory.tricksSeen = completed;
-  noteTrick(memory, view.currentTrick, order, players);
+  noteTrick(memory, view.currentTrick, orderFor(view.contract, completed), players);
 }
 
 // ---------------------------------------------------------------------------
 // Ansage
 
+/**
+ * Spielarten, die der Bot bewerten und spielen kann. Neue Spielarten (Hausregeln) sagt er
+ * nicht selbst an; als Gegenspieler behandelt er sie mit den allgemeinen Faustregeln.
+ */
+const KNOWN_KINDS: readonly ContractKind[] = CLASSIC_CONTRACTS;
+
 /** Alle Spiele, die mit diesem Blatt formal möglich wären (Tischregeln unbekannt). */
 function candidateContracts(hand: readonly Card[]): Contract[] {
   const out: Contract[] = [];
-  for (const kind of CONTRACT_KINDS) {
+  for (const kind of BID_ORDER) {
+    if (!KNOWN_KINDS.includes(kind)) continue;
     const mode = MODES[kind];
+    if (mode.eligible && !mode.eligible(hand)) continue;
     const suits = mode.suitRole === 'none' ? [undefined] : (mode.suitChoices?.(hand) ?? SUITS);
     for (const suit of suits) {
       const base: Contract = suit ? { kind, suit } : { kind };
@@ -223,7 +233,8 @@ function toutSafe(hand: readonly Card[], contract: Contract, order: CardOrder): 
  * Die Gewichte sind von Hand gesetzt und über Simulationen grob abgestimmt.
  */
 export function rateContract(hand: readonly Card[], contract: Contract, deckSize = 32): number {
-  const order = orderFor(contract);
+  // Bewertet wird das Blatt vor dem ersten Stich.
+  const order = orderFor(contract, 0);
   const trumps = hand.filter((c) => order.trumps.includes(c));
   const t = trumps.length;
   const sides = SUITS.filter((s) => isSideSuit(order, s));
@@ -354,13 +365,13 @@ interface Ctx {
 
 function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
   const contract = view.contract!;
-  const order = orderFor(contract);
+  const order = orderFor(contract, tricksPlayed(view));
   const players = view.handSizes.length;
   const me = view.turn;
   const deck = createDeck(memory.deckSize < 32 ? 'kurz' : 'lang');
   const unseen = deck.filter((c) => !view.hand.includes(c) && !memory.played.has(c));
   const declarer = view.declarer!;
-  const alone = MODES[contract.kind].alone;
+  const alone = MODES[contract.kind].parties === 'alone';
   const partner = view.partner;
   const declarerSide = me === declarer || partner === me;
 
@@ -507,7 +518,7 @@ function lead(ctx: Ctx, legal: readonly Card[]): Card {
       if (isTopOfSuit(ctx, top)) return top;
       // Allein von oben ziehen; im Sauspiel klein anspielen, der Partner sticht mit.
       if (trumps.length >= 2 || sureSide.length === 0) {
-        const alone = MODES[contract.kind].alone;
+        const alone = MODES[contract.kind].parties === 'alone';
         return alone ? top : minBy(trumps, (c) => str(ctx, c));
       }
     }

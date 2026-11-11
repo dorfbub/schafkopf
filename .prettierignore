@@ -8,3 +8,4 @@ apps/web/scripts/karten/glyphen.json
 dist-e2e
 playwright-report
 test-results
+packages/core/test/reference-games.json

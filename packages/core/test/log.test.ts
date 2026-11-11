@@ -37,6 +37,22 @@ function seated(): TableState {
   return { ...t, seats: t.seats.map((_, i) => ({ name: `S${i}`, kind: 'bot', connected: true })) };
 }
 
+describe('Übertrag zwischen Tisch und Spiel', () => {
+  it('der Tisch gibt seinen Pott ins Spiel und ins Protokoll; Summe(balances) + pot = 0', () => {
+    let table: TableState = { ...seated(), pot: 40, balances: [-10, -10, -10, -10] };
+    for (let n = 1; n <= 20; n++) {
+      const started = startHand(table, n);
+      if (!started.ok) throw new Error(started.error);
+      expect(started.table.hand!.carry).toEqual({ pot: table.pot, factor: 1 });
+      expect(started.table.logs.at(-1)!.carry).toEqual({ pot: table.pot, factor: 1 });
+      table = playRandom(started.table, n);
+      expect(replay(table.logs.at(-1)!)).toEqual(table.hand);
+      expect(table.balances.reduce((a, b) => a + b, 0) + table.pot).toBe(0);
+      expect(tableViewFor(table, 0).pot).toBe(table.pot);
+    }
+  });
+});
+
 describe('Spielprotokoll', () => {
   it('replay ergibt für viele Zufallsspiele denselben Endzustand', () => {
     let table = seated();

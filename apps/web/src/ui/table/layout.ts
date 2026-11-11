@@ -34,9 +34,12 @@ export function seatInfo(view: TableView): SeatInfo {
   };
 }
 
-/** Sortiert die Hand: Trümpfe zuerst (hoch → niedrig), dann die Farben. */
-export function sortHand(hand: readonly Card[], contract: Contract | null): Card[] {
-  const order = orderFor(contract ?? { kind: 'sauspiel', suit: 'eichel' });
+/**
+ * Sortiert die Hand: Trümpfe zuerst (hoch → niedrig), dann die Farben. `trick` ist der Index
+ * des laufenden Stichs – die Trümpfe können mit ihm wechseln.
+ */
+export function sortHand(hand: readonly Card[], contract: Contract | null, trick: number): Card[] {
+  const order = orderFor(contract ?? { kind: 'sauspiel', suit: 'eichel' }, trick);
   const key = (c: Card) => {
     const trump = order.trumps.indexOf(c);
     if (trump >= 0) return trump;

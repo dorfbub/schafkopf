@@ -6,7 +6,9 @@ import {
   type ContractKind,
   type HandState,
   type RuleSet,
+  ALL_PASSED,
   DEFAULT_RULES,
+  MODES,
   applyAction,
   createRng,
   dealHand,
@@ -100,7 +102,13 @@ describe('Ansage', () => {
   it('alle weiter: Spiel endet ohne Zahlung (zusammenwerfen)', () => {
     const state = callAll(handWith(HANDS), [PASS, PASS, PASS, PASS]);
     expect(state.phase).toBe('finished');
-    expect(state.result).toEqual({ kind: 'passed', payments: [0, 0, 0, 0] });
+    expect(state.result).toEqual({
+      kind: 'passed',
+      outcome: null,
+      factors: [],
+      payments: [0, 0, 0, 0],
+      potDelta: 0,
+    });
   });
 
   it('will nur einer, nennt er gleich sein Spiel – jedes erlaubte', () => {
@@ -333,6 +341,30 @@ describe('Spielablauf', () => {
     });
   });
 
+  it('eine Spielart mit Bedingung ans Blatt (eligible) ist nur damit ansagbar', () => {
+    // Sitz 0 will, alle anderen weiter: Sitz 0 nennt sein Spiel. Er hält genau einen Unter.
+    const state = callAll(handWith(HANDS), [WOULD, PASS, PASS, PASS]);
+    const wenz = () => legalContracts(state, 0).some((c) => c.kind === 'wenz');
+    const mode = MODES.wenz;
+    expect(wenz()).toBe(true);
+    try {
+      mode.eligible = (hand) => hand.filter((c) => c.endsWith('U')).length >= 2;
+      expect(wenz()).toBe(false);
+      mode.eligible = (hand) => hand.filter((c) => c.endsWith('U')).length === 1;
+      expect(wenz()).toBe(true);
+    } finally {
+      delete mode.eligible;
+    }
+  });
+
+  it('alle weiter: die Registry ALL_PASSED entscheidet', () => {
+    const state = dealHand(DEFAULT_RULES, 3, 1);
+    expect(ALL_PASSED[DEFAULT_RULES.allPassed](state)).toEqual({
+      type: 'finish',
+      result: { kind: 'passed', outcome: null, factors: [], payments: [0, 0, 0, 0], potDelta: 0 },
+    });
+  });
+
   it('der Zustand wird nie verändert, sondern kopiert', () => {
     const state = bidAll(handWith(HANDS), [GRAS, null, null, null]);
     const frozen = JSON.stringify(state);
@@ -373,7 +405,7 @@ describe('Spielablauf', () => {
         expect(state.tricks).toHaveLength(8);
         expect(state.tricks.reduce((sum, t) => sum + t.points, 0)).toBe(120);
         expect(state.hands.every((h) => h.length === 0)).toBe(true);
-        expect(sameContract(result.contract, state.contract!)).toBe(true);
+        expect(sameContract(result.outcome!.details.contract, state.contract!)).toBe(true);
       }
     }
   });

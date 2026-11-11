@@ -1,5 +1,5 @@
 import {
-  CONTRACT_KINDS,
+  BID_ORDER,
   LAUFENDE_KINDS,
   type ContractKind,
   type LaufendeKind,
@@ -36,7 +36,7 @@ export function LobbySettings({ view, host }: Props) {
     const set = new Set(current.contracts);
     if (on) set.add(kind);
     else set.delete(kind);
-    change({ contracts: CONTRACT_KINDS.filter((k) => set.has(k)) });
+    change({ contracts: BID_ORDER.filter((k) => set.has(k)) });
   };
 
   return (
@@ -44,7 +44,7 @@ export function LobbySettings({ view, host }: Props) {
       <fieldset className="regeln-einstellung__gruppe">
         <legend>{T.contracts}</legend>
         <div className="row">
-          {CONTRACT_KINDS.map((kind) => (
+          {BID_ORDER.map((kind) => (
             <label key={kind} className="check">
               <input
                 type="checkbox"

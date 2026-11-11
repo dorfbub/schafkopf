@@ -7,7 +7,11 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 
 /** 4: ausgefallene Mitspieler (N3): `absent` in der `state`-Nachricht. */
 /** 5: Spielprotokoll (K7): `TableView.history` mit Zusammenfassungen fertiger Spiele. */
-export const PROTOCOL_VERSION = 5;
+/**
+ * 6: Umbau für Sonderspiele (K3a): `HandResult` in Stufen (`outcome`, `factors`, `potDelta`),
+ * `TableView.pot`.
+ */
+export const PROTOCOL_VERSION = 6;
 
 export type ClientMessage =
   | {

@@ -60,7 +60,7 @@ function finished(options: {
 function played(state: HandState) {
   const result = scoreHand(state);
   if (result.kind !== 'played') throw new Error('nicht gespielt');
-  return result;
+  return { ...result.outcome!.details, value: result.outcome!.value, payments: result.payments };
 }
 
 const SAUSPIEL: Contract = { kind: 'sauspiel', suit: 'gras' };
@@ -180,7 +180,7 @@ describe('Abrechnung Einzelspiele', () => {
 });
 
 describe('Laufende', () => {
-  const trumps = MODES.sauspiel.trumps(SAUSPIEL);
+  const trumps = MODES.sauspiel.trumps(SAUSPIEL, 0);
   const hands = (a: Card[], b: Card[]): Card[][] => [a, b, [], []];
 
   it('zählt die höchsten Trümpfe in ununterbrochener Folge bei einer Partei', () => {
@@ -223,5 +223,67 @@ describe('Laufende', () => {
       }),
     );
     expect(r).toMatchObject({ laufende: 2, value: 70 });
+  });
+});
+
+describe('Abrechnung in Stufen', () => {
+  const won = () =>
+    finished({ contract: SAUSPIEL, declarer: 0, partner: 2, partyPoints: 61, partyTricks: 4 });
+
+  it('Stufe 1 nennt Gewinner, Verlierer und die Bestandteile des Spielwerts', () => {
+    const outcome = scoreHand(
+      finished({ contract: SOLO, declarer: 1, partyPoints: 100, partyTricks: 6 }),
+    ).outcome!;
+    expect(outcome).toMatchObject({ winners: [1], losers: [0, 2, 3], declarerWon: true });
+    expect(outcome.parts).toEqual([
+      { label: 'grundtarif', amount: 50 },
+      { label: 'schneider', amount: 10 },
+    ]);
+    expect(outcome.parts.reduce((sum, p) => sum + p.amount, 0)).toBe(outcome.value);
+  });
+
+  it('Tout und Sie stehen als eigene Bestandteile im Spielwert', () => {
+    const tout = scoreHand(
+      finished({
+        contract: { ...SOLO, tout: true },
+        declarer: 0,
+        partyPoints: 120,
+        partyTricks: 8,
+      }),
+    ).outcome!;
+    expect(tout.parts.map((p) => p.label)).toEqual(['grundtarif', 'tout']);
+    expect(tout.value).toBe(100);
+  });
+
+  it('ohne Pott und Faktor: keine Faktoren, Pott bleibt unverändert', () => {
+    const r = scoreHand(won());
+    expect(r).toMatchObject({ kind: 'played', factors: [], potDelta: 0 });
+  });
+
+  it('Stufe 2: ein Faktor vom Tisch vervielfacht die Zahlungen', () => {
+    const r = scoreHand({ ...won(), carry: { pot: 0, factor: 2 } });
+    expect(r.factors).toEqual([{ reason: 'bock', factor: 2 }]);
+    expect(r.outcome!.value).toBe(10);
+    expect(r.payments).toEqual([20, -20, 20, -20]);
+  });
+
+  it('Stufe 3: gewinnt die Spielerpartei, teilt sie sich den Pott', () => {
+    const r = scoreHand({ ...won(), carry: { pot: 40, factor: 1 } });
+    expect(r.payments).toEqual([30, -10, 30, -10]);
+    expect(r.potDelta).toBe(-40);
+    expect(r.payments.reduce((a, b) => a + b, 0) + r.potDelta).toBe(0);
+  });
+
+  it('Stufe 3: verliert die Spielerpartei, bleibt der Pott liegen', () => {
+    const lost = finished({
+      contract: SAUSPIEL,
+      declarer: 0,
+      partner: 2,
+      partyPoints: 60,
+      partyTricks: 4,
+    });
+    const r = scoreHand({ ...lost, carry: { pot: 40, factor: 1 } });
+    expect(r.payments).toEqual([-10, 10, -10, 10]);
+    expect(r.potDelta).toBe(0);
   });
 });

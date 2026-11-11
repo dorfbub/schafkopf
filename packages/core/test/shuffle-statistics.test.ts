@@ -68,7 +68,7 @@ describe('Mischen ist gleichverteilt', () => {
   );
   const owners = new Map<Card, number[]>(deck.map((c) => [c, new Array(4).fill(0) as number[]]));
   const trumpCounts = [0, 0, 0, 0].map(() => new Array(9).fill(0) as number[]);
-  const order = orderFor({ kind: 'sauspiel', suit: 'eichel' });
+  const order = orderFor({ kind: 'sauspiel', suit: 'eichel' }, 0);
   const topThree = order.trumps.slice(0, 3);
   let topThreeWithOneSeat = 0;
 
