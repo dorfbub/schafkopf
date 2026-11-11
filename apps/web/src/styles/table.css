@@ -998,3 +998,176 @@
     0 0 0 var(--border-thick) var(--color-accent),
     var(--shadow-card);
 }
+
+/* ---------- Bewegung (D3, Haltepunkt 2) ----------
+ * Alle Dauern kommen aus tokens.css und sind bei „Bewegung reduzieren“ 0 ms: Dann steht
+ * alles sofort an seinem Platz, der fertige Stich bleibt trotzdem kurz liegen.
+ *
+ * Richtungen: --von-* (Karte kommt vom Platz ihres Spielers) und --zu-* (Stich wandert zum
+ * Gewinner) sind der Weg von der Tischmitte zum jeweiligen Platz.
+ */
+
+.stich__karte--bottom {
+  --von-x: 0cqw;
+  --von-y: 45cqh;
+}
+
+.stich__karte--left {
+  --von-x: -45cqw;
+  --von-y: 0cqh;
+}
+
+.stich__karte--top {
+  --von-x: 0cqw;
+  --von-y: -45cqh;
+}
+
+.stich__karte--right {
+  --von-x: 45cqw;
+  --von-y: 0cqh;
+}
+
+.stich--zu-bottom {
+  --zu-x: 0cqw;
+  --zu-y: 45cqh;
+}
+
+.stich--zu-left {
+  --zu-x: -45cqw;
+  --zu-y: 0cqh;
+}
+
+.stich--zu-top {
+  --zu-x: 0cqw;
+  --zu-y: -45cqh;
+}
+
+.stich--zu-right {
+  --zu-x: 45cqw;
+  --zu-y: 0cqh;
+}
+
+/* Hochkant sitzen alle drei anderen oben. */
+@container tisch (aspect-ratio < 1) {
+  .stich__karte--left {
+    --von-x: -32cqw;
+    --von-y: -50cqh;
+  }
+
+  .stich__karte--top {
+    --von-y: -55cqh;
+  }
+
+  .stich__karte--right {
+    --von-x: 32cqw;
+    --von-y: -50cqh;
+  }
+
+  .stich--zu-left {
+    --zu-x: -32cqw;
+    --zu-y: -50cqh;
+  }
+
+  .stich--zu-top {
+    --zu-y: -55cqh;
+  }
+
+  .stich--zu-right {
+    --zu-x: 32cqw;
+    --zu-y: -50cqh;
+  }
+}
+
+/* Karte legen: gleitet vom Platz des Spielers in den Stich. */
+@keyframes stich-rein {
+  from {
+    translate: var(--von-x) var(--von-y);
+    opacity: 0;
+  }
+}
+
+.stich__karte {
+  animation: stich-rein var(--duration-slow) var(--ease-out) both;
+}
+
+/* Die stechende Karte hebt sich, solange der Stich liegt. */
+.stich .card {
+  transition:
+    scale var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.stich .card--won {
+  scale: 1.06;
+}
+
+/* Wegräumen: der ganze Stich wandert zum Gewinner und wird dabei kleiner. */
+@keyframes stich-weg {
+  to {
+    translate: var(--zu-x) var(--zu-y);
+    scale: 0.45;
+    opacity: 0;
+  }
+}
+
+.stich--weg .stich__karte {
+  animation: stich-weg var(--duration-sweep) var(--ease-in) forwards;
+}
+
+@keyframes einblenden {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ausblenden {
+  to {
+    opacity: 0;
+  }
+}
+
+.stich__gewinner {
+  animation: einblenden var(--duration-base) var(--ease-out) both;
+}
+
+.stich--weg .stich__gewinner {
+  animation: ausblenden var(--duration-fast) linear forwards;
+}
+
+/* Austeilen: die Karten der neuen Hand kommen nacheinander vom Tisch herunter. */
+@keyframes austeilen {
+  from {
+    translate: 0 calc(var(--hand-card-h) * -0.9);
+    opacity: 0;
+  }
+}
+
+.hand__platz {
+  /* Nach dem Ausspielen rückt der Fächer weich zusammen. */
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    margin var(--duration-base) var(--ease-out);
+  animation: austeilen var(--duration-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--duration-deal-step));
+}
+
+.tisch-platz .player-seat__cards {
+  animation: einblenden var(--duration-slow) var(--ease-out) both;
+}
+
+/* Dialoge erscheinen sanft (nur Deckkraft und Größe – die Lage hängt an `translate`). */
+@keyframes dialog-rein {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+.tisch .dialog {
+  animation: dialog-rein var(--duration-slow) var(--ease-out) both;
+}
+
+/* Sprechblasen der Ansage */
+.tisch-platz .player-seat__bubble {
+  animation: dialog-rein var(--duration-base) var(--ease-out) both;
+}

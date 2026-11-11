@@ -54,7 +54,12 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
       <div className="tisch__raum">
         <div className="tisch__platte" aria-hidden="true" />
         <Seats view={view} hand={hand} seats={seats} />
-        <TrickArea trick={shown.trick} completed={shown.completed} seats={seats} />
+        <TrickArea
+          trick={shown.trick}
+          completed={shown.completed}
+          sweeping={shown.sweeping}
+          seats={seats}
+        />
         {hand.phase === 'bidding' && myTurn && (
           <BidDialog key={view.handNo} view={view} hand={hand} seats={seats} onBid={onBid} />
         )}

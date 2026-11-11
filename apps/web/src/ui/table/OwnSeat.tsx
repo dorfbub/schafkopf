@@ -75,7 +75,7 @@ export function OwnSeat({ view, hand, seats, onPlay }: Props) {
               <span
                 key={card}
                 className="hand__platz"
-                style={{ '--d': i - (n - 1) / 2 } as CSSProperties}
+                style={{ '--d': i - (n - 1) / 2, '--i': i } as CSSProperties}
               >
                 <CardView
                   card={card}

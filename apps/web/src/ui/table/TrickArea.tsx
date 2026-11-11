@@ -7,13 +7,21 @@ interface Props {
   trick: Trick;
   /** Gesetzt, solange der fertige Stich noch liegen bleibt. */
   completed: CompletedTrick | null;
+  /** Der fertige Stich wandert gerade zum Gewinner. */
+  sweeping: boolean;
   seats: SeatInfo;
 }
 
 /** Der Stich in der Tischmitte; jede Karte liegt vor dem Spieler, der sie gelegt hat. */
-export function TrickArea({ trick, completed, seats }: Props) {
+export function TrickArea({ trick, completed, sweeping, seats }: Props) {
+  const classes = [
+    'stich',
+    sweeping && completed && `stich--weg stich--zu-${seats.position(completed.winner)}`,
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
-    <div className="stich" role="group" aria-label={TABLE_TEXT.trick}>
+    <div className={classes} role="group" aria-label={TABLE_TEXT.trick}>
       {trick.cards.map((card, i) => {
         const seat = (trick.leader + i) % seats.players;
         const won = completed !== null && completed.winner === seat;
