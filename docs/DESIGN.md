@@ -254,7 +254,7 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 ### Aufbau
 
 - **Leiste:** Spielnummer und Stich („Stich 4 von 8“), was gespielt wird („Xaver spielt Sauspiel
-  auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Letzter Stich“ und „Verlassen“.
+  auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Regeln“ und „Verlassen“.
 - **Plätze der anderen** (`PlayerSeat`): am Zug = Messingschein + Marke „am Zug“, Geber = „G“ am
   Bild, Spielschild bzw. Marke „Mitspieler“ (siehe unten), sobald bekannt; Stiche und Kontostand (Minus in
   Minusfarbe); in der Ansage das Gesagte als Sprechblase („weiter“ kursiv).
@@ -295,7 +295,15 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
   bei 61), Stiche/Schneider/Schwarz/Sie/Laufende als Stichworte, Betrag je Gegenspieler, Tabelle
   Spiel/Stand. Die Aufschlüsselung und der Verlauf folgen mit U4. Erscheint erst, wenn der letzte
   Stich weggeräumt ist.
-- **Letzter Stich:** Dialog mit den vier Karten und Namen; Escape schließt, der Fokus kehrt zurück.
+- **Letzter Stich** (Punkt vom Spielabend: der Knopf oben rechts wurde übersehen; Lukas soll noch
+  bestätigen): liegt als kleiner **Stapel unten rechts auf dem Filz** (`LastTrickPile.tsx`), sobald
+  der erste Stich fertig ist – die vier Karten leicht gefächert (`--trick-card-w` × 0,55), die
+  stechende mit Messingrand, darunter „Letzter Stich“, auf dunkler Fläche (`--color-felt-raised`).
+  Das ganze Feld ist ein Knopf (mind. `--control-height`); Hover und offen = Messingrand. Antippen
+  oder Enter öffnet den Dialog mit den vier Karten und Namen; Escape schließt, der Fokus kehrt auf
+  den Stapel zurück. Während ein fertiger Stich noch in der Mitte liegt, zeigt der Stapel schon
+  diesen (sonst ginge beim Verschwinden der Fokus verloren). Hochkant in der Ecke unten rechts,
+  quer rechts unten am Filzrand. Der Knopf in der Leiste ist weg; im Ergebnis-Dialog bleibt er.
 
 ### Größenstufen
 
@@ -317,9 +325,9 @@ ihn nicht verschiebt. Kein horizontales Scrollen: Die Überlappung der Hand rich
 der Breite (`--hand-avail`).
 
 **Die Tischfläche bleibt im ganzen Spiel gleich groß** (Fehler vom Spielabend: „Tisch springt bei
-letzter Karte“). Deshalb bleibt die Handzeile auch ohne Karten mit ihrer Höhe stehen, und der Knopf
-„Letzter Stich“ ist gesperrt statt weg, solange es nichts zu zeigen gibt (sonst bricht die Leiste
-am Handy anders um). Im niedrigen Fenster steht die Hand rechts neben den eigenen Infos
+letzter Karte“). Deshalb bleibt die Handzeile auch ohne Karten mit ihrer Höhe stehen, „Du bist
+dran“ hält unsichtbar seinen Platz, und die Leiste hat immer dieselben Knöpfe (früher erschien
+„Letzter Stich“ erst ab dem zweiten Stich und die Leiste brach am Handy anders um). Im niedrigen Fenster steht die Hand rechts neben den eigenen Infos
 (`--own-info-width`), damit diese keine Karte verdecken. Abgesichert in `e2e/layout.spec.ts`
 (360×740, 740×360, 1440×900); in der Tischprobe zeigt die Szene `letzter` den achten Stich.
 

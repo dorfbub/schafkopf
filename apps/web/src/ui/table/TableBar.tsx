@@ -7,24 +7,16 @@ interface Props {
   view: TableView;
   hand: HandView;
   seats: SeatInfo;
-  lastTrickOpen: boolean;
-  onLastTrick: (() => void) | null;
   rulesOpen: boolean;
   onRules: () => void;
   onLeave: () => void;
 }
 
-/** Leiste über dem Tisch: Spielnummer, was gespielt wird, letzter Stich, Verlassen. */
-export function TableBar({
-  view,
-  hand,
-  seats,
-  lastTrickOpen,
-  onLastTrick,
-  rulesOpen,
-  onRules,
-  onLeave,
-}: Props) {
+/**
+ * Leiste über dem Tisch: Spielnummer, was gespielt wird, Regeln, Verlassen. Der letzte Stich
+ * liegt seit dem Spielabend als Stapel auf dem Filz (`LastTrickPile`).
+ */
+export function TableBar({ view, hand, seats, rulesOpen, onRules, onLeave }: Props) {
   // Noch nicht gelegte Karten plus die im laufenden Stich ergeben die offenen Stiche.
   const cardsLeft = hand.handSizes.reduce((a, b) => a + b, 0) + hand.currentTrick.cards.length;
   const tricksDone = hand.tricksWon.reduce((a, b) => a + b, 0);
@@ -65,17 +57,6 @@ export function TableBar({
         {status}
       </p>
       <div className="tisch-leiste__knoepfe">
-        {/* Bleibt immer stehen (gesperrt, wenn es nichts zu zeigen gibt), damit die Leiste
-            nicht anders umbricht und der Tisch nicht springt. */}
-        <Button
-          variant="secondary"
-          size="small"
-          aria-expanded={lastTrickOpen}
-          disabled={!onLastTrick}
-          onClick={onLastTrick ?? undefined}
-        >
-          {TABLE_TEXT.lastTrick}
-        </Button>
         <Button variant="secondary" size="small" aria-expanded={rulesOpen} onClick={onRules}>
           {RULES_TEXT.info}
         </Button>

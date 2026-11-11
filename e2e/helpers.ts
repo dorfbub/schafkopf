@@ -40,6 +40,15 @@ export async function guestJoins(page: Page, link: string, name: string): Promis
   await expect(page.getByRole('heading', { name: /^Tisch / })).toBeVisible();
 }
 
+/** Allein gegen Bots: Tisch eröffnen und das erste Spiel starten. */
+export async function startSolo(page: Page, name = 'Hanni'): Promise<void> {
+  await openStart(page);
+  await page.getByLabel('Dein Name').fill(name);
+  await page.getByRole('button', { name: 'Allein gegen Bots' }).click();
+  await page.getByRole('button', { name: 'Spiel starten' }).click();
+  await expect(page.getByRole('group', { name: 'Deine Karten' })).toBeVisible();
+}
+
 /** Zwei Tabs im selben Browser (nur dort sprechen sie über BroadcastChannel). */
 export async function newTisch(context: BrowserContext): Promise<Tisch> {
   return { host: await context.newPage(), guest: await context.newPage() };

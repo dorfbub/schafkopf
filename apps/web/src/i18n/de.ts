@@ -167,6 +167,8 @@ export const TABLE_TEXT = {
   brand: 'Schafkopf',
   leave: 'Verlassen',
   lastTrick: 'Letzter Stich',
+  lastTrickPileLabel: (name: string, points: number) =>
+    `Letzter Stich: ${name} hat gestochen, ${points} Augen. Groß zeigen`,
   close: 'Schließen',
   handNo: (n: number) => `Spiel ${n}`,
   trickNo: (n: number, of: number) => `Stich ${n} von ${of}`,

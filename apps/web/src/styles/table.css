@@ -1011,6 +1011,86 @@
     var(--shadow-card);
 }
 
+/* ---------- Letzter Stich als Stapel auf dem Filz ---------- */
+
+.stapel {
+  --stapel-card-w: calc(var(--trick-card-w) * 0.55);
+  position: absolute;
+  right: 11%;
+  bottom: 7%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: var(--control-height);
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-2) var(--space-1);
+  border: var(--border-thin) solid var(--color-felt-line);
+  border-radius: var(--radius-md);
+  background: var(--color-felt-raised);
+  color: var(--color-on-felt-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  animation: einblenden var(--duration-slow) var(--ease-out) both;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.stapel:hover,
+.stapel[aria-expanded='true'] {
+  border-color: var(--color-brass);
+  color: var(--color-on-felt);
+}
+
+.stapel__karten {
+  display: flex;
+  padding-inline: calc(var(--stapel-card-w) * 0.1);
+}
+
+.stapel__karte {
+  transform: rotate(calc((var(--i) - 1.5) * var(--trick-tilt)));
+}
+
+.stapel__karte + .stapel__karte {
+  margin-left: calc(var(--stapel-card-w) * -0.62);
+}
+
+.stapel .card {
+  --card-w: var(--stapel-card-w);
+  box-shadow: var(--shadow-card);
+}
+
+.stapel .card--won {
+  box-shadow:
+    0 0 0 var(--border-medium) var(--color-brass),
+    var(--shadow-card);
+}
+
+.stapel__text {
+  white-space: nowrap;
+}
+
+/* Hochkant: unten rechts in der Ecke, der Stich liegt tiefer in der Mitte. */
+@container tisch (aspect-ratio < 1) {
+  .stapel {
+    right: var(--space-3);
+    bottom: var(--space-3);
+  }
+}
+
+/* Niedrig (Handy quer): rechts unten neben dem Filzrand, Karten etwas kleiner. */
+@container tisch (max-height: 18rem) {
+  .stapel {
+    --stapel-card-w: calc(var(--trick-card-w) * 0.5);
+    right: var(--space-2);
+    bottom: var(--space-1);
+  }
+}
+
 /* ---------- Bewegung (D3, Haltepunkt 2) ----------
  * Alle Dauern kommen aus tokens.css und sind bei „Bewegung reduzieren“ 0 ms: Dann steht
  * alles sofort an seinem Platz, der fertige Stich bleibt trotzdem kurz liegen.

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { act, openStart } from './helpers';
+import { act, startSolo } from './helpers';
 
 /**
  * Fehler vom Spielabend: Beim Legen der letzten Karte änderte der Tisch seine Größe, weil die
@@ -17,11 +17,7 @@ for (const size of SIZES) {
     page,
   }) => {
     await page.setViewportSize(size);
-    await openStart(page);
-    await page.getByLabel('Dein Name').fill('Hanni');
-    await page.getByRole('button', { name: 'Allein gegen Bots' }).click();
-    await page.getByRole('button', { name: 'Spiel starten' }).click();
-    await expect(page.getByRole('group', { name: 'Deine Karten' })).toBeVisible();
+    await startSolo(page);
 
     // Bei jedem Bild die Größe der Tischfläche und die Zahl der eigenen Karten mitschreiben.
     await page.evaluate(() => {
@@ -72,3 +68,30 @@ for (const size of SIZES) {
     expect([...sizes], JSON.stringify(samples)).toHaveLength(1);
   });
 }
+
+test('Der letzte Stich liegt als Stapel auf dem Tisch und öffnet sich per Tastatur', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await startSolo(page);
+  const pile = page.getByRole('button', { name: /^Letzter Stich: .* hat gestochen/ });
+  // Spielen, bis ein Stich weggeräumt ist; dann warten, bis man selbst dran ist (der Tisch ruht).
+  const myTurn = page.getByText('Du bist dran');
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    const next = page.getByRole('button', { name: 'Nächstes Spiel' });
+    if (await next.isVisible()) await next.click();
+    else if (await pile.isVisible()) {
+      if (await myTurn.isVisible()) break;
+      await page.waitForTimeout(30);
+    } else if (!(await act(page))) await page.waitForTimeout(30);
+  }
+  await pile.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog', { name: 'Letzter Stich' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('img')).toHaveCount(4);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(pile).toBeFocused();
+});

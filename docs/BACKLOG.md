@@ -13,7 +13,6 @@ Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 | Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
 | Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
 | Mischen wie am echten Tisch | klein                     | –                                    |
-| Letzten Stich besser zeigen | klein                     | Wo soll er hin?                      |
 | Spielverlauf nach dem Spiel | mittel                    | –                                    |
 
 ---
@@ -92,17 +91,6 @@ Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
 Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche teilweise zusammenbleiben. Das
 ist bewusst nicht zufällig und wäre eine eigene Tischregel (`RuleSet`). Das faire, zufällige
 Mischen ist beschrieben in `docs/ARCHITEKTUR.md`, „Mischen“.
-
-## Letzten Stich besser zeigen
-
-Lukas (Spielabend): Man sollte den letzten Stich sehen können.
-
-- **Gibt es schon, wird aber nicht gefunden:** Seit D3 steht oben rechts in der Tischleiste ein
-  kleiner Knopf „Letzter Stich“ (ab dem zweiten Stich, `TableBar.tsx`, `LastTrickDialog.tsx`).
-  Er ist offenbar zu unauffällig, vor allem am Handy.
-- **Idee:** den letzten Stich dauerhaft klein neben der Tischmitte zeigen oder per Tippen auf den
-  Stapel des Gewinners aufklappen. Gestaltung mit Lukas abstimmen (Stil aus `docs/DESIGN.md`).
-- Passt als kleines Paket in die Oberfläche; ggf. mit dem Spielverlauf zusammen.
 
 ## Spielverlauf nach dem Spiel
 
