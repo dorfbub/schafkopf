@@ -104,6 +104,29 @@ describe('Spielprotokoll im Netz', () => {
     expect(JSON.stringify(history)).not.toMatch(/"[EGHS]-?[AKOUXZ789]/);
   });
 
+  it('Nach Spielende schickt der Host allen die Stiche, während des Spiels nie', () => {
+    const { host, join, advance } = setup();
+    const anna = join('Anna');
+    host.start();
+    for (let game = 1; game <= 5; game++) {
+      for (let step = 0; step < 400 && host.getTable().hand!.phase !== 'finished'; step++) {
+        const hand = host.getTable().hand!;
+        if (hand.turn === 0) {
+          const v = anna.getSnapshot().view!.hand!;
+          if (v.phase === 'bidding') anna.bid(v.legalCalls.at(-1)!);
+          else anna.play(v.legalCards[0]!);
+        } else advance(DEFAULT_STAND_IN_DELAY_MS + BOT_DELAY);
+        if (host.getTable().hand!.phase !== 'finished')
+          expect(anna.getSnapshot().view!.hand!.tricks).toBeNull();
+      }
+      const tricks = anna.getSnapshot().view!.hand!.tricks;
+      expect(tricks).toEqual(host.getTable().hand!.tricks);
+      if (host.getTable().hand!.contract) expect(tricks).toHaveLength(8);
+      host.nextHand();
+      expect(anna.getSnapshot().view!.hand!.tricks).toBeNull();
+    }
+  });
+
   it('Speicherstand mit Protokollen lässt sich laden', () => {
     const { host, join, advance } = setup();
     const anna = join('Anna');

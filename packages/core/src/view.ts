@@ -42,6 +42,11 @@ export interface HandView {
   partner: Seat | null;
   currentTrick: Trick;
   lastTrick: CompletedTrick | null;
+  /**
+   * Alle Stiche des Spiels in Reihenfolge (Ausspieler, Karten, Gewinner, Augen) – erst nach
+   * Spielende, vorher `null`. Für den Spielverlauf im Ergebnis-Dialog.
+   */
+  tricks: CompletedTrick[] | null;
   /** Anzahl gewonnener Stiche je Sitz. */
   tricksWon: number[];
   /** Nur gefüllt, wenn man selbst an der Reihe ist. */
@@ -100,6 +105,7 @@ export function handViewFor(state: HandState, viewer: Seat | null): HandView {
     partner: partnerVisible(state, viewer) ? state.partner : null,
     currentTrick: state.currentTrick,
     lastTrick: state.tricks.at(-1) ?? null,
+    tricks: state.phase === 'finished' ? state.tricks : null,
     tricksWon: Array.from(
       { length: players },
       (_, seat) => state.tricks.filter((t) => t.winner === seat).length,

@@ -6,17 +6,17 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
-| Thema                                   | Größe                     | Klären                               |
-| --------------------------------------- | ------------------------- | ------------------------------------ |
-| Mehrere Kartensets                      | mittel                    | Welche Sets zuerst; Lizenzen         |
-| Watten                                  | groß                      | Variante(n); integrieren oder forken |
-| Android-App                             | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Weitere Hausregeln                      | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Mischen wie am echten Tisch             | klein                     | –                                    |
-| Letzten Stich besser zeigen             | klein                     | Wo soll er hin?                      |
-| Spielverlauf nach dem Spiel             | mittel                    | –                                    |
-| Fehler: Tisch springt bei letzter Karte | klein                     | –                                    |
-| Wer spielt was – besser sichtbar        | klein bis mittel          | Gestaltung mit Lukas                 |
+Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „Wer spielt was“,
+„Letzten Stich besser zeigen“, „Spielverlauf nach dem Spiel“ – beschrieben in
+[DESIGN.md](DESIGN.md), Abschnitt „Spieltisch“.
+
+| Thema                       | Größe                     | Klären                               |
+| --------------------------- | ------------------------- | ------------------------------------ |
+| Mehrere Kartensets          | mittel                    | Welche Sets zuerst; Lizenzen         |
+| Watten                      | groß                      | Variante(n); integrieren oder forken |
+| Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
+| Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
+| Mischen wie am echten Tisch | klein                     | –                                    |
 
 ---
 
@@ -94,56 +94,3 @@ Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
 Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche teilweise zusammenbleiben. Das
 ist bewusst nicht zufällig und wäre eine eigene Tischregel (`RuleSet`). Das faire, zufällige
 Mischen ist beschrieben in `docs/ARCHITEKTUR.md`, „Mischen“.
-
-## Letzten Stich besser zeigen
-
-Lukas (Spielabend): Man sollte den letzten Stich sehen können.
-
-- **Gibt es schon, wird aber nicht gefunden:** Seit D3 steht oben rechts in der Tischleiste ein
-  kleiner Knopf „Letzter Stich“ (ab dem zweiten Stich, `TableBar.tsx`, `LastTrickDialog.tsx`).
-  Er ist offenbar zu unauffällig, vor allem am Handy.
-- **Idee:** den letzten Stich dauerhaft klein neben der Tischmitte zeigen oder per Tippen auf den
-  Stapel des Gewinners aufklappen. Gestaltung mit Lukas abstimmen (Stil aus `docs/DESIGN.md`).
-- Passt als kleines Paket in die Oberfläche; ggf. mit dem Spielverlauf zusammen.
-
-## Spielverlauf nach dem Spiel
-
-Lukas: Am Ende eines Spiels sehen, wie gespielt wurde – wer in welchem Stich welche Karte gelegt
-hat und welche Karte den Stich gemacht hat.
-
-- **Daten sind da:** Das Spielprotokoll (K7, `packages/core/src/log.ts`) hält jedes Spiel fest und
-  kann es mit `replay` nachspielen. Nach Spielende dürfen alle Karten gezeigt werden.
-- **Fehlt:** Die Sicht der Mitspieler enthält bisher nur eine Zusammenfassung je Spiel. Nach
-  Spielende müsste der Host die Stiche (Ausspieler, Karten, Gewinner) mitschicken – nie während
-  des Spiels.
-- **Anzeige:** im Ergebnis-Dialog aufklappbar „So wurde gespielt“: acht Zeilen, je Stich die vier
-  Karten in Spielreihenfolge, die stechende Karte hervorgehoben. Gehört zu U4 (Abrechnung und
-  Verlauf) oder als eigenes Paket direkt danach; nach K3a, weil K3a das Ergebnis umbaut.
-
-## Fehler: Tisch springt bei letzter Karte
-
-Lukas: Wenn man die letzte Karte spielt, ändert der Tisch seine Größe.
-
-- **Vermutung (nicht geprüft):** Mit der leeren Hand fällt die Höhe der eigenen Kartenreihe weg,
-  und der Tisch darüber wächst nach. Abhilfe wäre eine feste Mindesthöhe für die Handzeile
-  (`apps/web/src/styles/table.css`, `ui/table/`).
-- **Prüfen:** in der Tischprobe (`#tisch?szene=…`) den letzten Stich bei 360×740, 740×360 und
-  1440×900; als E2E- oder Layout-Test absichern, dass sich die Tischfläche zwischen siebtem und
-  achtem Stich nicht ändert.
-- Klein genug, um es nebenbei zu beheben.
-
-## Wer spielt was – besser sichtbar
-
-Lukas: Man sollte einfacher sehen, wer spielt und was. Die Zeile oben in der Tischleiste ist sehr
-klein und nur Text.
-
-- **Heute:** Spielart und Spieler stehen als Text in der Tischleiste (`TableBar.tsx`,
-  `tisch-leiste__status`); am Spielerplatz gibt es zusätzlich die Marken „Spieler“ und
-  „Mitspieler“ (sobald bekannt).
-- **Ideen:** ein deutliches Schild in der Tischmitte bzw. am Platz des Spielers mit dem
-  Spiel-Symbol (z. B. Farbzeichen der Rufsau oder Trumpffarbe, „Wenz“, „Geier“) und dem Namen;
-  Spieler-Platz farbig hervorgehoben; bei Tout/Sonderspielen eigene Kennzeichnung. Muss mit den
-  kommenden Sonderspielen (K3–K5, H1–H3) mitwachsen, etwa Ramsch ohne Spieler oder die Hochzeit.
-- **Vorgehen:** Gestaltungspaket mit Lukas im Dialog (Haltepunkt mit Bildschirmfotos), gut
-  zusammen mit „Letzten Stich besser zeigen“; nach K3a, damit die neuen Ergebnis- und
-  Spielarten-Strukturen schon stehen.

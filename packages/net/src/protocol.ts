@@ -15,7 +15,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 /** 8: Stock (K3c): `tariff.stock`, `allPassed: 'stock'`, Pott in `TableView.pot` gefüllt. */
 /** 9: Muss (K3d): `Auction.forced` in der Sicht, `allPassed: 'muss'`. */
 /** 10: Kontra und Re (K4): Aktion `double`, `HandView.doubling`/`canDouble`, `RuleSet.kontra`. */
-export const PROTOCOL_VERSION = 10;
+/** 11: Spielverlauf: `HandView.tricks` mit allen Stichen, erst nach Spielende. */
+export const PROTOCOL_VERSION = 11;
 
 export type ClientMessage =
   | {

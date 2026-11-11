@@ -183,6 +183,8 @@ export const TABLE_TEXT = {
   brand: 'Schafkopf',
   leave: 'Verlassen',
   lastTrick: 'Letzter Stich',
+  lastTrickPileLabel: (name: string, points: number) =>
+    `Letzter Stich: ${name} hat gestochen, ${points} Augen. Groß zeigen`,
   close: 'Schließen',
   handNo: (n: number) => `Spiel ${n}`,
   trickNo: (n: number, of: number) => `Stich ${n} von ${of}`,
@@ -199,7 +201,7 @@ export const TABLE_TEXT = {
   waitingFor: (name: string) => `${name} ist dran`,
   tricks: (n: number) => (n === 1 ? '1 Stich' : `${n} Stiche`),
   cards: (n: number) => (n === 1 ? '1 Karte' : `${n} Karten`),
-  markDeclarer: 'Spieler',
+  signLabel: (label: string) => `spielt ${label}`,
   markPartner: 'Mitspieler',
   pass: 'weiter',
   thinking: '…',
@@ -283,6 +285,9 @@ export const TABLE_TEXT = {
   colHand: 'Spiel',
   colBalance: 'Stand',
   nextHand: 'Nächstes Spiel',
+  historyTitle: 'So wurde gespielt',
+  historyTrick: (n: number, leader: string, winner: string, points: number) =>
+    `Stich ${n}: ${leader} spielt aus, ${winner} sticht, ${points} Augen`,
   hostDeals: 'Der Gastgeber gibt das nächste Spiel.',
   // Ansagen für Bildschirmleser
   announceTurn: 'Du bist dran.',

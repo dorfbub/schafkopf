@@ -72,11 +72,12 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
   const myTurn = hand.turn === me && hand.phase !== 'finished';
   const cards = sortHand(hand.hand, hand.contract, tricksPlayed(hand));
   const n = cards.length;
-  const turnText =
-    myTurn && (hand.phase === 'bidding' ? TABLE_TEXT.yourTurnBid : TABLE_TEXT.yourTurnPlay);
+  const turnText = hand.phase === 'bidding' ? TABLE_TEXT.yourTurnBid : TABLE_TEXT.yourTurnPlay;
 
   return (
-    <footer className={`eigen${myTurn ? ' eigen--dran' : ''}${n === 0 ? ' eigen--ohne-hand' : ''}`}>
+    <footer
+      className={`eigen${myTurn ? ' eigen--dran' : ''}${inParty(hand, me) ? ' eigen--partei' : ''}`}
+    >
       <div className="eigen__info">
         <span className="eigen__avatar" aria-hidden="true">
           {seats.nameOf(me).slice(0, 1).toUpperCase()}
@@ -93,7 +94,9 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
         </span>
         {inParty(hand, me) && <PartyMarks hand={hand} seat={me} />}
         {hasDoubled(hand, me) && <DoublingMarks hand={hand} seat={me} />}
-        {turnText && <strong className="eigen__dran">{turnText}</strong>}
+        {/* Steht immer da (unsichtbar, wenn andere dran sind), damit die Zeile gleich umbricht
+            und der Tisch nicht springt. */}
+        <strong className={`eigen__dran${myTurn ? '' : ' eigen__dran--aus'}`}>{turnText}</strong>
         {hand.canDouble && (
           <DoubleButton
             key={`${view.handNo}-${hand.doubling.kontra}`}
@@ -102,33 +105,36 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
           />
         )}
       </div>
-      {n > 0 && (
-        <div
-          className="hand"
-          role="group"
-          aria-label={TABLE_TEXT.hand}
-          style={{ '--n': n } as CSSProperties}
-          onKeyDown={moveFocus}
-        >
-          {cards.map((card, i) => {
-            const legal = hand.legalCards.includes(card);
-            const locked = hand.phase === 'playing' && myTurn && !legal;
-            return (
-              <span
-                key={card}
-                className="hand__platz"
-                style={{ '--d': i - (n - 1) / 2, '--i': i } as CSSProperties}
-              >
-                <CardView
-                  card={card}
-                  state={locked ? 'locked' : undefined}
-                  onPlay={legal ? () => onPlay(card) : undefined}
-                />
-              </span>
-            );
-          })}
-        </div>
-      )}
+      {/*
+       * Die Handzeile bleibt auch ohne Karten stehen und behält ihre Höhe – sonst wächst der
+       * Tisch beim Legen der letzten Karte nach (Fehler vom Spielabend).
+       */}
+      <div
+        className="hand"
+        role="group"
+        aria-label={TABLE_TEXT.hand}
+        aria-hidden={n === 0 || undefined}
+        style={{ '--n': Math.max(n, 1) } as CSSProperties}
+        onKeyDown={moveFocus}
+      >
+        {cards.map((card, i) => {
+          const legal = hand.legalCards.includes(card);
+          const locked = hand.phase === 'playing' && myTurn && !legal;
+          return (
+            <span
+              key={card}
+              className="hand__platz"
+              style={{ '--d': i - (n - 1) / 2, '--i': i } as CSSProperties}
+            >
+              <CardView
+                card={card}
+                state={locked ? 'locked' : undefined}
+                onPlay={legal ? () => onPlay(card) : undefined}
+              />
+            </span>
+          );
+        })}
+      </div>
     </footer>
   );
 }

@@ -147,6 +147,48 @@ describe('Spielprotokoll', () => {
     }
   });
 
+  it('Spielverlauf: die Stiche gehen erst nach Spielende an alle, vorher nie', () => {
+    let table = seated();
+    for (let n = 1; n <= 20; n++) {
+      const started = startHand(table, n + 100);
+      if (!started.ok) throw new Error(started.error);
+      table = started.table;
+      const rng = createRng(n);
+      while (table.hand!.phase !== 'finished') {
+        const hand = table.hand!;
+        // Ältere Stiche als der letzte stehen während des Spiels in keiner Sicht.
+        const older = hand.tricks.slice(0, -1).flatMap((t) => t.cards);
+        for (const viewer of [0, 1, 2, 3, null]) {
+          const view = tableViewFor(table, viewer).hand!;
+          expect(view.tricks).toBeNull();
+          const json = JSON.stringify(view);
+          for (const c of older) expect(json).not.toContain(`"${c}"`);
+        }
+        const seat = hand.turn;
+        const action: Action =
+          hand.phase === 'bidding'
+            ? { type: 'bid', seat, call: pick(legalCalls(hand, seat), rng) }
+            : { type: 'play', seat, card: pick(legalCards(hand, seat), rng) };
+        const r = applyTableAction(table, action);
+        if (!r.ok) throw new Error(r.error);
+        table = r.table;
+      }
+      const hand = table.hand!;
+      for (const viewer of [0, 1, 2, 3, null]) {
+        const tricks = tableViewFor(table, viewer).hand!.tricks;
+        expect(tricks).toEqual(hand.tricks);
+        // Zusammengeworfen: keine Stiche; sonst acht mit je vier Karten und Gewinner.
+        if (hand.contract) {
+          expect(tricks).toHaveLength(8);
+          for (const t of tricks!) {
+            expect(t.cards).toHaveLength(4);
+            expect(t.points).toBeGreaterThanOrEqual(0);
+          }
+        }
+      }
+    }
+  });
+
   it('Speichergröße für 50 Spiele (Richtwert)', () => {
     let table = seated();
     for (let n = 1; n <= 50; n++) {

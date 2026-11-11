@@ -289,6 +289,12 @@
   margin-left: calc(var(--card-w-mini) * -0.55);
 }
 
+/* Partei des Spielers: helles Bild (Papier), damit man auf einen Blick sieht, wer zusammen spielt. */
+.player-seat--party .player-seat__avatar {
+  background: var(--color-paper);
+  color: var(--color-on-paper);
+}
+
 .player-seat--turn .player-seat__avatar {
   box-shadow: var(--shadow-turn);
 }

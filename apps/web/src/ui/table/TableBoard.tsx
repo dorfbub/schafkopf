@@ -5,6 +5,7 @@ import { TABLE_TEXT } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
 import { BidDialog } from './BidDialog';
 import { LastTrickDialog } from './LastTrickDialog';
+import { LastTrickPile } from './LastTrickPile';
 import { seatInfo } from './layout';
 import { OwnSeat } from './OwnSeat';
 import { ResultDialog } from './ResultDialog';
@@ -78,8 +79,6 @@ export function TableBoard({
         view={view}
         hand={hand}
         seats={seats}
-        lastTrickOpen={lastOpen}
-        onLastTrick={toggleLast}
         rulesOpen={rulesOpen}
         onRules={() => setRulesOpen((open) => !open)}
         onLeave={onLeave}
@@ -93,6 +92,16 @@ export function TableBoard({
           sweeping={shown.sweeping}
           seats={seats}
         />
+        {/* Bleibt auch liegen, während der fertige Stich noch in der Mitte liegt – sonst ginge
+            der Fokus verloren, wenn man gerade auf dem Stapel steht. */}
+        {hand.lastTrick && (
+          <LastTrickPile
+            trick={hand.lastTrick}
+            seats={seats}
+            open={lastOpen}
+            onToggle={() => setLastOpen((open) => !open)}
+          />
+        )}
         {hand.phase === 'bidding' && myTurn && (
           <BidDialog
             key={`${view.handNo}-${hand.bids.length}`}

@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
-const PORT = 4180;
+/** Eigener Port per `E2E_PORT`, falls mehrere Arbeitskopien gleichzeitig testen. */
+const PORT = Number(process.env.E2E_PORT ?? 4180);
 
 /**
  * Ende-zu-Ende-Tests (Paket I2). Gebaut wird die App mit `VITE_E2E=1`; nur dieser Build

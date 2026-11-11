@@ -21,7 +21,8 @@ import { TableBoard } from '../ui/table/TableBoard';
  *
  * Szenen: ansage („Ich würde“/„weiter“), zweikampf (du forderst Xaver), halten (Resi fordert
  * dich), nennen (du nennst dein Spiel, mindestens Wenz), warten (andere sagen an), stich
- * (laufender Stich, du bist dran), ergebnis (Spiel beendet), zuschauer. Mit `&auto=1` spielen
+ * (laufender Stich, du bist dran), letzter (achter Stich, du legst die letzte Karte), ergebnis
+ * (Spiel beendet), wenz (du spielst einen Wenz), tout (Resi spielt ein Solo Tout), zuschauer. Mit `&auto=1` spielen
  * die anderen weiter.
  * Beispielnamen stehen deshalb hier und nicht in i18n/de.ts.
  */
@@ -35,13 +36,19 @@ function pick<T>(options: T[], step: number): T {
 }
 
 /** Wer in der Ansage was sagt, je Szene. Ohne Eintrag: „weiter“ bzw. aufgeben. */
-type Script = Partial<Record<Seat, { interest?: boolean; name?: BidLevel; hold?: boolean }>>;
+type Script = Partial<
+  Record<Seat, { interest?: boolean; name?: BidLevel; hold?: boolean; tout?: boolean }>
+>;
 
 const SCRIPTS: Record<string, Script> = {
   // Xaver will immer ein Sauspiel spielen und hält es.
   default: { 2: { interest: true, hold: true } },
   zweikampf: { 2: { interest: true, hold: true }, [ME]: { interest: true } },
   nennen: { 2: { interest: true }, [ME]: { interest: true, name: { kind: 'wenz' } } },
+  // Du spielst einen Wenz.
+  wenz: { [ME]: { interest: true, name: { kind: 'wenz' } } },
+  // Resi spielt ein Solo Tout.
+  tout: { 1: { interest: true, name: { kind: 'solo' }, tout: true } },
   halten: {
     2: { interest: true },
     [ME]: { interest: true, name: { kind: 'wenz' } },
@@ -72,8 +79,8 @@ function bidCall(table: TableState, seat: Seat, script: Script): BidCall {
       return want(
         (c) =>
           c.type === 'declare' &&
-          c.contract.kind === (hand.auction.level?.kind ?? 'sauspiel') &&
-          !c.contract.tout,
+          c.contract.kind === (hand.auction.level?.kind ?? plan.name?.kind ?? 'sauspiel') &&
+          !!c.contract.tout === !!plan.tout,
       );
   }
 }
@@ -141,6 +148,19 @@ function scene(name: string): TableState {
       );
     case 'ergebnis':
       return advance(table, (t) => t.hand!.phase === 'finished');
+    case 'letzter':
+      // Achter Stich, du hast nur noch eine Karte und bist dran.
+      return advance(
+        table,
+        (t) => t.hand!.phase === 'playing' && done(t) >= 7 && t.hand!.turn === ME,
+      );
+    case 'wenz':
+    case 'tout':
+      return advance(
+        table,
+        (t) => t.hand!.phase === 'playing' && done(t) >= 2 && t.hand!.turn === ME,
+        SCRIPTS[name],
+      );
     case 'zuschauer':
     case 'stich':
     default:

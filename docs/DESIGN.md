@@ -193,7 +193,7 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 | Dialog       | `<Dialog>` / `.dialog`                     | mittig auf dem Tisch oder im Fluss; nicht modal, die Hand bleibt bedienbar                                                |
 | Spielerplatz | `<PlayerSeat>` / `.player-seat`            | normal, am Zug (Messing-Schein + Marke), Geber („G“ am Bild), getrennt (gestrichelt + Marke), dazu Marken und Sprechblase |
 | Karte        | `<CardView>`, `<CardBack>` / `.card`       | offen, verdeckt, spielbar (Messingrand, hebt sich), gesperrt (abgedunkelt), sticht (heller Rand)                          |
-| Marke        | `.marke`, `--brass`, `--paper`, `--kontra` | kleines Schild: „am Zug“, „Spieler“, „Mitspieler“, „getrennt“; „Kontra“/„Re“ in Akzentfarbe mit hellem Rand               |
+| Marke        | `.marke`, `--brass`, `--paper`, `--kontra` | kleines Schild: „am Zug“, „Mitspieler“, „getrennt“, „Tout“; „Kontra“/„Re“ in Akzentfarbe mit hellem Rand                  |
 
 Karten laufen über die Schnittstelle `CardTheme`. **Einziges Kartenbild ist das bayerische Blatt**
 (`bayerischTheme` in `ui/cardTheme.tsx`), auch in der App selbst; das frühere schlichte Text-Kartenbild
@@ -235,27 +235,51 @@ Der Tisch nach der Richtung „Kartentisch“, gebaut mit den Bausteinen und Var
 
 ### Dateien
 
-| Datei                                      | Inhalt                                                                                      |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `apps/web/src/ui/Table.tsx`                | verbindet den Tisch mit `ClientSession`/`HostSession`                                       |
-| `apps/web/src/ui/table/TableBoard.tsx`     | der Tisch; arbeitet nur auf `TableView`, Aktionen über Rückrufe                             |
-| `apps/web/src/ui/table/*`                  | `TableBar`, `Seats`, `TrickArea`, `OwnSeat`, `BidDialog`, `ResultDialog`, `LastTrickDialog` |
-| `apps/web/src/ui/table/useTrickDisplay.ts` | hält den fertigen Stich fest und steuert das Wegräumen                                      |
-| `apps/web/src/styles/table.css`            | Layout, Größenstufen und Bewegung des Tischs                                                |
-| `apps/web/src/muster/Tischprobe.tsx`       | Tischprobe mit festen Spielständen, nur im Entwicklungsserver (siehe unten)                 |
+| Datei                                      | Inhalt                                                                                                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/src/ui/Table.tsx`                | verbindet den Tisch mit `ClientSession`/`HostSession`                                                                                                       |
+| `apps/web/src/ui/table/TableBoard.tsx`     | der Tisch; arbeitet nur auf `TableView`, Aktionen über Rückrufe                                                                                             |
+| `apps/web/src/ui/table/*`                  | `TableBar`, `Seats`, `TrickArea`, `OwnSeat`, `BidDialog`, `ResultDialog`, `LastTrickDialog`; seit dem Spielabend `GameSign`, `LastTrickPile`, `GameHistory` |
+| `apps/web/src/ui/table/useTrickDisplay.ts` | hält den fertigen Stich fest und steuert das Wegräumen                                                                                                      |
+| `apps/web/src/styles/table.css`            | Layout, Größenstufen und Bewegung des Tischs                                                                                                                |
+| `apps/web/src/muster/Tischprobe.tsx`       | Tischprobe mit festen Spielständen, nur im Entwicklungsserver (siehe unten)                                                                                 |
 
 **Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` („Ich würde“/„weiter“),
 `zweikampf` (du forderst), `halten` (du wirst gefordert), `nennen` (Spiel nennen), `warten`,
-`stich` (laufender Stich, du bist dran), `ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
+`wenz` (du spielst einen Wenz), `tout` (Resi spielt ein Solo Tout),
+`stich` (laufender Stich, du bist dran), `letzter` (achter Stich, du legst die letzte Karte),
+`ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
 weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
 ### Aufbau
 
 - **Leiste:** Spielnummer und Stich („Stich 4 von 8“), was gespielt wird („Xaver spielt Sauspiel
-  auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Letzter Stich“ und „Verlassen“.
+  auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Regeln“ und „Verlassen“.
 - **Plätze der anderen** (`PlayerSeat`): am Zug = Messingschein + Marke „am Zug“, Geber = „G“ am
-  Bild, Marken „Spieler“/„Mitspieler“ (Papier), sobald bekannt; Stiche und Kontostand (Minus in
+  Bild, Spielschild bzw. Marke „Mitspieler“ (siehe unten), sobald bekannt; Stiche und Kontostand (Minus in
   Minusfarbe); in der Ansage das Gesagte als Sprechblase („weiter“ kursiv).
+- **Punkte vom Spielabend** (umgesetzt am 11.11.2026, Bilder aus der Tischprobe):
+
+  | Schild und Stapel, Desktop                                                        | hochkant                                                                               | quer                                                                                  |
+  | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+  | ![Schild und Stapel, Desktop](bilder/tisch/spielabend-schild-stapel-desktop.webp) | ![Schild und Stapel, hochkant](bilder/tisch/spielabend-schild-stapel-hochkant.webp)    | ![Schild und Stapel, quer](bilder/tisch/spielabend-schild-stapel-quer.webp)           |
+  | ![Solo Tout, Desktop](bilder/tisch/spielabend-schild-tout-desktop.webp)           | ![Eigenes Schild (Wenz), hochkant](bilder/tisch/spielabend-schild-eigen-hochkant.webp) | ![Letzter Stich offen, hochkant](bilder/tisch/spielabend-letzter-stich-hochkant.webp) |
+  | ![Verlauf, Desktop](bilder/tisch/spielabend-verlauf-desktop.webp)                 | ![Verlauf, hochkant](bilder/tisch/spielabend-verlauf-hochkant.webp)                    | ![Verlauf, quer](bilder/tisch/spielabend-verlauf-quer.webp)                           |
+
+- **Wer spielt was** (Punkt vom Spielabend, umgesetzt nach D3; Lukas soll noch bestätigen):
+  - Am Platz des Spielers steht statt der Marke „Spieler“ das **Spielschild** (`GameSign.tsx`):
+    Papier mit Schatten, Fraunces, darin das Zeichen und der kurze Name der Spielart – im
+    Sauspiel das Farbzeichen der Rufsau, im Solo und Farbwenz das der Trumpffarbe, bei Wenz „U“
+    und Geier „O“ (Eckbuchstabe in Akzentfarbe), beim Bettel nur das Wort. Tout als
+    Messing-Marke im Schild. Auf breitem Tisch `--text-lg`, sonst `--text-md`; erscheint mit
+    `dialog-rein`. Für Bildschirmleser „spielt Sauspiel auf die Gras-Sau“.
+  - **Partei hervorgehoben:** Spieler und – sobald bekannt – Mitspieler haben ein helles Bild
+    (Papier statt Filz, `player-seat--party` bzw. `eigen--partei`); der Mitspieler behält die
+    Marke „Mitspieler“. Der Messingschein „am Zug“ liegt darüber.
+  - Die Zeile in der Leiste („Xaver spielt Sauspiel auf die Eichel-Sau“) bleibt als Langform.
+  - **Erweiterbar:** `gameSign(hand)` liefert Platz, Zeichen, Namen und Zusätze. Ramsch (kein
+    Spieler) bekommt dort `seat: null` und ein Schild in der Tischmitte, Kontra/Re weitere
+    Zusätze (`extras`), die Hochzeit einen eigenen Namen.
 - **Stich:** mittig, jede Karte vor ihrem Spieler, leicht gedreht. Der fertige Stich bleibt liegen,
   die stechende Karte hat den hellen Rand, darüber „Lukas sticht · 14 Augen“.
 - **Eigener Platz:** Bild, Name, Stiche, Stand, Marken, „Du bist dran“/„Du sagst an“ in Messing.
@@ -277,14 +301,30 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
 - **Ergebnis-Dialog:** Spielart, „Xaver und Lukas haben gewonnen“, Augen groß mit Balken (Marke
   bei 61), Stiche/Schneider/Schwarz/Sie/Laufende als Stichworte, Betrag je Gegenspieler, Tabelle
-  Spiel/Stand. Die Aufschlüsselung und der Verlauf folgen mit U4. Erscheint erst, wenn der letzte
-  Stich weggeräumt ist.
+  Spiel/Stand. Die Aufschlüsselung folgt mit U4. Erscheint erst, wenn der letzte Stich weggeräumt
+  ist.
 - **Kontra und Re (K4):** Solange man darf, steht am eigenen Platz neben „Du bist dran“ der
   Knopf „Kontra“ bzw. „Re“ (Hauptknopf, klein) mit dem Hinweis „bis zur ersten Karte“. Gesagtes
   zeigt eine Marke „Kontra“/„Re“ (Akzentfarbe) am Platz dessen, der es gesagt hat, und in der
   Leiste hinter der Spielart. Im Ergebnis eine Zeile „Lukas sagt Kontra – Spielwert ×2“ und beim
   Betrag „0,50 € × 2 = 1,00 €“.
-- **Letzter Stich:** Dialog mit den vier Karten und Namen; Escape schließt, der Fokus kehrt zurück.
+- **So wurde gespielt** (Punkt vom Spielabend; Lukas soll noch bestätigen): unten im
+  Ergebnis-Dialog aufklappbar (`<details>`, Winkel in Akzentfarbe, per Tastatur bedienbar;
+  `GameHistory.tsx`). Je Stich eine Zeile: Nummer, die vier Karten in Spielreihenfolge mit dem
+  Namen darunter (`--history-card-w`), die stechende mit Akzentrand wie im Dialog „Letzter
+  Stich“, rechts die Augen in Fraunces. Beim Aufklappen rückt der Verlauf nach oben (ohne Gleiten
+  bei „Bewegung reduzieren“); der Dialog scrollt, die Knöpfe bleiben unten stehen (`sticky`).
+  Quer steht er über die ganze Breite unter Ergebnis und Tabelle; dort ist nur etwa ein Stich auf
+  einmal zu sehen.
+- **Letzter Stich** (Punkt vom Spielabend: der Knopf oben rechts wurde übersehen; Lukas soll noch
+  bestätigen): liegt als kleiner **Stapel unten rechts auf dem Filz** (`LastTrickPile.tsx`), sobald
+  der erste Stich fertig ist – die vier Karten leicht gefächert (`--trick-card-w` × 0,55), die
+  stechende mit Messingrand, darunter „Letzter Stich“, auf dunkler Fläche (`--color-felt-raised`).
+  Das ganze Feld ist ein Knopf (mind. `--control-height`); Hover und offen = Messingrand. Antippen
+  oder Enter öffnet den Dialog mit den vier Karten und Namen; Escape schließt, der Fokus kehrt auf
+  den Stapel zurück. Während ein fertiger Stich noch in der Mitte liegt, zeigt der Stapel schon
+  diesen (sonst ginge beim Verschwinden der Fokus verloren). Hochkant in der Ecke unten rechts,
+  quer rechts unten am Filzrand. Der Knopf in der Leiste ist weg; im Ergebnis-Dialog bleibt er.
 
 ### Größenstufen
 
@@ -304,6 +344,13 @@ Werte in den Abfragen, weil dort keine Variablen gehen.
 Der Tisch hat `overflow: clip` (nicht `hidden`), damit der Fokus auf einer hinausragenden Karte
 ihn nicht verschiebt. Kein horizontales Scrollen: Die Überlappung der Hand richtet sich nach
 der Breite (`--hand-avail`).
+
+**Die Tischfläche bleibt im ganzen Spiel gleich groß** (Fehler vom Spielabend: „Tisch springt bei
+letzter Karte“). Deshalb bleibt die Handzeile auch ohne Karten mit ihrer Höhe stehen, „Du bist
+dran“ hält unsichtbar seinen Platz, und die Leiste hat immer dieselben Knöpfe (früher erschien
+„Letzter Stich“ erst ab dem zweiten Stich und die Leiste brach am Handy anders um). Im niedrigen Fenster steht die Hand rechts neben den eigenen Infos
+(`--own-info-width`), damit diese keine Karte verdecken. Abgesichert in `e2e/layout.spec.ts`
+(360×740, 740×360, 1440×900); in der Tischprobe zeigt die Szene `letzter` den achten Stich.
 
 ### Bewegung
 

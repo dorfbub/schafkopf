@@ -1,6 +1,7 @@
 import type { HandView, TableView } from '@schafkopf/core';
 import { TABLE_TEXT, contractLabel, money, plainMoney } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
+import { GameHistory } from './GameHistory';
 import { DoublingTag } from './Seats';
 import type { SeatInfo } from './layout';
 import { PotNote } from './PotNote';
@@ -20,8 +21,8 @@ export function Money({ cents }: { cents: number }) {
 }
 
 /**
- * Ergebnis eines Spiels: wer gewonnen hat, Augen, Zuschläge und die Beträge. Die genaue
- * Aufschlüsselung (Grundtarif, Schneider, Laufende …) und der Verlauf folgen mit U4.
+ * Ergebnis eines Spiels: wer gewonnen hat, Augen, Zuschläge, die Beträge und aufklappbar der
+ * Spielverlauf. Die genaue Aufschlüsselung (Grundtarif, Schneider, Laufende …) folgt mit U4.
  */
 export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) {
   const result = hand.result!;
@@ -151,6 +152,7 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
       </p>
       <PotNote view={view} result={result} />
       {table}
+      {hand.tricks && hand.tricks.length > 0 && <GameHistory tricks={hand.tricks} seats={seats} />}
     </Dialog>
   );
 }
