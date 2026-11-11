@@ -6,6 +6,7 @@ import {
   type Rng,
   MODES,
   createRng,
+  type SeedInput,
   pick,
 } from '@schafkopf/core';
 
@@ -15,7 +16,7 @@ import {
  * Im Zweikampf hält bzw. nennt er höchstens ein Sauspiel.
  * Dient als Platzhalter und als Vorlage für stärkere Bots.
  */
-export function createRandomBot(seed: number, minTrumps = 5): Bot {
+export function createRandomBot(seed: SeedInput, minTrumps = 5): Bot {
   const rng: Rng = createRng(seed);
 
   function wantsSauspiel(view: HandView): boolean {
