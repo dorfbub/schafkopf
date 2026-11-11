@@ -1,6 +1,6 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 
-interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface Props extends ComponentPropsWithRef<'button'> {
   /** primär: Hauptaktion (eine pro Ansicht); sekundär: alles andere. */
   variant?: 'primary' | 'secondary';
   size?: 'normal' | 'small';
