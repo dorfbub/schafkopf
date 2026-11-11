@@ -14,5 +14,12 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["packages/*/src", "packages/*/test", "apps/*/src", "vitest.config.ts", "playwright.config.ts", "e2e"]
+  "include": [
+    "packages/*/src",
+    "packages/*/test",
+    "apps/*/src",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "e2e"
+  ]
 }
