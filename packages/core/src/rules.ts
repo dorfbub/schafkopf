@@ -4,7 +4,7 @@
  */
 
 import type { DeckKind } from './cards';
-import { BID_ORDER, type ContractKind } from './modes';
+import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind } from './modes';
 
 /**
  * Was passiert, wenn alle "weiter" sagen. Umgesetzt in der Registry `ALL_PASSED`
@@ -51,9 +51,9 @@ export interface RuleSet {
 export const DEFAULT_RULES: RuleSet = {
   players: 4,
   deck: 'lang',
-  // Ausdrücklich aufgezählt: Spielarten, die später hinzukommen (Hausregeln), sind
-  // standardmäßig aus.
-  contracts: ['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo'],
+  // Ausdrücklich aufgezählt (nicht alle aus `CONTRACT_KINDS`): Spielarten, die später
+  // hinzukommen (Hausregeln), sind standardmäßig aus.
+  contracts: [...CLASSIC_CONTRACTS],
   allowTout: true,
   allPassed: 'zusammenwerfen',
   tariff: { sauspiel: 10, solo: 50, extra: 10 },

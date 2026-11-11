@@ -21,6 +21,19 @@ import { type CardOrder, effectiveSuit } from './trick';
 export const CONTRACT_KINDS = ['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo'] as const;
 export type ContractKind = (typeof CONTRACT_KINDS)[number];
 
+/**
+ * Die klassischen Spielarten – Standard am Tisch und das, was der Heuristik-Bot kennt.
+ * Spielarten, die später hinzukommen (Hausregeln), stehen bewusst nicht darin.
+ */
+export const CLASSIC_CONTRACTS: readonly ContractKind[] = [
+  'sauspiel',
+  'bettel',
+  'geier',
+  'farbwenz',
+  'wenz',
+  'solo',
+];
+
 /** Eine konkrete Ansage, z. B. Sauspiel auf die Eichel-Sau oder Herz-Solo Tout. */
 export interface Contract {
   kind: ContractKind;

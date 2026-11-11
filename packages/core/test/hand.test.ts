@@ -8,6 +8,7 @@ import {
   type RuleSet,
   ALL_PASSED,
   DEFAULT_RULES,
+  MODES,
   applyAction,
   createRng,
   dealHand,
@@ -338,6 +339,22 @@ describe('Spielablauf', () => {
       ok: false,
       error: 'not_your_turn',
     });
+  });
+
+  it('eine Spielart mit Bedingung ans Blatt (eligible) ist nur damit ansagbar', () => {
+    // Sitz 0 will, alle anderen weiter: Sitz 0 nennt sein Spiel. Er hält genau einen Unter.
+    const state = callAll(handWith(HANDS), [WOULD, PASS, PASS, PASS]);
+    const wenz = () => legalContracts(state, 0).some((c) => c.kind === 'wenz');
+    const mode = MODES.wenz;
+    expect(wenz()).toBe(true);
+    try {
+      mode.eligible = (hand) => hand.filter((c) => c.endsWith('U')).length >= 2;
+      expect(wenz()).toBe(false);
+      mode.eligible = (hand) => hand.filter((c) => c.endsWith('U')).length === 1;
+      expect(wenz()).toBe(true);
+    } finally {
+      delete mode.eligible;
+    }
   });
 
   it('alle weiter: die Registry ALL_PASSED entscheidet', () => {

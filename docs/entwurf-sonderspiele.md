@@ -494,6 +494,10 @@ Abweichungen von den Skizzen oben, mit Grund:
   `tricksWon`) liefert den Index für Bots und die Hand-Sortierung (`sortHand(hand, contract, trick)`).
 - **Bots.** Der Heuristik-Bot bewertet nur die Spielarten in seiner Liste `KNOWN_KINDS` (§8) –
   neue Spielarten in `BID_ORDER` sagt er nicht von selbst an.
+- **Offen für K3c.** Stufe 3 teilt den Pott zu gleichen Teilen auf die Spielerpartei. Bei einem
+  Pott, der sich nicht glatt teilen lässt (ungerade bei zwei Spielern), entstünden gebrochene Cent.
+  Mit `Pott = 4 × Einsatz` kommt das nicht vor; K3c sichert das ab (Prüfung im Speicherstand oder
+  Regel für den Rest) – nicht raten, sondern bei Bedarf nachfragen.
 - **Speicherstand.** `parseHostSnapshot` prüft zusätzlich, dass `rules.allPassed` ein Eintrag in
   `ALL_PASSED` ist und `carry` gültig ist (Pott ≥ 0, Faktor ≥ 1), sonst würde ein beschädigter Stand
   erst bei „alle weiter“ abstürzen.

@@ -13,6 +13,7 @@ import {
   type Suit,
   type Trick,
   BID_ORDER,
+  CLASSIC_CONTRACTS,
   MODES,
   SUITS,
   bidValue,
@@ -124,14 +125,7 @@ function updateMemory(memory: Memory, view: HandView): void {
  * Spielarten, die der Bot bewerten und spielen kann. Neue Spielarten (Hausregeln) sagt er
  * nicht selbst an; als Gegenspieler behandelt er sie mit den allgemeinen Faustregeln.
  */
-const KNOWN_KINDS: readonly ContractKind[] = [
-  'sauspiel',
-  'bettel',
-  'geier',
-  'farbwenz',
-  'wenz',
-  'solo',
-];
+const KNOWN_KINDS: readonly ContractKind[] = CLASSIC_CONTRACTS;
 
 /** Alle Spiele, die mit diesem Blatt formal möglich wären (Tischregeln unbekannt). */
 function candidateContracts(hand: readonly Card[]): Contract[] {

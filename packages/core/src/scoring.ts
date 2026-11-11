@@ -223,8 +223,9 @@ export function settleOutcome(
   const total = amount * larger;
   const potWon = outcome.declarerWon === true && pot > 0 ? pot : 0;
   const payments = Array.from({ length: players }, (_, s) => {
-    if (winners.includes(s)) return (total + potWon) / winners.length;
-    if (losers.includes(s)) return -total / losers.length;
+    // `|| 0` macht aus −0 (Spielwert 0) eine schlichte 0.
+    if (winners.includes(s)) return (total + potWon) / winners.length || 0;
+    if (losers.includes(s)) return -total / losers.length || 0;
     return 0;
   });
   return { payments, potDelta: potWon > 0 ? -potWon : 0 };
