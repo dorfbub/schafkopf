@@ -14,12 +14,12 @@ import { HostSession, parseHostSnapshot } from '../src';
  * weiter“ – und sonst wie der Heuristik-Bot spielt. Merkt sich jede Aktion, die nicht in
  * der Sicht erlaubt war; der Host würde sie sonst still durch einen Notfallzug ersetzen.
  */
-function passingBot(seed: number, illegal: string[]): Bot {
+function passingBot(seed: number, illegal: string[], always = true): Bot {
   const inner = createHeuristicBot(seed);
   return {
     decide(view: HandView): PlayerAction {
       const action: PlayerAction =
-        view.phase === 'bidding' && view.auction.stage === 'interest'
+        always && view.phase === 'bidding' && view.auction.stage === 'interest'
           ? { type: 'bid', call: { type: 'pass' } }
           : inner.decide(view);
       const ok =
@@ -33,13 +33,13 @@ function passingBot(seed: number, illegal: string[]): Bot {
 }
 
 /** Host mit vier Bots und synchroner Zeitsteuerung. */
-function botTable(allPassed: AllPassedRule, seed: number) {
+function botTable(allPassed: AllPassedRule, seed: number, alwaysPass = true) {
   const queue: (() => void)[] = [];
   const illegal: string[] = [];
   let n = seed;
   const options = {
     rules: { ...DEFAULT_RULES, allPassed },
-    createBot: (seat: number) => passingBot(seed * 10 + seat, illegal),
+    createBot: (seat: number) => passingBot(seed * 10 + seat, illegal, alwaysPass),
     seed: () => n++,
     schedule: (fn: () => void) => void queue.push(fn),
   };
@@ -53,7 +53,7 @@ function botTable(allPassed: AllPassedRule, seed: number) {
   return { host, flush, illegal, options };
 }
 
-describe('Host mit vier Bots: jedes Spiel beginnt mit „alle weiter“', () => {
+describe('Host mit vier Bots und einer Regel für „alle weiter“', () => {
   it('Ramsch: Spiele laufen durch, Bots spielen regelgerecht, Kontosumme bleibt 0', () => {
     for (const seed of [1, 2, 3]) {
       const { host, flush, illegal } = botTable('ramsch', seed);
@@ -89,5 +89,57 @@ describe('Host mit vier Bots: jedes Spiel beginnt mit „alle weiter“', () => 
     expect(restored.getTable().hand!.phase).toBe('finished');
     expect(illegal).toEqual([]);
     host.close();
+  });
+
+  it('Stock: jedes „alle weiter“ füllt den Pott; ein Speicherstand mit Pott wird wiederhergestellt', () => {
+    const { host, flush, illegal, options } = botTable('stock', 4);
+    host.start();
+    for (let hand = 1; hand <= 5; hand++) {
+      flush();
+      const table = host.getTable();
+      expect(table.hand!.result!.kind).toBe('passed');
+      expect(table.pot).toBe(hand * 40);
+      expect(table.balances).toEqual([0, 1, 2, 3].map(() => -hand * 10));
+      if (hand < 5) host.nextHand();
+    }
+    const snapshot = parseHostSnapshot(JSON.parse(JSON.stringify(host.exportSnapshot())));
+    expect(snapshot).not.toBeNull();
+    expect(snapshot!.table.pot).toBe(200);
+    const restored = HostSession.restore(snapshot!, { ...options, schedule: (fn) => fn() });
+    expect(restored.getTable().pot).toBe(200);
+    expect(restored.nextHand()).toBe(true);
+    expect(restored.getTable().hand!.carry.pot).toBe(200);
+    expect(illegal).toEqual([]);
+  });
+
+  it('Stock mit gewöhnlich bietenden Bots: Pott kommt und geht, Kontosumme + Pott bleibt 0', () => {
+    let paid = 0;
+    let filled = 0;
+    for (const seed of [1, 2, 3, 4]) {
+      const { host, flush, illegal } = botTable('stock', seed, false);
+      host.start();
+      for (let hand = 1; hand <= 25; hand++) {
+        flush();
+        const table = host.getTable();
+        const { potDelta } = table.hand!.result!;
+        if (potDelta > 0) filled++;
+        if (potDelta < 0) paid++;
+        expect(table.balances.reduce((a, b) => a + b, 0) + table.pot).toBe(0);
+        host.nextHand();
+      }
+      expect(illegal).toEqual([]);
+    }
+    expect(filled).toBeGreaterThan(0);
+    expect(paid).toBeGreaterThan(0);
+  });
+
+  it('Speicherstand: Kontosumme + Pott muss 0 ergeben, sonst wird er verworfen', () => {
+    const { host, flush } = botTable('stock', 4);
+    host.start();
+    flush();
+    const raw = JSON.parse(JSON.stringify(host.exportSnapshot()));
+    expect(parseHostSnapshot(raw)).not.toBeNull();
+    raw.table.pot += 10;
+    expect(parseHostSnapshot(raw)).toBeNull();
   });
 });

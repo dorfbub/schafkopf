@@ -1,7 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
-Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung) und K3b (Ramsch), siehe
-§12. Die
+Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung), K3b (Ramsch) und K3c (Stock),
+siehe §12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -494,10 +494,9 @@ Abweichungen von den Skizzen oben, mit Grund:
   `tricksWon`) liefert den Index für Bots und die Hand-Sortierung (`sortHand(hand, contract, trick)`).
 - **Bots.** Der Heuristik-Bot bewertet nur die Spielarten in seiner Liste `KNOWN_KINDS` (§8) –
   neue Spielarten in `BID_ORDER` sagt er nicht von selbst an.
-- **Offen für K3c.** Stufe 3 teilt den Pott zu gleichen Teilen auf die Spielerpartei. Bei einem
-  Pott, der sich nicht glatt teilen lässt (ungerade bei zwei Spielern), entstünden gebrochene Cent.
-  Mit `Pott = 4 × Einsatz` kommt das nicht vor; K3c sichert das ab (Prüfung im Speicherstand oder
-  Regel für den Rest) – nicht raten, sondern bei Bedarf nachfragen.
+- **Teilung des Potts (erledigt mit K3c).** Stufe 3 teilt den Pott zu gleichen ganzen Cent auf die
+  Spielerpartei; ein Rest bleibt im Pott (Annahme 21, zur Bestätigung offen). Mit
+  `Pott = 4 × Einsatz` kommt ein Rest bei vier Spielern nicht vor.
 - **Speicherstand.** `parseHostSnapshot` prüft zusätzlich, dass `rules.allPassed` ein Eintrag in
   `ALL_PASSED` ist und `carry` gültig ist (Pott ≥ 0, Faktor ≥ 1), sonst würde ein beschädigter Stand
   erst bei „alle weiter“ abstürzen.
@@ -517,3 +516,12 @@ ramschOutcome` in eigener Datei `ramsch.ts`; `RamschDetails` als zweite Form von
 - **`LaufendeKind`** schließt `ramsch` aus wie `bettel`.
 - **Bots.** Der Heuristik-Bot spielt im Ramsch nach einer einfachen Regel (drunter bleiben und
   dabei teure Karten loswerden); besseres Spiel gehört zu B3.
+
+**K3c (Stock, November 2026)** hat eingezogen: Eintrag `stock` in `ALL_PASSED` (Schritt `finish`
+mit `payments = −Einsatz` je Sitz, `potDelta = Spieler × Einsatz`, `kind: 'passed'`),
+`tariff.stock` (nicht als Tarifklasse einer Spielart: `TariffClass` schließt `stock` aus), Rest der
+Pott-Teilung bleibt stehen (Annahme 21). Der Pott selbst lief schon seit K3a über `HandCarry`,
+`TableState.pot`, `TableView.pot` und `settle`. Oberfläche: Pott in der Tischleiste (bei Stock
+oder gefülltem Pott) und im Ergebnis (`PotNote`: eingezahlt, gewonnen, bleibt stehen).
+`PROTOCOL_VERSION` 8, `HOST_SNAPSHOT_VERSION` 8. Die Rückzahlung eines stehengebliebenen Potts am
+Ende des Abends (Annahme 13) gehört zu U4 und ist dort vermerkt.

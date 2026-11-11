@@ -13,8 +13,19 @@ import type { Contract } from './modes';
 import type { AllPassedRule } from './rules';
 import { type HandResult, passedResult } from './scoring';
 
+/** Stock: Jeder zahlt den Einsatz in den Pott; es wird nicht gespielt. */
+function stockResult(state: HandState): HandResult {
+  const { players, tariff } = state.rules;
+  return {
+    ...passedResult(players),
+    // `|| 0` macht aus −0 (Einsatz 0) eine schlichte 0.
+    payments: Array.from({ length: players }, () => -tariff.stock || 0),
+    potDelta: players * tariff.stock,
+  };
+}
+
 export type AllPassedStep =
-  /** Das Spiel endet ohne Stiche mit diesem Ergebnis (Zusammenwerfen, später Stock). */
+  /** Das Spiel endet ohne Stiche mit diesem Ergebnis (Zusammenwerfen, Stock). */
   | { type: 'finish'; result: HandResult }
   /** Es wird ohne Ansager gespielt (Ramsch). */
   | { type: 'play'; contract: Contract };
@@ -22,4 +33,5 @@ export type AllPassedStep =
 export const ALL_PASSED: Record<AllPassedRule, (state: HandState) => AllPassedStep> = {
   zusammenwerfen: (state) => ({ type: 'finish', result: passedResult(state.rules.players) }),
   ramsch: () => ({ type: 'play', contract: { kind: 'ramsch' } }),
+  stock: (state) => ({ type: 'finish', result: stockResult(state) }),
 };

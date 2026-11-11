@@ -107,6 +107,19 @@ export function LobbySettings({ view, host }: Props) {
           ))}
         </div>
         <p className="hint">{T.allPassedHint[current.allPassed]}</p>
+        {current.allPassed === 'stock' && (
+          <div className="row">
+            <NumberField
+              key={`stock-${current.tariff.stock}`}
+              label={T.tariffStock}
+              value={current.tariff.stock}
+              min={0}
+              max={100_000}
+              error={T.invalid}
+              onValid={(n) => change({ tariff: { ...current.tariff, stock: n } })}
+            />
+          </div>
+        )}
         {current.allPassed === 'ramsch' && (
           <div className="row">
             <NumberField

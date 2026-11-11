@@ -2,6 +2,7 @@ import type { HandView, TableView } from '@schafkopf/core';
 import { TABLE_TEXT, contractLabel, money } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
 import type { SeatInfo } from './layout';
+import { PotNote } from './PotNote';
 import { RamschResult } from './RamschResult';
 
 interface Props {
@@ -68,7 +69,12 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
 
   if (result.kind === 'passed' || !result.outcome) {
     return (
-      <Dialog className="ergebnis" title={TABLE_TEXT.passedTitle} actions={actions}>
+      <Dialog
+        className="ergebnis"
+        title={result.potDelta > 0 ? TABLE_TEXT.stockTitle : TABLE_TEXT.passedTitle}
+        actions={actions}
+      >
+        <PotNote view={view} result={result} />
         {table}
       </Dialog>
     );
@@ -116,6 +122,7 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
         <span>{TABLE_TEXT.valuePerPlayer}</span>
         <span className="num">{money(value).replace(/^[+−]/, '')}</span>
       </p>
+      <PotNote view={view} result={result} />
       {table}
     </Dialog>
   );

@@ -75,22 +75,25 @@ describe('Spielprotokoll', () => {
     expect(table.logs).toHaveLength(MAX_LOGS);
   });
 
-  it.each<AllPassedRule>(['ramsch'])('replay deckt die Regel „alle weiter“ ab: %s', (rule) => {
-    let table = seated(rule);
-    let passed = 0;
-    for (let n = 1; n <= 120; n++) {
-      const started = startHand(table, n * 104729);
-      if (!started.ok) throw new Error(started.error);
-      table = playRandom(started.table, n);
-      const log = table.logs.at(-1)!;
-      if (log.actions.filter((a) => a.type === 'bid').every((a) => a.call.type === 'pass')) {
-        passed++;
+  it.each<AllPassedRule>(['ramsch', 'stock'])(
+    'replay deckt die Regel „alle weiter“ ab: %s',
+    (rule) => {
+      let table = seated(rule);
+      let passed = 0;
+      for (let n = 1; n <= 120; n++) {
+        const started = startHand(table, n * 104729);
+        if (!started.ok) throw new Error(started.error);
+        table = playRandom(started.table, n);
+        const log = table.logs.at(-1)!;
+        if (log.actions.filter((a) => a.type === 'bid').every((a) => a.call.type === 'pass')) {
+          passed++;
+        }
+        expect(replay(JSON.parse(JSON.stringify(log)))).toEqual(table.hand);
+        expect(table.balances.reduce((a, b) => a + b, 0) + table.pot).toBe(0);
       }
-      expect(replay(JSON.parse(JSON.stringify(log)))).toEqual(table.hand);
-      expect(table.balances.reduce((a, b) => a + b, 0) + table.pot).toBe(0);
-    }
-    expect(passed).toBeGreaterThan(5);
-  });
+      expect(passed).toBeGreaterThan(5);
+    },
+  );
 
   it('das Protokoll übersteht JSON und liefert danach dasselbe Spiel', () => {
     const started = startHand(seated(), 42);

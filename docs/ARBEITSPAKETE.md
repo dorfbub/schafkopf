@@ -109,7 +109,7 @@ Verlierer nach Augen, Durchmarsch ab 91 Augen, Jungfrau als Faktor; `RuleSet.ram
   zwei Jungfrauen; Durchmarsch mit genau 91 und 90 Augen; beide Unteroptionen aus. Zufallsspiel-Test
   über Host mit vier Bots, in dem jedes Spiel „alle weiter“ beginnt. Summe der Zahlungen 0.
 
-### K3c · Stock
+### K3c · Stock (erledigt)
 
 `allPassed: 'stock'`: Einzahlung über `potDelta`, `TableState.pot`, Auszahlung an die Spielerpartei
 des nächsten gewonnenen Spiels gleich welcher Art; `tariff.stock`; `TableView.pot`, Pott-Anzeige am
@@ -349,7 +349,8 @@ Lukas wählt die Vorlage aus zwei bis drei Vorschlägen, bevor alle 32 Karten ge
 ### U4 · Abrechnung und Verlauf
 
 Ergebnis verständlich aufschlüsseln (Grundtarif, Schneider, Laufende …), Tabelle aller Spiele des
-Abends, Endabrechnung „wer zahlt wem“.
+Abends, Endabrechnung „wer zahlt wem“. Dazu gehört die Rückzahlung eines stehengebliebenen Potts
+(Stock, K3c) zu gleichen Teilen in der Endabrechnung (REGELN.md, Annahme 13).
 
 - **Abhängigkeit:** K7 für den Verlauf.
 

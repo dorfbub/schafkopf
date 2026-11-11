@@ -10,7 +10,7 @@ import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind } from './modes';
  * Was passiert, wenn alle "weiter" sagen. Umgesetzt in der Registry `ALL_PASSED`
  * (`allPassed.ts`), die für jeden Eintrag hier einen Schritt kennt.
  */
-export const ALL_PASSED_RULES = ['zusammenwerfen', 'ramsch'] as const;
+export const ALL_PASSED_RULES = ['zusammenwerfen', 'ramsch', 'stock'] as const;
 export type AllPassedRule = (typeof ALL_PASSED_RULES)[number];
 
 export interface Tariff {
@@ -22,6 +22,8 @@ export interface Tariff {
   extra: number;
   /** Ramsch: zahlt der Verlierer an jeden der anderen (Durchmarsch: bekommt der Sieger). */
   ramsch: number;
+  /** Stock: zahlt jeder in den Pott, wenn alle „weiter“ sagen. */
+  stock: number;
 }
 
 /** Unteroptionen für Ramsch (gelten nur bei `allPassed: 'ramsch'`). */
@@ -68,7 +70,7 @@ export const DEFAULT_RULES: RuleSet = {
   contracts: [...CLASSIC_CONTRACTS],
   allowTout: true,
   allPassed: 'zusammenwerfen',
-  tariff: { sauspiel: 10, solo: 50, extra: 10, ramsch: 10 },
+  tariff: { sauspiel: 10, solo: 50, extra: 10, ramsch: 10, stock: 10 },
   ramsch: { durchmarsch: true, jungfrau: true },
   laufende: { sauspiel: 3, solo: 3, wenz: 2, geier: 2, farbwenz: 3 },
   sie: true,
@@ -106,7 +108,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
   const MAX_TARIFF = 100_000;
   if (!isInt(tariff.sauspiel, 0, MAX_TARIFF)) return null;
   if (!isInt(tariff.solo, 0, MAX_TARIFF) || !isInt(tariff.extra, 0, MAX_TARIFF)) return null;
-  if (!isInt(tariff.ramsch, 0, MAX_TARIFF)) return null;
+  if (!isInt(tariff.ramsch, 0, MAX_TARIFF) || !isInt(tariff.stock, 0, MAX_TARIFF)) return null;
   if (typeof ramsch.durchmarsch !== 'boolean' || typeof ramsch.jungfrau !== 'boolean') return null;
   const run = {} as Record<LaufendeKind, number>;
   for (const kind of LAUFENDE_KINDS) {
@@ -123,6 +125,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
       solo: tariff.solo,
       extra: tariff.extra,
       ramsch: tariff.ramsch,
+      stock: tariff.stock,
     },
     ramsch: { durchmarsch: ramsch.durchmarsch, jungfrau: ramsch.jungfrau },
     laufende: run,

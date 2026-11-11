@@ -12,7 +12,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * `TableView.pot`.
  */
 /** 7: Ramsch (K3b): Spielart `ramsch` ohne Ansager, `RamschDetails`, `RuleSet.allPassed`/`ramsch`. */
-export const PROTOCOL_VERSION = 7;
+/** 8: Stock (K3c): `tariff.stock`, `allPassed: 'stock'`, Pott in `TableView.pot` gefüllt. */
+export const PROTOCOL_VERSION = 8;
 
 export type ClientMessage =
   | {

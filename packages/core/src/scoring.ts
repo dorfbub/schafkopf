@@ -232,7 +232,7 @@ export function factorsFor(state: HandState, outcome: Outcome): Factor[] {
 /**
  * Stufe 3: Zahlungen. Jeder auf der größeren Seite zahlt bzw. bekommt `value × Faktoren`,
  * die kleinere Seite teilt sich die Gegensumme – bei 2:2, 1:3 und 3:1 dieselbe Formel.
- * Gewinnt die Spielerpartei, bekommt sie den Pott zu gleichen Teilen.
+ * Gewinnt die Spielerpartei, bekommt sie den Pott zu gleichen Teilen (Rest bleibt stehen).
  */
 export function settleOutcome(
   outcome: Outcome,
@@ -244,7 +244,9 @@ export function settleOutcome(
   const amount = factors.reduce((v, f) => v * f.factor, outcome.value);
   const larger = Math.max(winners.length, losers.length);
   const total = amount * larger;
-  const potWon = outcome.declarerWon === true && pot > 0 ? pot : 0;
+  // Jeder Gewinner bekommt den gleichen ganzen Betrag; ein Rest bleibt im Pott (Annahme 21).
+  const potShare = outcome.declarerWon === true && pot > 0 ? Math.floor(pot / winners.length) : 0;
+  const potWon = potShare * winners.length;
   const payments = Array.from({ length: players }, (_, s) => {
     // `|| 0` macht aus −0 (Spielwert 0) eine schlichte 0.
     if (winners.includes(s)) return (total + potWon) / winners.length || 0;

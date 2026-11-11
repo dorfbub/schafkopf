@@ -77,7 +77,13 @@ function value(state: HandState) {
 
 describe('DEFAULT_RULES', () => {
   it('rechnen unverändert ab', () => {
-    expect(DEFAULT_RULES.tariff).toEqual({ sauspiel: 10, solo: 50, extra: 10, ramsch: 10 });
+    expect(DEFAULT_RULES.tariff).toEqual({
+      sauspiel: 10,
+      solo: 50,
+      extra: 10,
+      ramsch: 10,
+      stock: 10,
+    });
     expect(DEFAULT_RULES.allPassed).toBe('zusammenwerfen');
     expect(DEFAULT_RULES.ramsch).toEqual({ durchmarsch: true, jungfrau: true });
     expect(DEFAULT_RULES.laufende).toEqual({
@@ -127,7 +133,9 @@ describe('Option: Tout', () => {
 
 describe('Option: Tarif', () => {
   it('anderer Tarif ändert die Zahlung', () => {
-    const rules = withRules({ tariff: { sauspiel: 20, solo: 100, extra: 5, ramsch: 10 } });
+    const rules = withRules({
+      tariff: { sauspiel: 20, solo: 100, extra: 5, ramsch: 10, stock: 10 },
+    });
     const sau = value(finished(rules, { kind: 'sauspiel', suit: 'gras' }, NEUTRAL, 91, 6));
     expect(sau.value).toBe(25); // 20 + Schneider 5
     expect(sau.payments).toEqual([25, -25, 25, -25]);
@@ -207,6 +215,8 @@ describe('Regeln prüfen', () => {
     ['Regel für alle weiter fehlt', (r) => delete r.allPassed],
     ['Ramsch-Tarif fehlt', (r) => delete r.tariff.ramsch],
     ['Ramsch-Tarif negativ', (r) => (r.tariff.ramsch = -10)],
+    ['Stock-Einsatz fehlt', (r) => delete r.tariff.stock],
+    ['Stock-Einsatz krumm', (r) => (r.tariff.stock = 0.5)],
     ['Durchmarsch kein Wahrheitswert', (r) => (r.ramsch.durchmarsch = 'ja')],
     ['Ramsch-Optionen fehlen', (r) => (r.ramsch = undefined as never)],
   ])('lehnt ab: %s', (_name, mutate) => {
@@ -219,10 +229,12 @@ describe('Regeln prüfen', () => {
     const raw = ok();
     raw.allPassed = 'ramsch';
     raw.tariff.ramsch = 20;
+    raw.tariff.stock = 30;
     raw.ramsch = { durchmarsch: false, jungfrau: true, extra: 1 };
     const parsed = parseRuleOptions(raw)!;
     expect(parsed.allPassed).toBe('ramsch');
     expect(parsed.tariff.ramsch).toBe(20);
+    expect(parsed.tariff.stock).toBe(30);
     expect(parsed.ramsch).toEqual({ durchmarsch: false, jungfrau: true });
   });
 

@@ -76,7 +76,7 @@ export type Parties =
   | 'everyone';
 
 /** Tarifklasse einer Spielart: welcher Grundtarif aus `RuleSet.tariff` gilt. */
-export type TariffClass = Exclude<keyof Tariff, 'extra'>;
+export type TariffClass = Exclude<keyof Tariff, 'extra' | 'stock'>;
 
 export interface ModeDefinition {
   kind: ContractKind;

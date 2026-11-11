@@ -1,5 +1,5 @@
 import type { HandView, TableView } from '@schafkopf/core';
-import { RULES_TEXT, TABLE_TEXT, contractLabel } from '../../i18n/de';
+import { RULES_TEXT, TABLE_TEXT, contractLabel, money } from '../../i18n/de';
 import { Button } from '../kit';
 import type { SeatInfo } from './layout';
 
@@ -62,6 +62,9 @@ export function TableBar({
         <span className="tisch-leiste__marke">{TABLE_TEXT.brand}</span>
         <span className="tisch-leiste__phase">
           {TABLE_TEXT.handNo(view.handNo)} · {phase}
+          {(view.rules.allPassed === 'stock' || view.pot > 0) && (
+            <> · {TABLE_TEXT.pot(money(view.pot).replace(/^[+−]/, ''))}</>
+          )}
         </span>
       </div>
       <p className="tisch-leiste__status" aria-live="polite">

@@ -251,7 +251,7 @@ Bot-Vertretung (N3) – und vergleichen.
   `TableView.history` trägt nur die Zusammenfassungen _fertiger_ Spiele – ohne Karten, für alle
   Plätze gleich. Daraus baut U4 die Verlaufstabelle.
 - **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5 (seit K3a 6: `pot`, `carry`, `HandResult` in
-  Stufen; seit K3b 7: `allPassed`, `tariff.ramsch`, `ramsch`). `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
+  Stufen; seit K3b 7: `allPassed`, `tariff.ramsch`, `ramsch`; seit K3c 8: `tariff.stock`). `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
   ≈ 106 KiB JSON (Protokolle + Verlauf; je Protokoll stecken die Regeln mit ~½ KiB mit drin),
   also gut im Rahmen der ~5 MiB von localStorage.
 - Später möglich: den Host über den Seed festlegen (Schutz gegen Schummeln) und Spiele nachspielen.
@@ -287,8 +287,8 @@ eingezogen mit K3a). Jede Variante soll **ein Eintrag oder ein Hook** sein, kein
    Blatt) und `outcome` (eigene Auswertung, z. B. Ramsch) sind optionale Hooks.
 3. **Vorspiel** (Hochzeit) – noch nicht eingezogen, kommt mit K5 (Entwurf §4).
 4. **„Alle weiter“ als Registry.** `applyBid` ruft nur `ALL_PASSED[rules.allPassed](state)` und
-   führt den Schritt aus: `finish` (Zusammenwerfen) oder `play` (Ramsch: Spiel ohne Ansager,
-   `declarer` bleibt `null`).
+   führt den Schritt aus: `finish` (Zusammenwerfen; Stock mit Einzahlung über `potDelta`) oder
+   `play` (Ramsch: Spiel ohne Ansager, `declarer` bleibt `null`).
 5. **Abrechnung in Stufen.** `scoreHand` = `outcomeOf` (Stufe 1: `MODES[kind].outcome` oder
    `partyOutcome`; Gewinner, Verlierer, Spielwert mit Bestandteilen `parts`) → `factorsFor`
    (Stufe 2) → `settleOutcome` (Stufe 3: Zahlungen, Pott). `HandResult` = `kind`, `outcome`,

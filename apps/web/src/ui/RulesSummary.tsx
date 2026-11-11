@@ -29,6 +29,7 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
           ` · ${T.tariffRamsch} ${rules.tariff.ramsch} · ${T.durchmarschShort} ${yesNo(
             rules.ramsch.durchmarsch,
           )} · ${T.jungfrauShort} ${yesNo(rules.ramsch.jungfrau)}`}
+        {rules.allPassed === 'stock' && ` · ${T.tariffStock} ${rules.tariff.stock}`}
       </dd>
       <dt>{T.sie}</dt>
       <dd>{yesNo(rules.sie)}</dd>

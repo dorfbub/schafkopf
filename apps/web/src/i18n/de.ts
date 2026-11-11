@@ -3,7 +3,15 @@
  * lassen sich später als zweite Datei mit denselben Schlüsseln ergänzen.
  */
 
-import type { BidCall, BidLevel, Contract, ContractKind, Rank, Suit } from '@schafkopf/core';
+import type {
+  AllPassedRule,
+  BidCall,
+  BidLevel,
+  Contract,
+  ContractKind,
+  Rank,
+  Suit,
+} from '@schafkopf/core';
 import type { HostErrorCode } from '@schafkopf/net';
 
 export const SUIT_NAME: Record<Suit, string> = {
@@ -226,8 +234,13 @@ export const TABLE_TEXT = {
   bidSaid: (name: string, what: string) => `${name}: ${what}`,
   bidMinimum: (label: string) => `Mindestens: ${label}`,
   ramschStatus: 'Ramsch – jeder für sich',
+  pot: (amount: string) => `Pott ${amount}`,
   // Ergebnis
   passedTitle: 'Alle weiter – es wird zusammengeworfen',
+  stockTitle: 'Alle weiter – jeder zahlt in den Stock',
+  potFilled: (each: string) => `Im Pott (jeder ${each} eingezahlt)`,
+  potWon: 'Pott gewonnen',
+  potStays: 'Pott bleibt stehen',
   ramschLoser: (name: string) => `Ramsch – ${name} verliert`,
   ramschDurchmarsch: (name: string) => `Durchmarsch – ${name} gewinnt`,
   ramschHint: 'Alle weiter – jeder für sich. Wer die meisten Augen hat, zahlt an jeden.',
@@ -337,12 +350,16 @@ export const RULES_TEXT = {
   allPassedName: {
     zusammenwerfen: 'Zusammenwerfen',
     ramsch: 'Ramsch',
-  },
+    stock: 'Stock',
+  } satisfies Record<AllPassedRule, string>,
   allPassedHint: {
     zusammenwerfen: 'Die Karten werden neu gegeben, niemand zahlt.',
     ramsch: 'Jeder spielt für sich. Wer die meisten Augen hat, zahlt den Ramsch-Tarif an jeden.',
-  },
+    stock:
+      'Jeder zahlt den Einsatz in den Pott. Den Pott gewinnt, wer das nächste Spiel gewinnt (im Sauspiel geteilt).',
+  } satisfies Record<AllPassedRule, string>,
   tariffRamsch: 'Ramsch',
+  tariffStock: 'Stock-Einsatz',
   durchmarsch: 'Durchmarsch: ab 91 Augen gewinnt man allein',
   jungfrau: 'Jungfrau: jeder ohne Stich verdoppelt',
   durchmarschShort: 'Durchmarsch',
