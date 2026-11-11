@@ -73,8 +73,8 @@ Laufende. Annahmen aus REGELN.md, die Geschmackssache sind, als Optionen abbilde
 
 Regeln: [REGELN.md](REGELN.md), „Varianten“. Schnittstellen:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md). Die Pakete K3a–K3d, K5, H1–H3 und K4 berühren
-alle den Kern und laufen **nacheinander** in der Reihenfolge aus §11 des Entwurfs. Jedes Paket
-lässt seine Annahmen aus REGELN.md (Nr. 10–19) zuerst von Lukas bestätigen, erhöht
+alle den Kern und laufen **nacheinander** in der Reihenfolge aus §11 des Entwurfs. Die Annahmen
+10–19 in REGELN.md hat Lukas am 11.11.2026 bestätigt; sie gelten als Regel. Jedes Paket erhöht
 `PROTOCOL_VERSION` und `HOST_SNAPSHOT_VERSION`, wenn es Sicht, Zustand oder `RuleSet` ändert, und
 streicht „(geplant)“ bzw. „noch nicht umgesetzt“ für seinen Teil in REGELN.md.
 
@@ -104,7 +104,7 @@ Verlierer nach Augen, Durchmarsch ab 91 Augen, Jungfrau als Faktor; `RuleSet.ram
 (Augen vermeiden genügt).
 
 - **Modell:** Opus (erstes Spiel ohne Ansager – trifft Sicht, Bots und Oberfläche).
-- **Abhängigkeit:** K3a. Annahmen 10 und 11 bestätigt.
+- **Abhängigkeit:** K3a.
 - **Abnahme:** Tests für: Verlierer zahlt an drei; jeder Gleichstands-Fall aus Annahme 10; eine und
   zwei Jungfrauen; Durchmarsch mit genau 91 und 90 Augen; beide Unteroptionen aus. Zufallsspiel-Test
   über Host mit vier Bots, in dem jedes Spiel „alle weiter“ beginnt. Summe der Zahlungen 0.
@@ -116,7 +116,7 @@ des nächsten gewonnenen Spiels gleich welcher Art; `tariff.stock`; `TableView.p
 Tisch und im Ergebnis; Lobby.
 
 - **Modell:** Sonnet.
-- **Abhängigkeit:** K3a. Annahmen 12 und 13 bestätigt. K7: Spielprotokoll schreibt `HandCarry` mit.
+- **Abhängigkeit:** K3a. K7: Spielprotokoll schreibt `HandCarry` mit.
 - **Abnahme:** Tests für: Einzahlung; Pott wächst bei zweimal „alle weiter“; Auszahlung bei
   gewonnenem Sauspiel (geteilt) und Solo; Pott bleibt bei verlorenem Spiel; nach jedem Schritt
   `Summe(balances) + pot = 0`; Speicherstand mit Pott wird wiederhergestellt. Rückzahlung am Ende
@@ -129,7 +129,7 @@ Ruf-Bedingung nur wenn gesperrt, Zusammenwerfen bei drei eigenen Säuen; Hinweis
 Bot nennt ein erlaubtes Sauspiel.
 
 - **Modell:** Sonnet.
-- **Abhängigkeit:** K3a. Annahme 14 bestätigt.
+- **Abhängigkeit:** K3a.
 - **Abnahme:** Tests für: normales Muss; gesperrt → Ruf ohne Farbkarte erlaubt, sonst nicht; drei
   Säue → zusammenwerfen; Rufsau-Regeln gelten für den Mitspieler unverändert.
 
@@ -143,7 +143,7 @@ sie sind nicht Teil dieses Pakets – der Entwurf hält nur den Platz frei (`Han
 - **Modell:** Opus.
 - **Bereich:** `RuleSet`, `PlayerAction`, `HandState.doubling`, `scoring.ts`, Sicht, `host.ts`
   (`isWellFormed`), Knopf am Tisch, Bots (sagen vorerst nie Kontra).
-- **Abhängigkeit:** K3a. Annahme 18 bestätigt.
+- **Abhängigkeit:** K3a.
 - **Abnahme:** Tests für: Kontra nur durch Gegenspieler und nur vor der ersten Karte; Re nur nach
   Kontra und nur durch die Spielerpartei; Verdopplung und Vervierfachung des Spielwerts, auch bei
   Tout; kein Kontra im Ramsch; Pott wird nicht verdoppelt.
@@ -156,8 +156,7 @@ Sauspiel); Wiederaufnahme der Ansage über `auction.yielded`, wenn keiner annimm
 am Tisch; Bots lehnen ab bzw. geben die niedrigsten Karten zurück.
 
 - **Modell:** Opus.
-- **Abhängigkeit:** K3a; sinnvoll nach K3b–K3d (dieselben Stellen in `applyBid`). Annahmen 15 und
-  16 bestätigt.
+- **Abhängigkeit:** K3a; sinnvoll nach K3b–K3d (dieselben Stellen in `applyBid`).
 - **Abnahme:** Hochzeit vollständig spielbar (Kern, Host mit Bots, Oberfläche); bestehende
   Spielarten unverändert. Tests für: nur mit genau einem Trumpf ansagbar; Rang über Sauspiel, unter
   Bettel; Erster nimmt an; Rückgabe muss Nicht-Trumpf sein, wenn vorhanden; die Sichten der beiden
@@ -193,7 +192,7 @@ Eintrag `eisenbahner` in `MODES` (Trümpfe: vier Zehner), Platz in `BID_ORDER` z
 Geier, Laufende-Schwelle 2 in `RuleSet.laufende`, Bereich „Hausregeln“ in der Lobby, Texte.
 
 - **Modell:** Sonnet.
-- **Abhängigkeit:** K3a. Annahme 19 bestätigt.
+- **Abhängigkeit:** K3a.
 - **Abnahme:** Außer dem Eintrag, der Schwelle und Texten ändert sich im Kern nichts (zeigt, dass
   K3a trägt). Tests für: Zehner stechen in der Reihenfolge Eichel, Gras, Herz, Schellen und sind
   eigene Farbe beim Bedienen; Rang gegenüber Bettel und Geier im Zweikampf; Tout; Laufende ab 2;
@@ -207,7 +206,7 @@ Anzeige der gültigen Trumpffarbe und ihres Wechsels am Tisch; Hand-Sortierung f
 Farbe; Bots zählen Trümpfe je Stich richtig.
 
 - **Modell:** Opus (Trumpfwechsel trifft jede Stelle, die eine Kartenordnung behält).
-- **Abhängigkeit:** K3a. Annahme 19 bestätigt.
+- **Abhängigkeit:** K3a.
 - **Abnahme:** Tests für: beide Farben müssen verschieden sein; Bedienpflicht und Stichgewinner in
   Stich 4 nach der ersten, in Stich 5 nach der zweiten Farbe; Könige durchgehend höchste Trümpfe;
   Laufende zählen höchstens vier; Rang zwischen Geier und Farbwenz; Tout. Zufallsspiel-Test über
@@ -219,7 +218,7 @@ Eintrag `arabischeHochzeit` mit `weddingPrelude(2)`: Bedingung genau zwei Trümp
 Karten, Rang zwischen Sauspiel und Hochzeit.
 
 - **Modell:** Sonnet.
-- **Abhängigkeit:** K5. Annahme 17 bestätigt.
+- **Abhängigkeit:** K5.
 - **Abnahme:** Kein neuer Ablaufcode außer dem Parameter 2. Tests für: nur mit genau zwei Trümpfen;
   zwei Karten hin und zwei zurück; Hochzeit überbietet arabische Hochzeit; keiner nimmt an.
 

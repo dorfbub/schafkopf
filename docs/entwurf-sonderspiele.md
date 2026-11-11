@@ -444,8 +444,8 @@ Varianten, jede mit eigenen Tests und der Invariante `Summe(payments) + potDelta
   _aufgegeben_ hat, rückt nach, nicht wer „weiter“ gesagt hat.
 - **Parallele Pakete.** K7 (Spielprotokoll) und U4 lesen `HandResult`; sie sollten vor K3a
   zusammengeführt sein oder danach beginnen.
-- **Offene Regelfragen.** Annahmen 10–19 in REGELN.md sind nicht bestätigt; jedes Paket lässt seine
-  Annahmen zuerst von Lukas bestätigen.
+- **Neue Regelfragen bei der Umsetzung.** Die Annahmen 10–19 in REGELN.md hat Lukas bestätigt.
+  Taucht in einem Paket ein Fall auf, den sie nicht abdecken: nicht raten, sondern nachfragen.
 
 ## 11. Reihenfolge
 

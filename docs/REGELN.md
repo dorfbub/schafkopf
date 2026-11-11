@@ -112,8 +112,8 @@ Aufschlag 10 Cent.
 Von Lukas im November 2026 festgelegt, **noch nicht umgesetzt**. Schnittstellen dazu:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md); Pakete K3a–K3d, K4, K5 in
 [ARBEITSPAKETE.md](ARBEITSPAKETE.md). Alle Varianten sind Tischregeln, die der Gastgeber vor dem
-ersten Spiel wählt; Standard ist „aus“ bzw. Zusammenwerfen. Punkte, die nicht abgefragt wurden,
-stehen unter „Annahmen“ (ab Nr. 10).
+ersten Spiel wählt; Standard ist „aus“ bzw. Zusammenwerfen. Ergänzende Festlegungen
+stehen unter „Annahmen“ (Nr. 10–19, von Lukas bestätigt).
 
 ### Alle „weiter“
 
@@ -244,8 +244,8 @@ etwas anders; Abweichungen bitte hier korrigieren.
 
 ### Annahmen zu Varianten und Hausregeln
 
-Beim Erfragen der Varianten (November 2026) offen geblieben und nach gängiger Spielweise bzw. in
-Analogie festgelegt. Vor der Umsetzung des jeweiligen Pakets von Lukas bestätigen lassen.
+Beim Erfragen der Varianten offen geblieben und nach gängiger Spielweise bzw. in Analogie
+vorgeschlagen. **Von Lukas am 11.11.2026 bestätigt** – sie gelten damit als festgelegt.
 
 10. **Ramsch, Gleichstand:** Haben zwei Spieler gleich viele Augen, verliert, wer mehr Stiche hat;
     dann, wer mehr Trümpfe in seinen Stichen hat; dann, wer den höchsten Trumpf in seinen Stichen
