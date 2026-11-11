@@ -5,6 +5,7 @@ export * from './modes';
 export * from './rules';
 export * from './hand';
 export * from './scoring';
+export * from './log';
 export * from './table';
 export * from './view';
 export * from './bot';

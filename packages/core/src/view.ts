@@ -19,6 +19,7 @@ import {
 } from './hand';
 import { type Contract, MODES } from './modes';
 import type { RuleSet } from './rules';
+import type { HandSummary } from './log';
 import type { HandResult } from './scoring';
 import type { PlayerInfo, TableState } from './table';
 
@@ -56,6 +57,8 @@ export interface TableView {
   dealer: Seat;
   handNo: number;
   hand: HandView | null;
+  /** Fertige Spiele des Abends, älteste zuerst – ohne Karten. */
+  history: HandSummary[];
 }
 
 function partnerVisible(state: HandState, viewer: Seat | null): boolean {
@@ -100,5 +103,6 @@ export function tableViewFor(table: TableState, viewer: Seat | null): TableView 
     dealer: table.dealer,
     handNo: table.handNo,
     hand: table.hand ? handViewFor(table.hand, viewer) : null,
+    history: table.history,
   };
 }

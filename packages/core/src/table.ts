@@ -11,6 +11,7 @@ import {
   applyAction,
   dealHand,
 } from './hand';
+import { type HandLog, type HandSummary, newHandLog, summarize } from './log';
 import type { SeedInput } from './rng';
 import { DEFAULT_RULES, type RuleSet } from './rules';
 
@@ -29,7 +30,14 @@ export interface TableState {
   /** Laufende Nummer des Spiels, beginnend bei 1. 0 = noch in der Lobby. */
   handNo: number;
   hand: HandState | null;
+  /** Protokolle der letzten Spiele; das letzte gehört zu `hand`. Enthält alle Karten – nur beim Host. */
+  logs: HandLog[];
+  /** Zusammenfassungen der fertigen Spiele (alle des Abends), älteste zuerst. */
+  history: HandSummary[];
 }
+
+/** So viele Protokolle behält der Tisch (die ältesten fallen heraus); Zusammenfassungen bleiben. */
+export const MAX_LOGS = 100;
 
 export type TableResult =
   | { ok: true; table: TableState }
@@ -43,6 +51,8 @@ export function createTable(rules: RuleSet = DEFAULT_RULES): TableState {
     dealer: 0,
     handNo: 0,
     hand: null,
+    logs: [],
+    history: [],
   };
 }
 
@@ -58,6 +68,9 @@ export function startHand(table: TableState, seed: SeedInput): TableResult {
       dealer,
       handNo: table.handNo + 1,
       hand: dealHand(table.rules, dealer, seed),
+      logs: [...table.logs, newHandLog(table.handNo + 1, table.rules, dealer, seed)].slice(
+        -MAX_LOGS,
+      ),
     },
   };
 }
@@ -70,5 +83,23 @@ export function applyTableAction(table: TableState, action: Action): TableResult
   const balances = hand.result
     ? table.balances.map((b, seat) => b + hand.result!.payments[seat]!)
     : table.balances;
-  return { ok: true, table: { ...table, hand, balances } };
+  const last = table.logs.at(-1);
+  if (!last) return { ok: false, error: 'no_hand' };
+  // Gespeichert wird die bereinigte Aktion (Rufe kommen aus dem Netz und können Überzähliges tragen).
+  const logged: Action =
+    action.type === 'bid'
+      ? { type: 'bid', seat: action.seat, call: hand.bids.at(-1)!.call }
+      : { type: 'play', seat: action.seat, card: action.card };
+  const log: HandLog = { ...last, actions: [...last.actions, logged] };
+  const summary = summarize(log, hand);
+  return {
+    ok: true,
+    table: {
+      ...table,
+      hand,
+      balances,
+      logs: [...table.logs.slice(0, -1), log],
+      history: summary ? [...table.history, summary] : table.history,
+    },
+  };
 }
