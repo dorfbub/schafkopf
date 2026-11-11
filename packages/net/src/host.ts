@@ -5,6 +5,8 @@
  */
 
 import {
+  parseRuleOptions,
+  withRuleOptions,
   type Bot,
   type PlayerAction,
   type RuleSet,
@@ -183,6 +185,19 @@ export class HostSession {
     if (this.spectatorsWelcome === welcome) return;
     this.spectatorsWelcome = welcome;
     this.changed();
+  }
+
+  /**
+   * Gastgeber-Befehl (nur in der Lobby, vor Spielbeginn): ändert die Tischregeln.
+   * Unpassende Werte werden abgewiesen (`false`), der Tisch bleibt dann unverändert.
+   */
+  setRules(options: unknown): boolean {
+    if (this.table.hand) return false;
+    const parsed = parseRuleOptions(options);
+    if (!parsed) return false;
+    this.table = { ...this.table, rules: withRuleOptions(this.table.rules, parsed) };
+    this.changed();
+    return true;
   }
 
   /**

@@ -6,6 +6,7 @@ import { seatInfo } from './layout';
 import { OwnSeat } from './OwnSeat';
 import { ResultDialog } from './ResultDialog';
 import { Seats } from './Seats';
+import { RulesDialog } from './RulesDialog';
 import { TableBar } from './TableBar';
 import { TrickArea } from './TrickArea';
 import { useTrickDisplay } from './useTrickDisplay';
@@ -28,6 +29,8 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
   const seats = seatInfo(view);
   const shown = useTrickDisplay(hand, view.handNo);
   const [lastOpen, setLastOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const closeRules = useCallback(() => setRulesOpen(false), []);
   const closeLast = useCallback(() => setLastOpen(false), []);
 
   const myTurn = view.you !== null && hand.turn === view.you && hand.phase !== 'finished';
@@ -49,6 +52,8 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
         seats={seats}
         lastTrickOpen={lastOpen}
         onLastTrick={toggleLast}
+        rulesOpen={rulesOpen}
+        onRules={() => setRulesOpen((open) => !open)}
         onLeave={onLeave}
       />
       <div className="tisch__raum">
@@ -81,6 +86,7 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
         {lastOpen && hand.lastTrick && (
           <LastTrickDialog trick={hand.lastTrick} seats={seats} onClose={closeLast} />
         )}
+        {rulesOpen && <RulesDialog rules={view.rules} onClose={closeRules} />}
       </div>
       <OwnSeat view={view} hand={hand} seats={seats} onPlay={play} />
     </main>

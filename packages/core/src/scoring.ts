@@ -9,6 +9,7 @@
 import { type Card, createDeck } from './cards';
 import type { HandState, Seat } from './hand';
 import { type Contract, MODES } from './modes';
+import type { LaufendeKind } from './rules';
 
 export type HandResult =
   | {
@@ -80,6 +81,7 @@ export function scoreHand(state: HandState): HandResult {
   const ober = deck.filter((c) => c.endsWith('O'));
   const unter = deck.filter((c) => c.endsWith('U'));
   const sie =
+    rules.sie &&
     contract.kind === 'solo' &&
     state.initialHands[declarer]!.length === ober.length + unter.length &&
     [...ober, ...unter].every((c) => state.initialHands[declarer]!.includes(c));
@@ -95,7 +97,8 @@ export function scoreHand(state: HandState): HandResult {
     won = partyTricks.length === 0;
   } else {
     const run = countLaufende(trumps, state.initialHands, party);
-    if (mode.minLaufende !== null && run >= mode.minLaufende) laufende = run;
+    const threshold = mode.hasLaufende ? rules.laufende[contract.kind as LaufendeKind] : null;
+    if (threshold !== null && run >= threshold) laufende = run;
 
     if (sie) {
       won = true;

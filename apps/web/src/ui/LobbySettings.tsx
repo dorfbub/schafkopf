@@ -1,0 +1,172 @@
+import {
+  CONTRACT_KINDS,
+  LAUFENDE_KINDS,
+  type ContractKind,
+  type LaufendeKind,
+  type RuleOptions,
+  type TableView,
+} from '@schafkopf/core';
+import type { HostSession } from '@schafkopf/net';
+import { useState } from 'react';
+import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
+
+interface Props {
+  view: TableView;
+  host: HostSession;
+}
+
+function options(view: TableView): RuleOptions {
+  const { contracts, allowTout, tariff, laufende, sie, davonlaufen } = view.rules;
+  return {
+    contracts,
+    allowTout,
+    tariff: { ...tariff },
+    laufende: { ...laufende },
+    sie,
+    davonlaufen,
+  };
+}
+
+/** Tischregeln des Gastgebers in der Lobby. Jede gültige Änderung gilt sofort für alle. */
+export function LobbySettings({ view, host }: Props) {
+  const current = options(view);
+  const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
+
+  const toggleContract = (kind: ContractKind, on: boolean) => {
+    const set = new Set(current.contracts);
+    if (on) set.add(kind);
+    else set.delete(kind);
+    change({ contracts: CONTRACT_KINDS.filter((k) => set.has(k)) });
+  };
+
+  return (
+    <div className="regeln-einstellung">
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.contracts}</legend>
+        <div className="row">
+          {CONTRACT_KINDS.map((kind) => (
+            <label key={kind} className="check">
+              <input
+                type="checkbox"
+                checked={current.contracts.includes(kind)}
+                disabled={kind === 'sauspiel'}
+                onChange={(e) => toggleContract(kind, e.target.checked)}
+              />
+              {KIND_NAME[kind]}
+            </label>
+          ))}
+        </div>
+        <p className="hint">{T.contractsHint}</p>
+      </fieldset>
+
+      <div className="row">
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={current.allowTout}
+            onChange={(e) => change({ allowTout: e.target.checked })}
+          />
+          {T.tout}
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={current.sie}
+            onChange={(e) => change({ sie: e.target.checked })}
+          />
+          {T.sie}
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={current.davonlaufen}
+            onChange={(e) => change({ davonlaufen: e.target.checked })}
+          />
+          {T.davonlaufen}
+        </label>
+      </div>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.tariff}</legend>
+        <div className="row">
+          {(
+            [
+              ['sauspiel', T.tariffSauspiel],
+              ['solo', T.tariffSolo],
+              ['extra', T.tariffExtra],
+            ] as const
+          ).map(([key, label]) => (
+            <NumberField
+              key={`${key}-${current.tariff[key]}`}
+              label={label}
+              value={current.tariff[key]}
+              min={0}
+              max={100_000}
+              error={T.invalid}
+              onValid={(n) => change({ tariff: { ...current.tariff, [key]: n } })}
+            />
+          ))}
+        </div>
+        <p className="hint">{T.tariffHint}</p>
+      </fieldset>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.laufende}</legend>
+        <div className="row">
+          {LAUFENDE_KINDS.filter((k) => current.contracts.includes(k)).map((kind: LaufendeKind) => (
+            <NumberField
+              key={`${kind}-${current.laufende[kind]}`}
+              label={KIND_NAME[kind]}
+              value={current.laufende[kind]}
+              min={1}
+              max={8}
+              error={T.invalidRange}
+              onValid={(n) => change({ laufende: { ...current.laufende, [kind]: n } })}
+            />
+          ))}
+        </div>
+        <p className="hint">{T.laufendeHint}</p>
+      </fieldset>
+    </div>
+  );
+}
+
+/** Zahleneingabe: gibt nur gültige ganze Zahlen weiter, sonst zeigt sie einen Hinweis. */
+function NumberField({
+  label,
+  value,
+  min,
+  max,
+  error,
+  onValid,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  error: string;
+  onValid: (n: number) => void;
+}) {
+  const [text, setText] = useState(String(value));
+  const n = Number(text);
+  const valid = text.trim() !== '' && Number.isInteger(n) && n >= min && n <= max;
+  return (
+    <label className="regeln-einstellung__zahl">
+      {label}
+      <input
+        type="text"
+        inputMode="numeric"
+        value={text}
+        aria-invalid={!valid}
+        onChange={(e) => {
+          setText(e.target.value);
+          const m = Number(e.target.value);
+          if (e.target.value.trim() !== '' && Number.isInteger(m) && m >= min && m <= max) {
+            onValid(m);
+          }
+        }}
+      />
+      {!valid && <span className="hint">{error}</span>}
+    </label>
+  );
+}

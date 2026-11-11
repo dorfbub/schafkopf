@@ -129,7 +129,8 @@ die Plätze; im laufenden Spiel ist alles davon gesperrt (`wrong_phase`).
   (Name 1–24 Zeichen). Ein Platz wird nie einem anderen Menschen weggenommen oder getauscht.
 - **Admin-Befehle des Gastgebers** laufen direkt über `HostSession`, nicht übers Protokoll:
   `moveSeat(von, nach)` (tauscht, wenn `nach` besetzt ist), `unseat(platz)` und
-  `setSpectatorsWelcome(bool)`. Sie geben `false` zurück, wenn der Befehl nicht möglich ist.
+  `setSpectatorsWelcome(bool)` sowie `setRules(optionen)` (Tischregeln, nur vor Spielbeginn,
+  geprüft mit `parseRuleOptions`; Gäste sehen sie in `TableView.rules`). Sie geben `false` zurück, wenn der Befehl nicht möglich ist.
 - **Zuschauer:** Wer keinen Platz hat oder nur zuschauen will (`seat` mit `null`, oder der Gastgeber
   nimmt ihn vom Platz), bekommt eine Sicht ohne Hand (`TableView.you === null`) und merkt sich beim
   Host als „will zuschauen“: Beim Wiederverbinden wird ihm kein freier Platz zugeteilt. Die Namen

@@ -2,7 +2,9 @@ import type { Seat, TableView } from '@schafkopf/core';
 import type { ClientSession, HostSession } from '@schafkopf/net';
 import { useState, useSyncExternalStore } from 'react';
 import { inviteLink } from '../connection';
-import { LOBBY_TEXT as T } from '../i18n/de';
+import { LOBBY_TEXT as T, RULES_TEXT as R } from '../i18n/de';
+import { LobbySettings } from './LobbySettings';
+import { RulesSummary } from './RulesSummary';
 
 interface Props {
   view: TableView;
@@ -102,7 +104,7 @@ export function Lobby({ view, client, host, roomId, onLeave }: Props) {
       {host && (
         <section className="panel" id="tisch-einstellungen">
           <h2>{T.settings}</h2>
-          {/* Hier kommen mit K2 die Tischregeln dazu. */}
+          <LobbySettings view={view} host={host} />
           <label className="row">
             <input
               type="checkbox"
@@ -113,6 +115,14 @@ export function Lobby({ view, client, host, roomId, onLeave }: Props) {
             {T.spectators}
           </label>
           <p className="hint">{roomId ? T.spectatorsHint : T.spectatorsHintLocal}</p>
+        </section>
+      )}
+
+      {!host && (
+        <section className="panel">
+          <h2>{R.title}</h2>
+          <p className="hint">{R.guestHint}</p>
+          <RulesSummary rules={view.rules} />
         </section>
       )}
 

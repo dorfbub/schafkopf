@@ -1,5 +1,5 @@
 import type { HandView, TableView } from '@schafkopf/core';
-import { TABLE_TEXT, contractLabel } from '../../i18n/de';
+import { RULES_TEXT, TABLE_TEXT, contractLabel } from '../../i18n/de';
 import { Button } from '../kit';
 import type { SeatInfo } from './layout';
 
@@ -9,11 +9,22 @@ interface Props {
   seats: SeatInfo;
   lastTrickOpen: boolean;
   onLastTrick: (() => void) | null;
+  rulesOpen: boolean;
+  onRules: () => void;
   onLeave: () => void;
 }
 
 /** Leiste über dem Tisch: Spielnummer, was gespielt wird, letzter Stich, Verlassen. */
-export function TableBar({ view, hand, seats, lastTrickOpen, onLastTrick, onLeave }: Props) {
+export function TableBar({
+  view,
+  hand,
+  seats,
+  lastTrickOpen,
+  onLastTrick,
+  rulesOpen,
+  onRules,
+  onLeave,
+}: Props) {
   // Noch nicht gelegte Karten plus die im laufenden Stich ergeben die offenen Stiche.
   const cardsLeft = hand.handSizes.reduce((a, b) => a + b, 0) + hand.currentTrick.cards.length;
   const tricksDone = hand.tricksWon.reduce((a, b) => a + b, 0);
@@ -64,6 +75,9 @@ export function TableBar({ view, hand, seats, lastTrickOpen, onLastTrick, onLeav
             {TABLE_TEXT.lastTrick}
           </Button>
         )}
+        <Button variant="secondary" size="small" aria-expanded={rulesOpen} onClick={onRules}>
+          {RULES_TEXT.info}
+        </Button>
         <Button variant="secondary" size="small" onClick={onLeave}>
           {TABLE_TEXT.leave}
         </Button>
