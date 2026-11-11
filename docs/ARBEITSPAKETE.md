@@ -96,7 +96,7 @@ Eintrag `zusammenwerfen`; `DEFAULT_RULES.contracts` ausdrücklich aufgezählt.
   wie eine vor dem Umbau erzeugte, eingecheckte Liste. `docs/ARCHITEKTUR.md` („So wird erweitert“,
   Tabelle der Dateien) beschreibt die neuen Erweiterungspunkte.
 
-### K3b · Ramsch
+### K3b · Ramsch (erledigt)
 
 `allPassed: 'ramsch'`: Spielart `ramsch` (nicht ansagbar, jeder für sich), `ramschOutcome` mit
 Verlierer nach Augen, Durchmarsch ab 91 Augen, Jungfrau als Faktor; `RuleSet.ramsch`,

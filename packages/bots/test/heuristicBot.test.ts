@@ -218,3 +218,40 @@ describe('Heuristik-Bot gegen Zufalls-Bot', () => {
     expect(sum / 2000).toBeGreaterThan(5);
   });
 });
+
+describe('Heuristik-Bot im Ramsch', () => {
+  const RAMSCH: RuleSet = { ...DEFAULT_RULES, allPassed: 'ramsch' };
+  /** Sagt immer „weiter“, damit jedes Spiel ein Ramsch wird; sonst wie der Heuristik-Bot. */
+  const passing = (seed: number): Bot => {
+    const inner = createHeuristicBot(seed);
+    return {
+      decide: (view: HandView) =>
+        view.phase === 'bidding' ? { type: 'bid', call: { type: 'pass' } } : inner.decide(view),
+    };
+  };
+
+  it('spielt viele Ramsche regelgerecht zu Ende', () => {
+    for (let seed = 1; seed <= 150; seed++) {
+      const bots = [0, 1, 2, 3].map((s) => passing(seed * 4 + s));
+      const end = playHand(bots, seed, seed % 4, RAMSCH);
+      expect(end.contract).toEqual({ kind: 'ramsch' });
+      expect(end.result!.payments.reduce((a, b) => a + b, 0)).toBe(0);
+    }
+  });
+
+  it('bleibt unter dem Stich und wirft dabei die teuerste Karte ab', () => {
+    const hands: Card[][] = [
+      ['EA', 'E7', 'G7', 'S7', 'H7', 'G8', 'S8', 'H8'],
+      ['E10', 'EK', 'E9', 'GA', 'SA', 'G9', 'S9', 'H9'],
+      ['E8', 'EO', 'GO', 'HO', 'SO', 'EU', 'GU', 'HU'],
+      ['SU', 'HA', 'H10', 'HK', 'G10', 'GK', 'S10', 'SK'],
+    ];
+    let state = dealHand(RAMSCH, 3, 1);
+    state = { ...state, hands, initialHands: hands.map((h) => [...h]) };
+    for (let i = 0; i < 4; i++)
+      state = act(state, state.turn, { type: 'bid', call: { type: 'pass' } });
+    state = play(state, 'EA');
+    // Sitz 1 muss Eichel bedienen und bleibt mit jeder Karte unter der Sau: der Zehner geht weg.
+    expect(decideFor(state)).toEqual({ type: 'play', card: 'E10' });
+  });
+});

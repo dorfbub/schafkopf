@@ -6,6 +6,7 @@ export * from './rules';
 export * from './hand';
 export * from './allPassed';
 export * from './scoring';
+export * from './ramsch';
 export * from './log';
 export * from './table';
 export * from './view';

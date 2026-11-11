@@ -2,6 +2,7 @@ import type { HandView, TableView } from '@schafkopf/core';
 import { TABLE_TEXT, contractLabel, money } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
 import type { SeatInfo } from './layout';
+import { RamschResult } from './RamschResult';
 
 interface Props {
   view: TableView;
@@ -75,6 +76,11 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
 
   const { value } = result.outcome;
   const details = result.outcome.details;
+  if (details.type === 'ramsch') {
+    return (
+      <RamschResult view={view} result={result} details={details} seats={seats} actions={actions} />
+    );
+  }
   const names = details.party.map(seats.nameOf).join(TABLE_TEXT.and);
   const extras = [
     TABLE_TEXT.extras.tricks(details.partyTricks),

@@ -33,6 +33,7 @@ export function contractLabel(contract: Contract): string {
     wenz: 'Wenz',
     geier: 'Geier',
     bettel: 'Bettel',
+    ramsch: 'Ramsch',
   }[contract.kind];
   return contract.tout ? `${base} Tout` : base;
 }
@@ -137,6 +138,7 @@ export const KIND_NAME: Record<ContractKind, string> = {
   farbwenz: 'Farbwenz',
   geier: 'Geier',
   bettel: 'Bettel',
+  ramsch: 'Ramsch',
 };
 
 /** Spielart ohne Farbe, wie sie im Zweikampf genannt wird. */
@@ -223,8 +225,20 @@ export const TABLE_TEXT = {
       .join(' · '),
   bidSaid: (name: string, what: string) => `${name}: ${what}`,
   bidMinimum: (label: string) => `Mindestens: ${label}`,
+  ramschStatus: 'Ramsch – jeder für sich',
   // Ergebnis
   passedTitle: 'Alle weiter – es wird zusammengeworfen',
+  ramschLoser: (name: string) => `Ramsch – ${name} verliert`,
+  ramschDurchmarsch: (name: string) => `Durchmarsch – ${name} gewinnt`,
+  ramschHint: 'Alle weiter – jeder für sich. Wer die meisten Augen hat, zahlt an jeden.',
+  ramschHintDurchmarsch: 'Ab 91 Augen gewinnt der Spieler allein und bekommt von jedem.',
+  ramschJungfrauen: (names: string[]) =>
+    names.length === 1
+      ? `Jungfrau: ${names[0]} – der Betrag verdoppelt sich`
+      : `Jungfrauen: ${names.join(' und ')} – der Betrag vervierfacht sich`,
+  ramschPerPlayer: 'je Mitspieler',
+  colPoints: 'Augen',
+  jungfrau: 'Jungfrau',
   resultTitle: (names: string, plural: boolean, won: boolean) =>
     `${names} ${plural ? 'haben' : 'hat'} ${won ? 'gewonnen' : 'verloren'}`,
   and: ' und ',
@@ -319,6 +333,20 @@ export const RULES_TEXT = {
   invalid: 'Bitte eine ganze Zahl eingeben.',
   invalidRange: 'Bitte eine Zahl von 1 bis 8 eingeben.',
   guestHint: 'So wird an diesem Tisch gespielt. Der Gastgeber kann das vor dem Start ändern.',
+  allPassed: 'Wenn alle „weiter“ sagen',
+  allPassedName: {
+    zusammenwerfen: 'Zusammenwerfen',
+    ramsch: 'Ramsch',
+  },
+  allPassedHint: {
+    zusammenwerfen: 'Die Karten werden neu gegeben, niemand zahlt.',
+    ramsch: 'Jeder spielt für sich. Wer die meisten Augen hat, zahlt den Ramsch-Tarif an jeden.',
+  },
+  tariffRamsch: 'Ramsch',
+  durchmarsch: 'Durchmarsch: ab 91 Augen gewinnt man allein',
+  jungfrau: 'Jungfrau: jeder ohne Stich verdoppelt',
+  durchmarschShort: 'Durchmarsch',
+  jungfrauShort: 'Jungfrau',
   yes: 'ja',
   no: 'nein',
   cent: (n: number) => `${n} Cent`,

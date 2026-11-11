@@ -44,6 +44,9 @@ export function TableBar({
         <b className="tisch-leiste__spiel">{contractLabel(hand.contract)}</b>
       </>
     );
+  } else if (hand.contract) {
+    // Spiel ohne Ansager (Ramsch).
+    status = <b className="tisch-leiste__spiel">{TABLE_TEXT.ramschStatus}</b>;
   } else if (hand.phase === 'bidding') {
     status =
       hand.turn === view.you ? (

@@ -70,12 +70,16 @@ const MIT_SIE: Card[][] = [
 function value(state: HandState) {
   const r = scoreHand(state);
   if (r.kind !== 'played') throw new Error('nicht gespielt');
-  return { ...r.outcome!.details, value: r.outcome!.value, payments: r.payments };
+  const details = r.outcome!.details;
+  if (details.type !== 'party') throw new Error('kein Parteispiel');
+  return { ...details, value: r.outcome!.value, payments: r.payments };
 }
 
 describe('DEFAULT_RULES', () => {
   it('rechnen unverändert ab', () => {
-    expect(DEFAULT_RULES.tariff).toEqual({ sauspiel: 10, solo: 50, extra: 10 });
+    expect(DEFAULT_RULES.tariff).toEqual({ sauspiel: 10, solo: 50, extra: 10, ramsch: 10 });
+    expect(DEFAULT_RULES.allPassed).toBe('zusammenwerfen');
+    expect(DEFAULT_RULES.ramsch).toEqual({ durchmarsch: true, jungfrau: true });
     expect(DEFAULT_RULES.laufende).toEqual({
       sauspiel: 3,
       solo: 3,
@@ -123,7 +127,7 @@ describe('Option: Tout', () => {
 
 describe('Option: Tarif', () => {
   it('anderer Tarif ändert die Zahlung', () => {
-    const rules = withRules({ tariff: { sauspiel: 20, solo: 100, extra: 5 } });
+    const rules = withRules({ tariff: { sauspiel: 20, solo: 100, extra: 5, ramsch: 10 } });
     const sau = value(finished(rules, { kind: 'sauspiel', suit: 'gras' }, NEUTRAL, 91, 6));
     expect(sau.value).toBe(25); // 20 + Schneider 5
     expect(sau.payments).toEqual([25, -25, 25, -25]);
@@ -170,6 +174,7 @@ describe('Option: Sie', () => {
 type Raw = {
   tariff: Record<string, unknown>;
   laufende: Record<string, unknown>;
+  ramsch: Record<string, unknown>;
   [key: string]: unknown;
 };
 
@@ -198,10 +203,27 @@ describe('Regeln prüfen', () => {
     ['Schwelle fehlt', (r) => delete r.laufende.geier],
     ['Tout kein Wahrheitswert', (r) => (r.allowTout = 1)],
     ['Sie fehlt', (r) => delete r.sie],
+    ['unbekannte Regel für alle weiter', (r) => (r.allPassed = 'bock')],
+    ['Regel für alle weiter fehlt', (r) => delete r.allPassed],
+    ['Ramsch-Tarif fehlt', (r) => delete r.tariff.ramsch],
+    ['Ramsch-Tarif negativ', (r) => (r.tariff.ramsch = -10)],
+    ['Durchmarsch kein Wahrheitswert', (r) => (r.ramsch.durchmarsch = 'ja')],
+    ['Ramsch-Optionen fehlen', (r) => (r.ramsch = undefined as never)],
   ])('lehnt ab: %s', (_name, mutate) => {
     const raw = ok();
     mutate(raw);
     expect(parseRuleOptions(raw)).toBeNull();
+  });
+
+  it('Ramsch mit Unteroptionen wird übernommen', () => {
+    const raw = ok();
+    raw.allPassed = 'ramsch';
+    raw.tariff.ramsch = 20;
+    raw.ramsch = { durchmarsch: false, jungfrau: true, extra: 1 };
+    const parsed = parseRuleOptions(raw)!;
+    expect(parsed.allPassed).toBe('ramsch');
+    expect(parsed.tariff.ramsch).toBe(20);
+    expect(parsed.ramsch).toEqual({ durchmarsch: false, jungfrau: true });
   });
 
   it('lehnt Nicht-Objekte ab', () => {

@@ -34,7 +34,8 @@ import {
  * 6: Umbau für Sonderspiele (K3a): `TableState.pot`, `HandState.carry`, `HandLog.carry`,
  * `HandResult` in Stufen.
  */
-export const HOST_SNAPSHOT_VERSION = 6;
+/** 7: Ramsch (K3b): `RuleSet.allPassed` einstellbar, `tariff.ramsch`, `ramsch`. */
+export const HOST_SNAPSHOT_VERSION = 7;
 
 export interface HostSnapshot {
   v: number;

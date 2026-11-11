@@ -5,17 +5,21 @@
  *
  * Eine neue Regel (Ramsch, Stock, Muss) heißt: `AllPassedRule` erweitern, hier einen Eintrag
  * anlegen und – falls nötig – `AllPassedStep` um eine Schrittart ergänzen, die `hand.ts`
- * ausführt (geplant: `play` für Ramsch, `forced` und `fallback` für das Muss).
+ * ausführt (`play` für Ramsch; geplant: `forced` und `fallback` für das Muss).
  */
 
 import type { HandState } from './hand';
+import type { Contract } from './modes';
 import type { AllPassedRule } from './rules';
 import { type HandResult, passedResult } from './scoring';
 
 export type AllPassedStep =
   /** Das Spiel endet ohne Stiche mit diesem Ergebnis (Zusammenwerfen, später Stock). */
-  { type: 'finish'; result: HandResult };
+  | { type: 'finish'; result: HandResult }
+  /** Es wird ohne Ansager gespielt (Ramsch). */
+  | { type: 'play'; contract: Contract };
 
 export const ALL_PASSED: Record<AllPassedRule, (state: HandState) => AllPassedStep> = {
   zusammenwerfen: (state) => ({ type: 'finish', result: passedResult(state.rules.players) }),
+  ramsch: () => ({ type: 'play', contract: { kind: 'ramsch' } }),
 };

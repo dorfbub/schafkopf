@@ -315,6 +315,9 @@ function allPassed(next: HandState): void {
       next.phase = 'finished';
       next.result = step.result;
       return;
+    case 'play':
+      startPlay(next, null, step.contract);
+      return;
   }
 }
 

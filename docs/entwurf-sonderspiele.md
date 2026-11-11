@@ -1,6 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
-Stand November 2026. Umgesetzt ist bisher K3a (Umbau ohne Verhaltensänderung), siehe §12. Die
+Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung) und K3b (Ramsch), siehe
+§12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -471,9 +472,8 @@ durch 500 Referenzspiele (`packages/core/test/reference.test.ts`). `PROTOCOL_VER
 
 Noch nicht eingezogen, weil erst das jeweilige Paket sie braucht (ohne Verhalten wären es tote
 Zweige): Vorspiel-Hook und Phase `'prelude'` (§4, K5), `Auction.yielded` (K5), `suit2`/`suitCount`
-(H2), `suitChoices(hand, { forced })` und `Auction.forced` (K3d), `goal: 'fewestPoints'` und
-`RamschDetails` (K3b), die Schrittarten `play`, `forced`, `fallback` in `AllPassedStep` (K3b, K3d),
-`doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
+(H2), `suitChoices(hand, { forced })` und `Auction.forced` (K3d), die Schrittarten `forced` und
+`fallback` in `AllPassedStep` (K3d), `doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
 
 Abweichungen von den Skizzen oben, mit Grund:
 
@@ -501,3 +501,19 @@ Abweichungen von den Skizzen oben, mit Grund:
 - **Speicherstand.** `parseHostSnapshot` prüft zusätzlich, dass `rules.allPassed` ein Eintrag in
   `ALL_PASSED` ist und `carry` gültig ist (Pott ≥ 0, Faktor ≥ 1), sonst würde ein beschädigter Stand
   erst bei „alle weiter“ abstürzen.
+
+**K3b (Ramsch, November 2026)** hat eingezogen: Spielart `ramsch` (`biddable: false`,
+`parties: 'everyone'`, `goal: 'fewestPoints'`, Trümpfe wie im Sauspiel) mit `outcome:
+ramschOutcome` in eigener Datei `ramsch.ts`; `RamschDetails` als zweite Form von
+`Outcome.details`; Schrittart `play` in `AllPassedStep`; `RuleSet.allPassed` jetzt in
+`RuleOptions` (vom Gastgeber wählbar, geprüft in `parseRuleOptions` gegen `ALL_PASSED_RULES`),
+`tariff.ramsch`, `RuleSet.ramsch` (`durchmarsch`, `jungfrau`). `PROTOCOL_VERSION` 7,
+`HOST_SNAPSHOT_VERSION` 7. Abweichungen und Ergänzungen:
+
+- **Jungfrau als Faktor.** `factorsFor(state, outcome)` bekommt das Outcome mit, weil die
+  Jungfrauen in `RamschDetails` stehen; je Jungfrau ein Eintrag `{ reason: 'jungfrau', factor: 2 }`.
+- **Gleichstand.** Annahme 10 lässt einen Rest offen (gleiche Augen und Stiche, keiner hat einen
+  Trumpf in seinen Stichen). Neu als Annahme 20: Dann verliert, wer den späteren Stich gemacht hat.
+- **`LaufendeKind`** schließt `ramsch` aus wie `bettel`.
+- **Bots.** Der Heuristik-Bot spielt im Ramsch nach einer einfachen Regel (drunter bleiben und
+  dabei teure Karten loswerden); besseres Spiel gehört zu B3.

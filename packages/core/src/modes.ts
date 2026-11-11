@@ -11,14 +11,23 @@
 import { type Card, type Rank, type Suit, RANKS, SUITS, card, rankOf, suitOf } from './cards';
 import type { HandState } from './hand';
 import type { Tariff } from './rules';
+import { ramschOutcome } from './ramsch';
 import type { Outcome } from './scoring';
 import { type CardOrder, effectiveSuit } from './trick';
 
 /**
  * Alle Spielarten, die ansagbaren in ihrer Rangfolge (niedrigste zuerst). Nicht ansagbare
- * Spielarten (später Ramsch) stehen am Ende; maßgeblich für den Rang ist `BID_ORDER`.
+ * Spielarten (Ramsch) stehen am Ende; maßgeblich für den Rang ist `BID_ORDER`.
  */
-export const CONTRACT_KINDS = ['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo'] as const;
+export const CONTRACT_KINDS = [
+  'sauspiel',
+  'bettel',
+  'geier',
+  'farbwenz',
+  'wenz',
+  'solo',
+  'ramsch',
+] as const;
 export type ContractKind = (typeof CONTRACT_KINDS)[number];
 
 /**
@@ -80,8 +89,11 @@ export interface ModeDefinition {
   /** Welcher Grundtarif gilt. */
   tariff: TariffClass;
   canTout: boolean;
-  /** 'points' = 61 Augen nötig; 'noTricks' = Ansager darf keinen Stich machen. */
-  goal: 'points' | 'noTricks';
+  /**
+   * 'points' = 61 Augen nötig; 'noTricks' = Ansager darf keinen Stich machen;
+   * 'fewestPoints' = jeder für sich, wer die meisten Augen hat, verliert (Ramsch).
+   */
+  goal: 'points' | 'noTricks' | 'fewestPoints';
   /** Gibt es Laufende? Die Schwelle steht im `RuleSet` (`laufende`). */
   hasLaufende: boolean;
   /**
@@ -109,6 +121,11 @@ const UNTER: Card[] = SUITS.map((s) => card(s, 'U'));
 /** Karten einer Farbe ohne die genannten Ränge, hoch → niedrig. */
 function suitCards(suit: Suit, without: readonly Rank[]): Card[] {
   return RANKS.filter((r) => !without.includes(r)).map((r) => card(suit, r));
+}
+
+/** Trümpfe wie im Sauspiel: Ober, Unter, Herz. */
+function sauspielTrumps(): Card[] {
+  return [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])];
 }
 
 function requireSuit(contract: Contract): Suit {
@@ -154,7 +171,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     canTout: false,
     goal: 'points',
     hasLaufende: true,
-    trumps: () => [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])],
+    trumps: () => sauspielTrumps(),
     // Rufbar ist jede Farbe außer Herz, von der man eine Karte, aber nicht die Sau hat.
     suitChoices: (hand) =>
       SUITS.filter(
@@ -221,6 +238,19 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     goal: 'points',
     hasLaufende: true,
     trumps: (contract) => [...OBER, ...UNTER, ...suitCards(requireSuit(contract), ['O', 'U'])],
+  },
+  ramsch: {
+    kind: 'ramsch',
+    biddable: false,
+    suitRole: 'none',
+    parties: 'everyone',
+    tariff: 'ramsch',
+    canTout: false,
+    goal: 'fewestPoints',
+    hasLaufende: false,
+    trumps: () => sauspielTrumps(),
+    // Aufruf erst zur Laufzeit: `ramsch.ts` liest seinerseits `MODES` (Kreis der Module).
+    outcome: (state) => ramschOutcome(state),
   },
 };
 

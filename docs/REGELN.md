@@ -5,14 +5,14 @@ Wer eine Regel ändert, ändert zuerst dieses Dokument, dann Test und Code.
 
 ## Festgelegt
 
-| Thema                        | Entscheidung                                                     |
-| ---------------------------- | ---------------------------------------------------------------- |
-| Spieler                      | 4                                                                |
-| Blatt                        | Lange Karte, 32 Karten, 8 je Spieler                             |
-| Spielarten                   | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und Sie |
-| Alle „weiter“                | Zusammenwerfen. Ramsch, Stock, Muss geplant (siehe „Varianten“)  |
-| Kontra/Re, Legen, Bockrunden | Nicht gespielt                                                   |
-| Abrechnung                   | Grundtarif, Schneider, Schwarz, Laufende                         |
+| Thema                        | Entscheidung                                                       |
+| ---------------------------- | ------------------------------------------------------------------ |
+| Spieler                      | 4                                                                  |
+| Blatt                        | Lange Karte, 32 Karten, 8 je Spieler                               |
+| Spielarten                   | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und Sie   |
+| Alle „weiter“                | Tischregel: Zusammenwerfen (Standard), Ramsch; Stock, Muss geplant |
+| Kontra/Re, Legen, Bockrunden | Nicht gespielt                                                     |
+| Abrechnung                   | Grundtarif, Schneider, Schwarz, Laufende                           |
 
 ## Karten
 
@@ -107,9 +107,10 @@ Aufschlag 10 Cent.
 - **Zahlung**: Im Sauspiel zahlt jeder Verlierer den Spielwert an einen Gewinner. Im Einzelspiel
   zahlt bzw. bekommt der Spieler den Spielwert von jedem der drei Gegner.
 
-## Varianten (geplant)
+## Varianten
 
-Von Lukas im November 2026 festgelegt, **noch nicht umgesetzt**. Schnittstellen dazu:
+Von Lukas im November 2026 festgelegt. **Umgesetzt** ist Ramsch; Stock, Muss, Hochzeit und
+Kontra/Re sind **noch nicht umgesetzt**. Schnittstellen dazu:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md); Pakete K3a–K3d, K4, K5 in
 [ARBEITSPAKETE.md](ARBEITSPAKETE.md). Alle Varianten sind Tischregeln, die der Gastgeber vor dem
 ersten Spiel wählt; Standard ist „aus“ bzw. Zusammenwerfen. Ergänzende Festlegungen
@@ -129,6 +130,8 @@ oder Muss.
 - **Durchmarsch:** Wer **91 oder mehr Augen** hat, gewinnt stattdessen und bekommt den Ramsch-Tarif
   von jedem. Abschaltbar.
 - Kein Schneider, kein Schwarz, keine Laufenden.
+- Herauskommen wie immer: der Spieler links vom Geber. Es gibt keinen Spieler und keinen
+  Mitspieler.
 
 **Stock.** Es wird nicht gespielt. Jeder zahlt den Stock-Einsatz (Standard: wie Sauspiel, 10 Cent)
 in den Pott; dann gibt der Nächste.
@@ -204,24 +207,29 @@ Der Gastgeber stellt in der Lobby ein, womit der Tisch spielt (`RuleSet`); nach 
 nichts mehr änderbar. Alle Mitspieler sehen die Regeln (Lobby und Info-Knopf am Tisch). Die
 Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
 
-| Option (`RuleSet`)    | Bedeutung                                            | Standard          | Gültig             |
-| --------------------- | ---------------------------------------------------- | ----------------- | ------------------ |
-| `contracts`           | erlaubte Spielarten; Sauspiel ist immer an           | alle sechs        | Sauspiel enthalten |
-| `allowTout`           | Tout-Ansagen erlaubt                                 | an                | an/aus             |
-| `tariff.sauspiel`     | Grundtarif Sauspiel (Cent)                           | 10                | ganzzahlig ≥ 0     |
-| `tariff.solo`         | Grundtarif Einzelspiele (Cent)                       | 50                | ganzzahlig ≥ 0     |
-| `tariff.extra`        | Aufschlag je Schneider, Schwarz, Laufendem (Cent)    | 10                | ganzzahlig ≥ 0     |
-| `laufende.<Spielart>` | Schwelle für Laufende je Spielart (ohne Bettel)      | 3 / 2 / 3 / 2 / 3 | ganzzahlig 1–8     |
-| `sie`                 | „Sie“ (alle Ober und Unter) wird erkannt und bezahlt | an                | an/aus             |
-| `davonlaufen`         | Davonlaufen mit vier Karten der Ruffarbe erlaubt     | an                | an/aus             |
+| Option (`RuleSet`)    | Bedeutung                                            | Standard          | Gültig                     |
+| --------------------- | ---------------------------------------------------- | ----------------- | -------------------------- |
+| `contracts`           | erlaubte Spielarten; Sauspiel ist immer an           | alle sechs        | Sauspiel enthalten         |
+| `allowTout`           | Tout-Ansagen erlaubt                                 | an                | an/aus                     |
+| `tariff.sauspiel`     | Grundtarif Sauspiel (Cent)                           | 10                | ganzzahlig ≥ 0             |
+| `tariff.solo`         | Grundtarif Einzelspiele (Cent)                       | 50                | ganzzahlig ≥ 0             |
+| `tariff.extra`        | Aufschlag je Schneider, Schwarz, Laufendem (Cent)    | 10                | ganzzahlig ≥ 0             |
+| `laufende.<Spielart>` | Schwelle für Laufende je Spielart (ohne Bettel)      | 3 / 2 / 3 / 2 / 3 | ganzzahlig 1–8             |
+| `sie`                 | „Sie“ (alle Ober und Unter) wird erkannt und bezahlt | an                | an/aus                     |
+| `davonlaufen`         | Davonlaufen mit vier Karten der Ruffarbe erlaubt     | an                | an/aus                     |
+| `allPassed`           | Was bei alle „weiter“ passiert                       | `zusammenwerfen`  | `zusammenwerfen`, `ramsch` |
+| `tariff.ramsch`       | Ramsch-Tarif (Cent), zahlt der Verlierer an jeden    | 10                | ganzzahlig ≥ 0             |
+| `ramsch.durchmarsch`  | Durchmarsch ab 91 Augen gewinnt                      | an                | an/aus                     |
+| `ramsch.jungfrau`     | Jeder Spieler ohne Stich verdoppelt                  | an                | an/aus                     |
 
 Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz → 3, 3, 2, 2, 3.
 Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abgerechnet
 (Laufende zählen dann). Ist `davonlaufen` aus, darf die Ruffarbe nur mit der Sau angespielt werden.
+Die Unteroptionen für Ramsch gelten nur bei `allPassed: 'ramsch'`, bleiben aber gespeichert.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Noch keine Optionen sind Ramsch, Stock, Muss, Kontra/Re und die Hausregeln (siehe „Varianten“ und
-„Hausregeln“; Pakete K3a–K5, H1–H3). Fest bleiben die
+Noch keine Optionen sind Kontra/Re, Hochzeit und die Hausregeln (siehe „Varianten“ und
+„Hausregeln“; Pakete K4, K5, H1–H3). Fest bleiben die
 Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
 
 ## Annahmen – bitte prüfen
@@ -269,3 +277,12 @@ vorgeschlagen. **Von Lukas am 11.11.2026 bestätigt** – sie gelten damit als f
 19. **Eisenbahner und Hawaii-Habicht:** Einzelspiel-Tarif; Tout rechnet wie bei den anderen
     Einzelspielen. Im Hawaii-Habicht gilt die Bedienpflicht je Stich nach der gerade gültigen
     Trumpffarbe.
+
+### Annahmen aus der Umsetzung (K3b–K3d) – bitte prüfen
+
+Bei der Umsetzung aufgetaucht, in REGELN.md bisher nicht entschieden; nach gängiger Spielweise
+gewählt. **Noch nicht von Lukas bestätigt.**
+
+20. **Ramsch, Gleichstand nach allen Stufen aus Annahme 10:** Haben die Gleichstehenden gleich viele
+    Augen und Stiche und keiner von ihnen einen Trumpf in seinen Stichen (selten, aber möglich),
+    verliert, wer von ihnen den späteren Stich gemacht hat.

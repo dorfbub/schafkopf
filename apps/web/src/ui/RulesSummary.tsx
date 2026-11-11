@@ -22,6 +22,14 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
           .map((k) => `${KIND_NAME[k]} ${rules.laufende[k]}`)
           .join(' · ')}
       </dd>
+      <dt>{T.allPassed}</dt>
+      <dd>
+        {T.allPassedName[rules.allPassed]}
+        {rules.allPassed === 'ramsch' &&
+          ` · ${T.tariffRamsch} ${rules.tariff.ramsch} · ${T.durchmarschShort} ${yesNo(
+            rules.ramsch.durchmarsch,
+          )} · ${T.jungfrauShort} ${yesNo(rules.ramsch.jungfrau)}`}
+      </dd>
       <dt>{T.sie}</dt>
       <dd>{yesNo(rules.sie)}</dd>
       <dt>{T.davonlaufen}</dt>

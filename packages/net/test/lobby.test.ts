@@ -259,7 +259,7 @@ describe('Lobby: Tischregeln', () => {
   const custom = () => ({
     ...JSON.parse(JSON.stringify(DEFAULT_RULES)),
     allowTout: false,
-    tariff: { sauspiel: 20, solo: 60, extra: 5 },
+    tariff: { sauspiel: 20, solo: 60, extra: 5, ramsch: 10 },
   });
 
   it('Gastgeber ändert die Regeln, Gäste sehen sie in ihrer Sicht', () => {
@@ -268,7 +268,7 @@ describe('Lobby: Tischregeln', () => {
     expect(host.setRules(custom())).toBe(true);
     const rules = anna.getSnapshot().view!.rules;
     expect(rules.allowTout).toBe(false);
-    expect(rules.tariff).toEqual({ sauspiel: 20, solo: 60, extra: 5 });
+    expect(rules.tariff).toEqual({ sauspiel: 20, solo: 60, extra: 5, ramsch: 10 });
   });
 
   it('ungültige Regeln werden abgewiesen, nichts ändert sich', () => {
