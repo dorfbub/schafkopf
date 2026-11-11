@@ -233,7 +233,7 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 - **Eigener Platz:** Bild, Name, Stiche, Stand, Marken, „Du bist dran“/„Du sagst an“ in Messing.
   Darunter die Hand als Fächer, Trümpfe zuerst; die Karten ragen unten aus dem Bild (sichtbar
   `--hand-visible`). Spielbar = Messingrand und hebt sich; nicht spielbar = abgedunkelt.
-- **Ansage-Dialog** (zweistufig, K1), je Stufe ein eigener Inhalt:
+- **Ansage-Dialog** (zweistufig, K1, von Lukas freigegeben), je Stufe ein eigener Inhalt:
   - „Würdest du spielen?“ – Knöpfe „Weiter“ und „Ich würde“.
   - Zweikampf, man fordert: „Gegen Xaver: Was hast du?“ – nur die Spielart (keine Farbe), Tout als
     Schalter; Knöpfe „Aufgeben“ und „„Wenz“ sagen“. Darunter, wer hält und was zu überbieten ist.
