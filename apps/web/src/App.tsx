@@ -13,6 +13,7 @@ import {
 import { ERROR_TEXT } from './i18n/de';
 import { ConnectBanner, ConnectSearch } from './ui/ConnectStatus';
 import { Lobby } from './ui/Lobby';
+import { Notice } from './ui/Notice';
 import { StartScreen } from './ui/StartScreen';
 import { Table } from './ui/Table';
 
@@ -88,12 +89,12 @@ function Game({ connection, onLeave }: { connection: Connection; onLeave: () => 
   return (
     <>
       <ConnectBanner status={status} onRetry={() => client.retry()} />
-      {lastError && <p className="banner">{ERROR_TEXT[lastError]}</p>}
       {view.hand ? (
         <Table view={view} client={client} host={host} onLeave={onLeave} />
       ) : (
         <Lobby view={view} client={client} host={host} roomId={roomId} onLeave={onLeave} />
       )}
+      <Notice message={lastError && ERROR_TEXT[lastError]} aboveHand={view.hand !== null} />
     </>
   );
 }

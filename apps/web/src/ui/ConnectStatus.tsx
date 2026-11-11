@@ -1,6 +1,6 @@
 import type { ConnectionStatus } from '@schafkopf/net';
-import { CONNECT_TEXT } from '../i18n/de';
-import './connectStatus.css';
+import { CONNECT_TEXT, START_TEXT, spacedCode } from '../i18n/de';
+import { Button, Tafel } from './kit';
 
 interface SearchProps {
   status: ConnectionStatus;
@@ -13,28 +13,37 @@ interface SearchProps {
 export function ConnectSearch({ status, roomId, onRetry, onCancel }: SearchProps) {
   const failed = status === 'failed';
   return (
-    <main className="screen connect" aria-live="polite">
-      <h1>Schafkopf</h1>
-      <p className={failed ? 'connect__state connect__state--failed' : 'connect__state'}>
-        {!failed && <span className="connect__spinner" aria-hidden="true" />}
-        {failed ? CONNECT_TEXT.failed : CONNECT_TEXT.searching(roomId ?? '')}
+    <main className="connect surface-felt">
+      <p className="brand brand--small connect__brand" aria-hidden="true">
+        {START_TEXT.brand}
       </p>
-      <p className="hint">{failed ? CONNECT_TEXT.failedHint : CONNECT_TEXT.searchingHint}</p>
-      <div className="row">
-        {failed && (
-          <button type="button" onClick={onRetry}>
-            {CONNECT_TEXT.retry}
-          </button>
+      <Tafel className="connect__card" aria-live="polite" aria-labelledby="connect-title">
+        {failed ? (
+          <span className="connect__icon" aria-hidden="true">
+            !
+          </span>
+        ) : (
+          <span className="spinner" aria-hidden="true" />
         )}
-        <button type="button" className={failed ? 'secondary' : undefined} onClick={onCancel}>
-          {CONNECT_TEXT.cancel}
-        </button>
-      </div>
+        <h1 id="connect-title" className="tafel__title">
+          {failed ? CONNECT_TEXT.failed : CONNECT_TEXT.searching}
+        </h1>
+        {roomId && <p className="code code--large connect__code">{spacedCode(roomId)}</p>}
+        <p className="tafel__text text-muted">
+          {failed ? CONNECT_TEXT.failedHint : CONNECT_TEXT.searchingHint}
+        </p>
+        <div className="tafel__actions tafel__actions--center">
+          <Button variant="secondary" onClick={onCancel}>
+            {CONNECT_TEXT.cancel}
+          </Button>
+          {failed && <Button onClick={onRetry}>{CONNECT_TEXT.retry}</Button>}
+        </div>
+      </Tafel>
     </main>
   );
 }
 
-/** Hinweis über dem Tisch, wenn die Verbindung zum Gastgeber abreißt. */
+/** Zettel oben über Tisch oder Lobby, wenn die Verbindung zum Gastgeber abreißt. */
 export function ConnectBanner({
   status,
   onRetry,
@@ -42,18 +51,22 @@ export function ConnectBanner({
   status: ConnectionStatus;
   onRetry: () => void;
 }) {
-  if (status === 'disconnected') {
-    return <p className="banner banner--warn connect__banner">{CONNECT_TEXT.lost}</p>;
-  }
-  if (status === 'failed') {
-    return (
-      <p className="banner banner--warn connect__banner">
-        {CONNECT_TEXT.lostFailed}
-        <button type="button" onClick={onRetry}>
-          {CONNECT_TEXT.retry}
-        </button>
-      </p>
-    );
-  }
-  return null;
+  if (status !== 'disconnected' && status !== 'failed') return null;
+  return (
+    <div className="connect-banner" role="status">
+      {status === 'disconnected' ? (
+        <>
+          <span className="spinner spinner--small" aria-hidden="true" />
+          <span>{CONNECT_TEXT.lost}</span>
+        </>
+      ) : (
+        <>
+          <span>{CONNECT_TEXT.lostFailed}</span>
+          <Button size="small" onClick={onRetry}>
+            {CONNECT_TEXT.retry}
+          </Button>
+        </>
+      )}
+    </div>
+  );
 }

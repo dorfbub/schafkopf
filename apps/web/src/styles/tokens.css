@@ -73,6 +73,7 @@
   --text-lg: 1.25rem; /* 20 px – Namen, Dialogtitel klein */
   --text-xl: 1.5rem; /* 24 px – Dialogtitel */
   --text-2xl: 2rem; /* 32 px – Seitentitel, Augenzahl */
+  --text-brand: clamp(2.75rem, 11vw, 4.5rem); /* Schriftzug auf dem Startbildschirm (D4) */
 
   --weight-regular: 400;
   --weight-semibold: 600;
@@ -83,6 +84,8 @@
   --leading-tight: 1.2;
   --leading-normal: 1.45;
   --tracking-caps: 0.03em; /* Großbuchstaben in Marken */
+  --tracking-code: 0.12em; /* Tisch-Code zum Vorlesen */
+  --underline-offset: 0.2em; /* Textknöpfe */
 
   /* ---------- Abstände (4-px-Raster) ---------- */
   --space-1: 0.25rem; /* 4 */
@@ -100,7 +103,10 @@
   --border-medium: 1.5px;
   --border-thick: 3px;
   --avatar-size: 2.75rem;
-  --content-width: 34rem; /* Start, Lobby */
+  --content-width: 34rem; /* Start, Verbinden */
+  --content-width-wide: 68rem; /* Lobby am Desktop: Tisch und Seitenspalte */
+  --side-width: 22rem; /* Seitenspalte der Lobby */
+  --notice-width: 26rem; /* Hinweis-Zettel unten */
   --dialog-width: 30rem;
   --dialog-width-wide: 38rem; /* Ansage: alle Spielarten in einer Reihe */
   --seat-max-width: 34vw;
@@ -130,6 +136,14 @@
   --switch-w: 3.25rem;
   --switch-h: 1.75rem;
 
+  /* ---------- Lobby (D4) ---------- */
+  --lobby-avatar: var(--avatar-size); /* Bild am Platz in der Lobby, schmal */
+  --lobby-avatar-wide: 3.5rem; /* … und auf breitem Tisch */
+  --lobby-table-ratio: 16 / 10; /* Tisch in der Lobby, quer */
+  --lobby-table-ratio-narrow: 1 / 1; /* … und am Handy hochkant */
+  --spinner-size: 2.5rem;
+  --spinner-size-sm: 1em;
+
   /* ---------- Radien ---------- */
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -155,6 +169,7 @@
   --duration-slow: 360ms; /* Karte in den Stich, Dialog */
   --duration-sweep: 420ms; /* fertiger Stich wandert zum Gewinner (liest auch useTrickDisplay) */
   --duration-deal-step: 45ms; /* Versatz je Karte beim Austeilen */
+  --duration-spin: 1100ms; /* eine Umdrehung der Suchanzeige (bei „Bewegung reduzieren“: steht) */
   --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
   --ease-in-out: cubic-bezier(0.45, 0, 0.25, 1);
   --ease-in: cubic-bezier(0.5, 0, 0.75, 0.2); /* Wegräumen: langsam los, dann zügig */

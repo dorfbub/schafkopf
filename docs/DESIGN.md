@@ -126,7 +126,7 @@ Aus der Richtung „Kartentisch“ abgeleitet. **Freigegeben von Lukas am 11.11.
 | `apps/web/src/styles/components.css` | Klassen der Bausteine (`.btn`, `.field`, `.tafel`, `.dialog`, …)             |
 | `apps/web/src/styles/contrast.ts`    | Kontrastformel und die Farbpaare, die WCAG AA erreichen müssen               |
 | `apps/web/src/ui/kit/`               | Bausteine als React-Komponenten                                              |
-| `apps/web/src/styles.css`            | Start und Lobby, auf die Variablen umgestellt; Layout baut D4 neu            |
+| `apps/web/src/styles/screens.css`    | Start, Lobby, Verbinden, Hinweise (seit D4, siehe „Start und Lobby“)         |
 | `apps/web/src/muster/`               | Musterseite, nur im Entwicklungsserver: `http://localhost:5180/#muster`      |
 
 Regel: **Außerhalb von `tokens.css` keine festen Farben, Längen oder Zeiten.** Erlaubt sind
@@ -325,6 +325,100 @@ Stich bleibt trotzdem 1 s liegen, damit man die vierte Karte sieht. `useTrickDis
   an ihren Platz (keine Bewegung).
 - **Quer:** Die Ansage verdeckt den oberen Platz teilweise; das Gesagte steht im Dialog selbst.
 - **Verdeckte Karten der anderen** werden nicht einzeln ausgeteilt, sondern blenden ein.
+
+## Start und Lobby (D4, freigegeben am 11.11.2026)
+
+Alle Ansichten außerhalb des Spieltischs im Stil „Kartentisch“, mit den Variablen und Bausteinen
+aus D2. **Von Lukas freigegeben am 11.11.2026.** Vorab gewählt: Start schlicht auf Filz, Plätze in
+der Lobby als kleiner Tisch, Einladung ganz oben mit großem Tisch-Code, Fehler als Zettel unten.
+
+| Start                                                    | Lobby, Gastgeber                                                             | Lobby, Gast                                                        | Fehlschlag                                                             |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| ![Start, Desktop](bilder/ansichten/desktop-1-start.webp) | ![Lobby Gastgeber, Desktop](bilder/ansichten/desktop-2-lobby-gastgeber.webp) | ![Lobby Gast, Desktop](bilder/ansichten/desktop-3-lobby-gast.webp) | ![Fehlschlag, Desktop](bilder/ansichten/desktop-4-fehlgeschlagen.webp) |
+
+| Start                                                | Fortsetzen                                                     | Lobby, Gastgeber                                                         | Lobby, Gast                                                    | Suche                                                | Hinweis                                                  |
+| ---------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| ![Start, Handy](bilder/ansichten/handy-1-start.webp) | ![Fortsetzen, Handy](bilder/ansichten/handy-2-fortsetzen.webp) | ![Lobby Gastgeber, Handy](bilder/ansichten/handy-3-lobby-gastgeber.webp) | ![Lobby Gast, Handy](bilder/ansichten/handy-4-lobby-gast.webp) | ![Suche, Handy](bilder/ansichten/handy-5-suche.webp) | ![Hinweis, Handy](bilder/ansichten/handy-6-hinweis.webp) |
+
+### Dateien
+
+| Datei                                   | Inhalt                                                                     |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| `apps/web/src/ui/StartScreen.tsx`       | Start, Beitreten über den Einladungslink, Fortsetzen-Angebot (N2)          |
+| `apps/web/src/ui/Lobby.tsx`             | Lobby: Einladung, Tisch mit Plätzen, Name, Zuschauer, Einstellungen        |
+| `apps/web/src/ui/ConnectStatus.tsx`     | Tisch suchen / nicht gefunden; Zettel „Verbindung verloren“                |
+| `apps/web/src/ui/Notice.tsx`            | Hinweis-Zettel unten für `ERROR_TEXT`                                      |
+| `apps/web/src/styles/screens.css`       | Stile dieser Ansichten; die alten Übergangsstile aus `styles.css` sind weg |
+| `apps/web/src/muster/Ansichtsprobe.tsx` | Ansichtsprobe mit festen Zuständen, nur im Entwicklungsserver (unten)      |
+
+**Ansichtsprobe:** `http://localhost:5180/#ansicht?szene=…` mit `start`, `einladung`, `fortsetzen`,
+`lobby-gastgeber`, `lobby-gast`, `lobby-zuschauer`, `lobby-lokal`, `suche`, `fehlgeschlagen`,
+`verloren`, `hinweis`. Die Lobby läuft dort über einen echten `HostSession` mit
+Loopback-Verbindungen, ohne Relays.
+
+### Aufbau
+
+- **Start:** Schriftzug „Schafkopf“ (Fraunces, `--text-brand`) und eine Zeile darunter. Eine
+  Papiertafel mit „Dein Name“, „Mit Freunden spielen“ (Hauptknopf) und „Allein gegen Bots“;
+  darunter eine dunkle Tafel „Einladung bekommen?“ mit Tisch-Code und „Beitreten“. Ohne Namen
+  bleiben die Knöpfe bedienbar und das Feld zeigt den Fehler „Bitte gib zuerst deinen Namen ein.“
+  (statt stumm gesperrter Knöpfe).
+- **Einladungslink** (`#tisch=code`): gleich „Du bist eingeladen an Tisch k7m 2xp“ mit Name und
+  „Beitreten“; „Lieber selbst einen Tisch eröffnen“ führt zum normalen Start.
+- **Fortsetzen (N2):** Tafel „Dein Tisch ist noch offen“ mit Messingkante ganz oben, Knöpfe
+  „Verwerfen“ und „Tisch fortsetzen“. Solange sie steht, ist „Tisch fortsetzen“ die einzige
+  Hauptaktion; „Mit Freunden spielen“ wird sekundär.
+- **Tisch-Code** überall in Dreiergruppen und gesperrt (`spacedCode`, `--tracking-code`), damit
+  man ihn vorlesen kann.
+- **Lobby:**
+  - Leiste: Schriftzug (Messing, am Handy weg), „Tisch k7m 2xp“, „Tisch verlassen“.
+  - Einladung zuerst: großer Code, Link zum Markieren, „Link kopieren“ (→ „Kopiert“; geht die
+    Zwischenablage nicht, ein Hinweis in Minusfarbe). Am Tisch gegen die Bots entfällt sie.
+  - Der Tisch: ovaler Filz im Holzrahmen (`--shadow-rim`), die vier Plätze ringsum in derselben
+    Anordnung wie im Spiel (du unten mit Messingring und Marke „du“; Zuschauer sehen ihn aus
+    Sicht von Platz 1). Freier Platz = gestrichelter Stuhl mit „Hier sitzen“, die ganze Fläche ist
+    der Knopf. In der Mitte „Noch 1 Platz frei“ und für den Gastgeber „Spiel starten“ (mit
+    „Den freien Platz übernimmt ein Bot.“), für Gäste „Der Gastgeber startet das Spiel.“
+  - Gastgeber-Steuerung an jedem besetzten Platz: ↺ / ↻ rücken einen Platz gegen bzw. im
+    Uhrzeigersinn weiter (tauscht mit dem Nachbarn, auch mit einem freien Platz), × nimmt vom
+    Platz. Beschriftet für Bildschirmleser mit Name und Richtung.
+  - Unter dem Tisch „Nur zuschauen“ bzw. der Hinweis für Zuschauer.
+  - Seitenspalte (Desktop rechts, Handy darunter): „Dein Name“ zum Ändern, Zuschauer, und nur
+    für den Gastgeber die Tafel „Einstellungen“ (`#tisch-einstellungen`) – der Rahmen für die
+    Tischregeln aus K2, darin „Zuschauer zulassen“.
+- **Verbinden:** Papiertafel mittig, „Suche Tisch …“ mit Messing- bzw. Akzent-Ring und dem Code,
+  Erklärung, „Abbrechen“. Nach der Zeitüberschreitung rotes „!“, „Tisch nicht gefunden“,
+  „Abbrechen“ und „Erneut versuchen“.
+- **Verbindung verloren:** Messing-Zettel oben über Lobby und Tisch („Verbindung zum Gastgeber
+  verloren – suche Tisch …“ mit kleinem Ring; danach „Gastgeber nicht mehr erreichbar.“ und
+  „Erneut versuchen“). Nicht modal.
+- **Hinweise** (`ERROR_TEXT`): kleiner Papierzettel unten mittig, blendet ein, verschwindet nach
+  5 s (`NOTICE_MS`) oder mit ×; `role="status"`. Am Tisch steht er über der Hand
+  (`--hand-card-h` × `--hand-visible`).
+- **Ergebnis-Dialog:** geprüft, passt zum Rest (Papier, Akzentknopf, Minusfarbe); unverändert.
+
+### Größen und Bedienung
+
+| Stufe             | Abfrage           | Änderung                                                        |
+| ----------------- | ----------------- | --------------------------------------------------------------- |
+| Start breit       | Fenster ≥ 40rem   | „Mit Freunden spielen“ und „Allein gegen Bots“ nebeneinander    |
+| Lobby zweispaltig | Fenster ≥ 60rem   | Tisch links, Einladung und Seitenspalte rechts (`--side-width`) |
+| Tisch breit       | Container ≥ 34rem | Tisch quer (`--lobby-table-ratio`), größere Bilder              |
+| Leiste schmal     | Fenster ≤ 40rem   | Schriftzug in der Leiste entfällt                               |
+
+- Alles mit der Tastatur erreichbar; Formulare senden mit Enter. Der Fokusring folgt der Fläche
+  (Messing auf Grün, Akzent auf Papier). Der Name hat beim Start den Fokus.
+- Kein horizontales Scrollen bei 360 px.
+- „Bewegung reduzieren“: Der Suchring steht still (`--duration-spin` gilt dann nicht), die Zettel
+  erscheinen ohne Einblenden (Dauern 0).
+
+### Offen (für spätere Pakete)
+
+- **Handy, Gastgeber:** Mit den Steuerknöpfen ist der Tisch höher als der Bildschirm. Falls das
+  stört: Knöpfe in ein kleines Menü am Platz.
+- **Teilen-Menü am Handy** (`navigator.share`) ist nicht eingebaut (Lukas hat es nicht gewählt).
+- **Gastgeber erkennbar:** `TableView` sagt nicht, wer den Tisch hostet; eine Marke
+  „Gastgeber“ am Platz bräuchte das in der Sicht.
 
 ## Verworfene Richtungen
 

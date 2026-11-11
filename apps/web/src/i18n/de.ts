@@ -49,9 +49,9 @@ export const ERROR_TEXT: Record<HostErrorCode, string> = {
   seat_taken: 'Dieser Platz ist schon besetzt.',
 };
 
-/** Verbindungsstatus für Gäste (Paket N1). */
+/** Verbindungsstatus für Gäste (Paket N1, gestaltet in D4). */
 export const CONNECT_TEXT = {
-  searching: (room: string) => `Suche Tisch ${room} …`,
+  searching: 'Suche Tisch …',
   searchingHint:
     'Der Tisch wird direkt beim Gastgeber gesucht. Das dauert meist nur ein paar Sekunden; der Gastgeber muss die Seite geöffnet haben.',
   failed: 'Tisch nicht gefunden',
@@ -59,13 +59,13 @@ export const CONNECT_TEXT = {
     'Ist der Tisch-Code richtig und hat der Gastgeber die Seite noch offen? In manchen Firmen- oder Hotelnetzen klappen direkte Verbindungen nicht.',
   retry: 'Erneut versuchen',
   cancel: 'Abbrechen',
-  lost: 'Verbindung zum Gastgeber verloren. Suche Tisch …',
+  lost: 'Verbindung zum Gastgeber verloren – suche Tisch …',
   lostFailed: 'Gastgeber nicht mehr erreichbar.',
 };
 
 /** Offener Tisch nach dem Neuladen des Gastgebers (Paket N2). */
 export const RESUME_TEXT = {
-  title: 'Offener Tisch',
+  title: 'Dein Tisch ist noch offen',
   online: (room: string) => `Dein Tisch ${room} läuft noch.`,
   local: 'Dein Tisch gegen die Bots läuft noch.',
   progress: (handNo: number, minutes: number) =>
@@ -74,6 +74,38 @@ export const RESUME_TEXT = {
       : `${handNo}. Spiel, zuletzt vor ${minutes} min. Kontostände und Karten bleiben erhalten.`,
   resume: 'Tisch fortsetzen',
   discard: 'Verwerfen',
+};
+
+/** Startbildschirm (D4). */
+export const START_TEXT = {
+  brand: 'Schafkopf',
+  tagline: 'Zu viert am Tisch – ohne Anmeldung, direkt im Browser.',
+  name: 'Dein Name',
+  namePlaceholder: 'z. B. Lukas',
+  nameHint: 'So sehen dich die anderen am Tisch.',
+  nameMissing: 'Bitte gib zuerst deinen Namen ein.',
+  playFriends: 'Mit Freunden spielen',
+  playFriendsHint: 'Du bekommst einen Link zum Einladen.',
+  playBots: 'Allein gegen Bots',
+  hostHint: 'Dein Gerät mischt und gibt. Freie Plätze übernehmen Bots.',
+  joinTitle: 'Einladung bekommen?',
+  joinCode: 'Tisch-Code',
+  joinPlaceholder: 'z. B. k7m2xp',
+  join: 'Beitreten',
+  inviteTitle: 'Du bist eingeladen',
+  inviteTo: 'an Tisch',
+  inviteHint: 'Gib deinen Namen ein und setz dich dazu.',
+  inviteOwn: 'Lieber selbst einen Tisch eröffnen',
+};
+
+/** Tisch-Code zum Vorlesen in Dreiergruppen: „k7m2xp“ → „k7m 2xp“. */
+export function spacedCode(code: string): string {
+  return code.replace(/(.{3})(?=.)/g, '$1 ');
+}
+
+/** Kurze Hinweise unten am Rand (Fehler des Gastgebers, D4). */
+export const NOTICE_TEXT = {
+  close: 'Hinweis schließen',
 };
 
 /** Cent-Betrag als Euro, mit Vorzeichen: 150 → "+1,50 €". */
@@ -209,21 +241,38 @@ export const TABLE_TEXT = {
   announceBid: 'Du bist mit der Ansage dran.',
 };
 
-/** Lobby (Paket N4). */
+/** Lobby (Paket N4, gestaltet in D4). */
 export const LOBBY_TEXT = {
-  seats: 'Plätze',
+  title: (room: string) => `Tisch ${room}`,
+  titleLocal: 'Tisch gegen die Bots',
+  leave: 'Tisch verlassen',
+  invite: 'Freunde einladen',
+  inviteCode: 'Tisch-Code',
+  inviteHint: 'Schick den Link an deine Mitspieler oder sag ihnen den Code.',
+  inviteLink: 'Einladungslink',
+  copy: 'Link kopieren',
+  copied: 'Kopiert',
+  copyFailed: 'Kopieren ging nicht – markier den Link und kopier ihn selbst.',
+  seats: 'Plätze am Tisch',
+  seatLabel: (seat: number) => `Platz ${seat + 1}`,
   free: 'frei',
-  you: '(du)',
+  you: 'du',
   sitHere: 'Hier sitzen',
+  sitHereLabel: (seat: number) => `Platz ${seat + 1} ist frei – hier sitzen`,
+  freeCount: (n: number) =>
+    n === 0 ? 'Alle Plätze besetzt' : n === 1 ? 'Noch 1 Platz frei' : `Noch ${n} Plätze frei`,
+  botsFill: (n: number) =>
+    n === 1 ? 'Den freien Platz übernimmt ein Bot.' : `Die ${n} freien Plätze übernehmen Bots.`,
+  start: 'Spiel starten',
   watch: 'Nur zuschauen',
   watchers: 'Zuschauer',
   watching: 'Du schaust zu. Such dir einen freien Platz, wenn du mitspielen willst.',
   noFreeSeat: 'Alle Plätze sind besetzt.',
   rename: 'Dein Name',
   renameButton: 'Ändern',
-  moveUp: 'Nach oben',
-  moveDown: 'Nach unten',
-  unseat: 'Vom Platz nehmen',
+  moveCw: (name: string) => `${name} einen Platz im Uhrzeigersinn weiter`,
+  moveCcw: (name: string) => `${name} einen Platz gegen den Uhrzeigersinn weiter`,
+  unseat: (name: string) => `${name} vom Platz nehmen`,
   settings: 'Einstellungen',
   spectators: 'Zuschauer zulassen',
   spectatorsHint:
