@@ -50,13 +50,27 @@ Ein eigenes Spiel mit gleichem Blatt, aber völlig anderen Regeln: Schlag und Tr
 
 ## Android-App
 
-- **Erster Schritt ist schon geplant:** U5 macht die Web-App installierbar (PWA). Auf Android
-  sieht sie dann aus wie eine App: eigenes Symbol, Vollbild, startet ohne Browserleiste.
-- **Danach nur bei Bedarf:** eine Hülle für den Play Store (Trusted Web Activity oder Capacitor).
-  Nötig etwa für Store-Präsenz, Benachrichtigungen („du bist dran“) oder wenn WebRTC in der PWA
-  Probleme macht.
-- **Nebenbei mit U5 lösen:** Hinweis „Neue Version – bitte neu laden“. Nach einem Deploy zeigte
-  eine offene Seite weiße Karten, weil sie noch die alten Kartendateien anforderte.
+Stand nach U5 (installierbare Web-App, Einschätzung; auf einem echten Gerät noch nicht geprüft).
+
+- **Was die PWA auf Android schon kann:** Chrome bietet „App installieren“ an (Manifest,
+  Symbole und Service Worker sind da). Danach eigenes Symbol, Start im Vollbild ohne
+  Browserleiste, Hochformat, Startbildschirm ohne Netz. WebRTC (der Tisch) läuft in Chrome
+  für Android wie im Browser, auch in der installierten App. Ein neuer Stand wird mit dem
+  Hinweis „Neue Version verfügbar“ angeboten.
+- **Was eine Play-Store-Hülle zusätzlich brächte:** Auffindbarkeit im Store, Installation ohne
+  Umweg über den Browser-Dialog, Push-Benachrichtigungen („du bist dran“) und ein Tisch, der im
+  Hintergrund verbunden bleibt. Ohne Hülle pausiert Android den Tab bald, die Verbindung
+  zum Gastgeber reißt dann ab (N2 fängt das Neuladen ab, nicht das Wegwischen).
+- **Wege dorthin:** _Trusted Web Activity_ (z. B. mit Bubblewrap) verpackt die PWA fast ohne
+  Code; nötig sind ein Entwicklerkonto bei Google (einmalig 25 US-$), ein Signaturschlüssel und
+  `/.well-known/assetlinks.json` auf der Domain. GitHub Pages liefert das Unterverzeichnis
+  `/schafkopf/` – die Datei müsste im Stamm der Domain `dorfbub.github.io` liegen, also eigene
+  Domain oder ein Repository `dorfbub.github.io`. _Capacitor_ bündelt die Seite in der App und
+  erlaubt native Erweiterungen (Benachrichtigungen, Vordergrunddienst), kostet aber eigenen
+  Build und Pflege.
+- **Empfehlung:** Erst mit der PWA spielen. Eine Hülle lohnt, sobald Store-Präsenz oder
+  Benachrichtigungen gewünscht sind; dann TWA, bei Hintergrund-Verbindung Capacitor.
+- **Hinweis „Neue Version“** ist mit U5 umgesetzt (`apps/web/src/updates.ts`).
 
 ## Spezialregeln der Runde
 

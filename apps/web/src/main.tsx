@@ -6,6 +6,7 @@ import './styles/base.css';
 import './styles/components.css';
 import './styles/table.css';
 import './styles/screens.css';
+import { startUpdateWatch } from './updates';
 
 const element = document.getElementById('root')!;
 
@@ -57,6 +58,7 @@ if (messung) {
     ),
   );
 } else {
+  startUpdateWatch();
   createRoot(element).render(
     <StrictMode>
       <App />

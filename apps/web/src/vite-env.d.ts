@@ -9,3 +9,6 @@ interface ImportMetaEnv {
   /** TURN-Server als JSON, z. B. `[{"urls":"turn:turn.example.org:3478","username":"…","credential":"…"}]`. */
   readonly VITE_TURN_CONFIG?: string;
 }
+
+/** Kennung dieses Builds (siehe `pwa-plugin.ts`). Im Entwicklungsserver `dev`. */
+declare const __BUILD_ID__: string;

@@ -1,5 +1,6 @@
 import { type Card, type Suit, rankOf, suitOf } from '@schafkopf/core';
 import type { ReactNode } from 'react';
+import { updates } from '../updates';
 
 /**
  * Ein Kartenbild ("Theme"). Die Oberfläche kennt nur diese Schnittstelle –
@@ -26,6 +27,9 @@ const urls = import.meta.glob<string>('../assets/karten/*.svg', {
   import: 'default',
 });
 
+/** Lädt ein Kartenbild nicht, ist die Seite veraltet: Hinweis statt weißer Karten. */
+const missing = () => updates.reportMissingAsset();
+
 const urlOf = (name: string): string => urls[`../assets/karten/${name}.svg`] ?? '';
 
 export const bayerischTheme: CardTheme = {
@@ -38,11 +42,14 @@ export const bayerischTheme: CardTheme = {
         src={urlOf(`${suitOf(card)}-${rankOf(card)}`)}
         alt=""
         draggable={false}
+        onError={missing}
       />
     );
   },
   back() {
-    return <img className="face-img" src={urlOf('ruecken')} alt="" draggable={false} />;
+    return (
+      <img className="face-img" src={urlOf('ruecken')} alt="" draggable={false} onError={missing} />
+    );
   },
   suit(suit) {
     // dieselben Farbzeichen wie auf den Karten (Fabian Bally)
