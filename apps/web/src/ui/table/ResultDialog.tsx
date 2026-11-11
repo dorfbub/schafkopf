@@ -1,5 +1,5 @@
 import type { HandView, TableView } from '@schafkopf/core';
-import { TABLE_TEXT, contractLabel, money } from '../../i18n/de';
+import { TABLE_TEXT, contractLabel, money, plainMoney } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
 import type { SeatInfo } from './layout';
 import { PotNote } from './PotNote';
@@ -14,7 +14,7 @@ interface Props {
 }
 
 /** Betrag mit Minusfarbe, falls negativ. */
-function Money({ cents }: { cents: number }) {
+export function Money({ cents }: { cents: number }) {
   return <span className={cents < 0 ? 'text-negative' : undefined}>{money(cents)}</span>;
 }
 
@@ -129,7 +129,7 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
       </div>
       <p className="ergebnis__wert">
         <span>{TABLE_TEXT.valuePerPlayer}</span>
-        <span className="num">{money(value).replace(/^[+−]/, '')}</span>
+        <span className="num">{plainMoney(value)}</span>
       </p>
       <PotNote view={view} result={result} />
       {table}

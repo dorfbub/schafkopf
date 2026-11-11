@@ -129,6 +129,11 @@ export function money(cents: number): string {
   return `${sign}${(Math.abs(cents) / 100).toFixed(2).replace('.', ',')} €`;
 }
 
+/** Betrag ohne Vorzeichen: 150 → "1,50 €". */
+export function plainMoney(cents: number): string {
+  return money(cents).replace(/^[+−]/, '');
+}
+
 /** Texte der Grundbausteine (src/ui/kit). */
 export const UI_TEXT = {
   seatTurn: 'am Zug',

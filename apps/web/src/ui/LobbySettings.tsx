@@ -8,7 +8,7 @@ import {
   type TableView,
 } from '@schafkopf/core';
 import type { HostSession } from '@schafkopf/net';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
 
 interface Props {
@@ -34,6 +34,7 @@ function options(view: TableView): RuleOptions {
 /** Tischregeln des Gastgebers in der Lobby. Jede gültige Änderung gilt sofort für alle. */
 export function LobbySettings({ view, host }: Props) {
   const current = options(view);
+  const allPassedGroup = useId();
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
 
   const toggleContract = (kind: ContractKind, on: boolean) => {
@@ -97,7 +98,7 @@ export function LobbySettings({ view, host }: Props) {
             <label key={rule} className="check">
               <input
                 type="radio"
-                name="alle-weiter"
+                name={allPassedGroup}
                 value={rule}
                 checked={current.allPassed === rule}
                 onChange={() => change({ allPassed: rule })}

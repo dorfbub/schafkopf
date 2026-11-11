@@ -1,8 +1,9 @@
 import type { HandResult, RamschDetails, TableView } from '@schafkopf/core';
 import type { ReactNode } from 'react';
-import { TABLE_TEXT, money } from '../../i18n/de';
+import { TABLE_TEXT, plainMoney } from '../../i18n/de';
 import { Dialog } from '../kit';
 import type { SeatInfo } from './layout';
+import { Money } from './ResultDialog';
 
 interface Props {
   view: TableView;
@@ -10,10 +11,6 @@ interface Props {
   details: RamschDetails;
   seats: SeatInfo;
   actions: ReactNode;
-}
-
-function Money({ cents }: { cents: number }) {
-  return <span className={cents < 0 ? 'text-negative' : undefined}>{money(cents)}</span>;
 }
 
 /**
@@ -37,7 +34,9 @@ export function RamschResult({ view, result, details, seats, actions }: Props) {
 
   return (
     <Dialog
-      className={`ergebnis${durch !== null && durch === view.you ? ' ergebnis--gewonnen' : ''}`}
+      className={`ergebnis${
+        view.you !== null && result.outcome!.winners.includes(view.you) ? ' ergebnis--gewonnen' : ''
+      }`}
       title={title}
       actions={actions}
     >
@@ -61,7 +60,7 @@ export function RamschResult({ view, result, details, seats, actions }: Props) {
       </div>
       <p className="ergebnis__wert">
         <span>{TABLE_TEXT.ramschPerPlayer}</span>
-        <span className="num">{money(amount).replace(/^[+−]/, '')}</span>
+        <span className="num">{plainMoney(amount)}</span>
       </p>
       <table className="ergebnis__tabelle">
         <thead>

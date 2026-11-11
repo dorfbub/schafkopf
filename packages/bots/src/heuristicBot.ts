@@ -596,8 +596,8 @@ function follow(ctx: Ctx, legal: readonly Card[]): Card {
  * Ramsch: jeder für sich, Augen vermeiden. Regelgerecht und schlicht (bessere Strategie: B3):
  *  - Anspielen: die niedrigste Karte, bevorzugt eine Farbkarte ohne Augen.
  *  - Zugeben: Kann man drunter bleiben, die teuerste Karte, die den Stich nicht nimmt
- *    (hohe Karten und Augen loswerden). Muss man stechen, als Letzter die teuerste Karte
- *    (der Stich gehört einem ohnehin), sonst die billigste.
+ *    (hohe Karten und Augen loswerden). Muss man stechen, die Karte mit den wenigsten Augen
+ *    (als Letzter davon die höchste, um sie loszuwerden).
  */
 function ramschCard(ctx: Ctx, legal: readonly Card[]): Card {
   const trick = ctx.view.currentTrick;
@@ -608,7 +608,9 @@ function ramschCard(ctx: Ctx, legal: readonly Card[]): Card {
   const wins = (c: Card) => trickWinnerIndex([...trick.cards, c], ctx.order) === trick.cards.length;
   const under = legal.filter((c) => !wins(c));
   if (under.length > 0) return maxBy(under, (c) => pointsOf(c) * 2 + str(ctx, c) + jitter());
-  if (laterSeats(ctx).length === 0) return maxBy(legal, (c) => pointsOf(c) + jitter());
+  // Als Letzter gehört einem der Stich sicher: wenig Augen dazulegen, dabei eine hohe Karte loswerden.
+  if (laterSeats(ctx).length === 0)
+    return minBy(legal, (c) => pointsOf(c) * 10 - str(ctx, c) + jitter());
   return minBy(legal, (c) => pointsOf(c) + str(ctx, c) * 0.1 + jitter());
 }
 

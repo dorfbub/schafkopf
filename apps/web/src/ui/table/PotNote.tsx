@@ -1,9 +1,5 @@
 import type { HandResult, TableView } from '@schafkopf/core';
-import { TABLE_TEXT, money } from '../../i18n/de';
-
-/** Betrag ohne Vorzeichen. */
-const plain = (cents: number) => money(cents).replace(/^[+−]/, '');
-
+import { TABLE_TEXT, plainMoney as plain } from '../../i18n/de';
 /**
  * Pott im Ergebnis (Stock): eingezahlt, gewonnen oder stehen geblieben. Nichts, solange es
  * keinen Pott gibt.

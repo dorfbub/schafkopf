@@ -66,10 +66,9 @@ export function ramschOutcome(state: HandState): Outcome {
     highest(seat),
     lastTrick(seat),
   ];
+  const keyOf = seats.map(keys);
   const loser = seats.reduce((worst, seat) => {
-    const a = keys(seat);
-    const b = keys(worst);
-    const diff = a.map((v, i) => v - b[i]!).find((d) => d !== 0) ?? 0;
+    const diff = keyOf[seat]!.map((v, i) => v - keyOf[worst]![i]!).find((d) => d !== 0) ?? 0;
     return diff > 0 ? seat : worst;
   });
 
