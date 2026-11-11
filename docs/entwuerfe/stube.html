@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entwurf A · Stube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="gemeinsam.css" />
+    <style>
+      /*
+ * Richtung A · „Stube“ – warm und dunkel wie eine abendliche Wirtsstube,
+ * aber ohne Deko: Nussholz, Lampenlicht über dem Tisch, Bernstein als Akzent,
+ * Serifenschrift für Namen und Überschriften. Runder Tisch, Spieler sitzen
+ * rundherum. Keine Seitenleiste – der Tisch steht allein.
+ */
+      .app {
+        --grund: #15100c;
+        --platte: #3b2a1e;
+        --platte-hell: #5a4030;
+        --rand: #6e4e35;
+        --tinte: #f4eadb;
+        --leise: #b8a48a;
+        --bernstein: #e8b25a;
+        --bernstein-tief: #a8721e;
+        --flaeche: #241a13;
+        --flaeche-hoch: #2f2219;
+        --linie: #4a3727;
+        --rot: #e0675a;
+        --gruen: #8fc27a;
+        font-family: 'Source Sans 3', system-ui, sans-serif;
+        color: var(--tinte);
+        background:
+          radial-gradient(ellipse 70% 60% at 50% 42%, #3a281c 0%, transparent 70%), var(--grund);
+      }
+
+      .bar {
+        padding: 14px 24px;
+        font-size: 15px;
+        color: var(--leise);
+      }
+
+      .bar__marke {
+        font-family: 'Fraunces', serif;
+        font-weight: 650;
+        font-size: 22px;
+        color: var(--tinte);
+        letter-spacing: 0.01em;
+      }
+
+      .bar__vertrag b {
+        color: var(--bernstein);
+        font-weight: 600;
+      }
+
+      .bar__wer {
+        color: var(--tinte);
+        font-weight: 600;
+      }
+
+      .knopf {
+        border-radius: 999px;
+        padding: 10px 20px;
+        font-weight: 600;
+        border: 0;
+      }
+
+      .knopf--haupt {
+        background: var(--bernstein);
+        color: #2a1a08;
+      }
+
+      .knopf--haupt:not(:disabled):hover {
+        background: #f2c475;
+      }
+
+      .knopf--zweit {
+        background: transparent;
+        color: var(--tinte);
+        box-shadow: inset 0 0 0 1.5px var(--linie);
+      }
+
+      .knopf--leise {
+        background: transparent;
+        color: var(--leise);
+        padding: 8px 14px;
+        box-shadow: inset 0 0 0 1px var(--linie);
+      }
+
+      /* Tischplatte: Oval aus Nussholz mit Lampenlicht */
+      .tisch__platte {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 78%;
+        height: 86%;
+        translate: -50% -50%;
+        border-radius: 50%;
+        background:
+          radial-gradient(ellipse at 50% 40%, #6a4a35 0%, transparent 62%),
+          repeating-linear-gradient(
+            97deg,
+            #0000 0 22px,
+            #ffffff06 22px 24px,
+            #0000 24px 51px,
+            #00000012 51px 53px
+          ),
+          linear-gradient(#45311f, #34251a);
+        box-shadow:
+          0 0 0 10px #2a1d14,
+          0 0 0 11px #6e4e3555,
+          0 30px 80px #000c,
+          inset 0 2px 30px #0008;
+      }
+
+      .seat {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+        translate: -50% -50%;
+      }
+
+      .seat--links {
+        left: 7%;
+        top: 48%;
+      }
+      .seat--oben {
+        left: 50%;
+        top: 9%;
+        flex-direction: row;
+        text-align: left;
+      }
+      .seat--rechts {
+        left: 93%;
+        top: 48%;
+      }
+
+      .avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 650;
+        background: var(--flaeche-hoch);
+        color: var(--tinte);
+        box-shadow: 0 0 0 2px var(--linie);
+        flex: none;
+      }
+
+      .ist-dran .avatar {
+        box-shadow:
+          0 0 0 3px var(--bernstein),
+          0 0 24px #e8b25a88;
+      }
+
+      .seat__name,
+      .eigen__name {
+        font-family: 'Fraunces', serif;
+        font-size: 19px;
+        font-weight: 650;
+      }
+
+      .seat__info {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        color: var(--leise);
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .seat__marken {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+      }
+
+      .marke {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #0005;
+        color: var(--leise);
+      }
+
+      .marke--spieler {
+        background: var(--bernstein);
+        color: #2a1a08;
+      }
+      .marke--partner {
+        background: #e8b25a33;
+        color: var(--bernstein);
+      }
+
+      .blase {
+        font-family: 'Fraunces', serif;
+        font-style: italic;
+        background: var(--tinte);
+        color: #2a1a08;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 15px;
+      }
+
+      .seat__karten .card {
+        --cw: 24px;
+      }
+      .seat__karten .card + .card {
+        margin-left: -16px;
+      }
+
+      .card--back {
+        background:
+          repeating-linear-gradient(45deg, #0000 0 3px, #e8b25a30 3px 4px),
+          repeating-linear-gradient(-45deg, #0000 0 3px, #e8b25a30 3px 4px), #6b2a1e;
+        box-shadow:
+          inset 0 0 0 2px #f4eadb,
+          0 1px 3px #0008;
+      }
+
+      /* Stich */
+      .trick .card {
+        --cw: 104px;
+      }
+      .trick__karte--unten {
+        --ty: 70px;
+        --dreh: 2deg;
+      }
+      .trick__karte--links {
+        --tx: -96px;
+        --ty: -4px;
+        --dreh: -10deg;
+      }
+      .trick__karte--oben {
+        --ty: -78px;
+        --dreh: -3deg;
+      }
+      .trick__karte--rechts {
+        --tx: 96px;
+        --ty: 4px;
+        --dreh: 9deg;
+      }
+
+      /* Eigener Platz */
+      .eigen {
+        padding: 4px 24px 0;
+      }
+
+      .eigen__info {
+        color: var(--leise);
+        font-size: 15px;
+        margin-bottom: 10px;
+      }
+
+      .eigen__info .avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 17px;
+      }
+
+      .eigen__dran {
+        color: var(--bernstein);
+        font-weight: 700;
+      }
+
+      .hand {
+        --faecher: 3.2deg;
+        --bogen: 3px;
+        --ueberlapp: 18px;
+        height: 180px;
+      }
+
+      .hand .card {
+        --cw: 100px;
+      }
+      .hand {
+        padding-bottom: 26px;
+        box-sizing: content-box;
+      }
+
+      .hand .card--spielbar {
+        box-shadow:
+          inset 0 0 0 1px #d8ccb0,
+          0 0 0 3px var(--bernstein),
+          0 8px 24px #e8b25a66;
+      }
+
+      /* Dialoge */
+      .dialog {
+        left: 50%;
+        top: 50%;
+        translate: -50% -50%;
+        width: 600px;
+        padding: 26px 28px;
+        border-radius: 20px;
+        background: #231811f2;
+        box-shadow:
+          0 0 0 1px var(--linie),
+          0 24px 70px #000b;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .dialog h2 {
+        font-family: 'Fraunces', serif;
+        font-weight: 650;
+        font-size: 28px;
+      }
+
+      .dialog__hinweis {
+        color: var(--leise);
+        font-size: 14px;
+      }
+
+      .ansage__label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--leise);
+        margin-bottom: 8px;
+      }
+
+      .wahl {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 16px;
+        background: var(--flaeche-hoch);
+        color: var(--tinte);
+        box-shadow: inset 0 0 0 1px var(--linie);
+        font-weight: 600;
+      }
+
+      .wahl:not(:disabled):hover {
+        box-shadow: inset 0 0 0 1px var(--bernstein);
+      }
+
+      .wahl.ist-gewaehlt {
+        background: #e8b25a22;
+        color: var(--bernstein);
+        box-shadow: inset 0 0 0 2px var(--bernstein);
+      }
+
+      .schalter {
+        color: var(--leise);
+        font-weight: 600;
+      }
+      .schalter input:checked + .schalter__bahn {
+        color: var(--bernstein);
+      }
+
+      .dialog--ergebnis {
+        width: 520px;
+        gap: 16px;
+      }
+
+      .ergebnis__ueber {
+        color: var(--leise);
+        font-size: 14px;
+      }
+
+      .augen__zahl {
+        font-family: 'Fraunces', serif;
+        font-size: 44px;
+        font-weight: 650;
+        color: var(--bernstein);
+        line-height: 1;
+      }
+
+      .augen__wort {
+        color: var(--leise);
+      }
+      .augen__balken {
+        background: #0006;
+      }
+      .augen__balken span {
+        background: var(--bernstein);
+      }
+      .augen__balken i {
+        background: var(--grund);
+      }
+
+      .ergebnis__rechnung {
+        border-top: 1px solid var(--linie);
+        border-bottom: 1px solid var(--linie);
+        padding: 10px 0;
+        display: grid;
+        gap: 4px;
+        font-variant-numeric: tabular-nums;
+        color: var(--leise);
+      }
+
+      .rechnung__z--summe {
+        color: var(--tinte);
+        font-weight: 700;
+      }
+
+      .stand th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--leise);
+        font-weight: 600;
+      }
+      .stand td {
+        border-top: 1px solid #4a372766;
+      }
+      .stand small {
+        color: var(--leise);
+      }
+      .stand .minus {
+        color: var(--rot);
+      }
+
+      .geraet--desktop .app--ergebnis .seat--oben {
+        display: none;
+      }
+
+      /* ---------- Handy ---------- */
+      .geraet--handy .bar {
+        padding: 10px 14px;
+        gap: 8px;
+        font-size: 13px;
+        flex-wrap: wrap;
+      }
+      .geraet--handy .bar__marke {
+        font-size: 18px;
+      }
+      .geraet--handy .bar__spiel {
+        order: 3;
+        width: 100%;
+        display: none;
+      }
+      .geraet--handy .bar__vertrag {
+        text-align: left;
+        font-size: 13px;
+        line-height: 1.25;
+      }
+      .geraet--handy .knopf--leise {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+
+      .geraet--handy .tisch__platte {
+        width: 94%;
+        height: 70%;
+        top: 46%;
+        border-radius: 46% / 40%;
+      }
+      .geraet--handy .seat {
+        gap: 3px;
+        translate: -50% 0;
+      }
+      .geraet--handy .seat--links {
+        left: 15%;
+        top: 9%;
+      }
+      .geraet--handy .seat--oben {
+        left: 50%;
+        top: 1%;
+        flex-direction: column;
+        text-align: center;
+      }
+      .geraet--handy .seat--rechts {
+        left: 85%;
+        top: 9%;
+      }
+      .geraet--handy .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+      .geraet--handy .seat__name {
+        font-size: 15px;
+      }
+      .geraet--handy .seat__info {
+        font-size: 12px;
+        gap: 6px;
+        flex-direction: column;
+        gap: 0;
+      }
+      .geraet--handy .seat__karten {
+        display: none;
+      }
+      .geraet--handy .marke {
+        font-size: 10px;
+        padding: 1px 6px;
+      }
+      .geraet--handy .blase {
+        font-size: 13px;
+        padding: 2px 9px;
+      }
+
+      .geraet--handy .trick {
+        top: 58%;
+      }
+      .geraet--handy .trick .card {
+        --cw: 64px;
+      }
+      .geraet--handy .trick__karte--unten {
+        --ty: 50px;
+      }
+      .geraet--handy .trick__karte--links {
+        --tx: -60px;
+        --ty: -4px;
+      }
+      .geraet--handy .trick__karte--oben {
+        --ty: -52px;
+      }
+      .geraet--handy .trick__karte--rechts {
+        --tx: 60px;
+        --ty: 4px;
+      }
+
+      .geraet--handy .eigen {
+        padding: 0 8px;
+      }
+      .geraet--handy .eigen__info {
+        font-size: 13px;
+        gap: 8px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+      }
+      .geraet--handy .eigen__info .avatar {
+        display: none;
+      }
+      .geraet--handy .eigen__name {
+        font-size: 15px;
+      }
+      .geraet--handy .eigen__dran {
+        width: 100%;
+        text-align: center;
+      }
+      .geraet--handy .hand {
+        --ueberlapp: 25px;
+        --faecher: 2.6deg;
+        --bogen: 2px;
+        height: 104px;
+        padding-bottom: 16px;
+      }
+      .geraet--handy .hand .card {
+        --cw: 62px;
+      }
+
+      .geraet--handy .dialog {
+        top: auto;
+        bottom: 4px;
+        translate: -50% 0;
+        width: calc(100% - 16px);
+        padding: 16px;
+        gap: 12px;
+        border-radius: 16px;
+      }
+
+      .geraet--handy .dialog h2 {
+        font-size: 21px;
+      }
+      .geraet--handy .dialog__kopf {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .geraet--handy .dialog__hinweis {
+        font-size: 12px;
+      }
+      .geraet--handy .wahl {
+        padding: 8px 11px;
+        font-size: 14px;
+        border-radius: 10px;
+      }
+      .geraet--handy .ansage__arten,
+      .geraet--handy .ansage__farben {
+        gap: 6px;
+      }
+      .geraet--handy .ansage__fuss {
+        flex-wrap: wrap;
+      }
+      .geraet--handy .knopf {
+        padding: 9px 14px;
+        font-size: 14px;
+      }
+      .geraet--handy .dialog--ergebnis {
+        top: 6px;
+        bottom: 6px;
+        overflow: auto;
+        font-size: 14px;
+      }
+      .geraet--handy .augen__zahl {
+        font-size: 34px;
+      }
+      .geraet--handy .dialog--ergebnis h2 {
+        margin-bottom: 8px;
+      }
+      .geraet--handy .app--ergebnis .seat {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="buehne">
+    <div class="leiste">
+      <h1>A · Stube</h1>
+      <a href="index.html">Übersicht</a>
+    </div>
+    <div class="flaeche"></div>
+    <script src="gemeinsam.js"></script>
+  </body>
+</html>

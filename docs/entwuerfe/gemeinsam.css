@@ -1,0 +1,576 @@
+/*
+ * Gemeinsame Teile aller Entwürfe: Bühne (Umschalter, Geräterahmen) und der
+ * Karten-Platzhalter im Stil des bayerischen Blatts (Schmid „Tarock Schafkopf“).
+ * Die Karten sind in allen Richtungen gleich – das Blatt ist gesetzt, die
+ * Richtungen unterscheiden sich nur im Tisch drumherum.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body.buehne {
+  background: #111;
+  color: #ddd;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.leiste {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: #1b1b1b;
+  border-bottom: 1px solid #2c2c2c;
+}
+
+.leiste h1 {
+  font-size: 15px;
+  margin: 0 8px 0 0;
+  color: #fff;
+}
+
+.leiste a {
+  color: #9ab;
+}
+
+.umschalter {
+  display: inline-flex;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.umschalter button {
+  font: inherit;
+  background: transparent;
+  color: #bbb;
+  border: 0;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.umschalter button + button {
+  border-left: 1px solid #3a3a3a;
+}
+
+.umschalter button[aria-pressed='true'] {
+  background: #e8e2d4;
+  color: #111;
+}
+
+.flaeche {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.rahmen {
+  flex: none;
+  position: relative;
+}
+
+.rahmen__titel {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-size: 11px;
+  color: #888;
+}
+
+.geraet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px #333,
+    0 20px 60px #000a;
+}
+
+.geraet--handy {
+  width: 360px;
+  height: 740px;
+  border-radius: 22px;
+}
+
+.geraet--desktop {
+  width: 1440px;
+  height: 900px;
+}
+
+/* Nur der Rahmen, 1:1 – für Bildschirmfotos (?nackt=1) */
+body.nackt {
+  background: #000;
+}
+
+body.nackt .leiste {
+  display: none;
+}
+
+body.nackt .flaeche {
+  padding: 0;
+  display: block;
+}
+
+body.nackt .rahmen__titel {
+  display: none;
+}
+
+body.nackt .geraet {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ---------- Karte (Platzhalter bayerisches Blatt) ---------- */
+
+.card {
+  --cw: 64px;
+  flex: none;
+  position: relative;
+  width: var(--cw);
+  /* Karte ohne den 5-mm-Rand der SVG-Vorlage: 115 × 195 mm */
+  height: calc(var(--cw) * 195 / 115);
+  border-radius: calc(var(--cw) * 0.135);
+  background: #fff;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px #0005,
+    0 4px 10px #0003;
+  user-select: none;
+}
+
+.card > img {
+  position: absolute;
+  width: calc(var(--cw) * 125 / 115);
+  height: auto;
+  left: calc(var(--cw) * -5.05 / 115);
+  top: calc(var(--cw) * -5.05 / 115);
+  pointer-events: none;
+}
+
+.card svg {
+  display: block;
+}
+
+.card__idx {
+  position: absolute;
+  top: 5%;
+  left: 6%;
+  width: 28%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--cw) * 0.02);
+  font-weight: 700;
+  font-size: calc(var(--cw) * 0.23);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.card__idx svg {
+  width: calc(var(--cw) * 0.22);
+  height: calc(var(--cw) * 0.22);
+}
+
+.card__mid {
+  position: absolute;
+  top: 7%;
+  bottom: 6%;
+  left: 34%;
+  right: 7%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Figuren: Rahmen mit Andeutung der Figur; beim Ober sitzt die Farbe oben,
+   beim Unter unten – wie im echten Blatt. */
+.card__figur {
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--cw) * 0.04);
+  border: 1px solid #c9b78f;
+  background: linear-gradient(#f3e7cb, #ead9b2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10% 0;
+  overflow: hidden;
+}
+
+.card__figur svg {
+  width: 62%;
+  height: auto;
+}
+
+.card__figur .figur__leib {
+  width: 46%;
+  flex: 1;
+  margin: 6% 0;
+  border-radius: 40% 40% 8% 8%;
+  background: linear-gradient(#7a2e22 0 30%, #2f5a8a 30% 70%, #3d6b35 70%);
+  opacity: 0.55;
+}
+
+.card__figur--U {
+  flex-direction: column-reverse;
+}
+
+.card__figur--K .figur__leib {
+  background: linear-gradient(#c79a2a 0 14%, #7a2e22 14% 60%, #2f5a8a 60%);
+}
+
+.card__wort {
+  font-size: calc(var(--cw) * 0.13);
+  font-style: italic;
+  color: #6b5435;
+}
+
+.card__sau svg {
+  width: calc(var(--cw) * 0.5);
+  height: calc(var(--cw) * 0.5);
+}
+
+.card__pips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--cw) * 0.03) calc(var(--cw) * 0.05);
+  justify-items: center;
+}
+
+.card__pips svg {
+  width: calc(var(--cw) * 0.19);
+  height: calc(var(--cw) * 0.19);
+}
+
+.card--gedimmt {
+  filter: grayscale(0.6) brightness(0.62);
+}
+
+.card--spielbar {
+  cursor: pointer;
+}
+
+.card--back {
+  background: #345;
+}
+
+/* ---------- Gemeinsames Gerüst des Tisches (Richtungen überschreiben) ---------- */
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  grid-template-areas: 'bar' 'tisch' 'eigen';
+  overflow: hidden;
+}
+
+.bar {
+  grid-area: bar;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bar__vertrag {
+  flex: 1;
+  text-align: center;
+}
+
+.tisch {
+  grid-area: tisch;
+  position: relative;
+  min-height: 0;
+}
+
+.seite {
+  grid-area: seite;
+  display: none;
+}
+
+.eigen {
+  grid-area: eigen;
+  position: relative;
+}
+
+.eigen__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.seat {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seat__karten {
+  display: flex;
+}
+
+.seat__karten .card {
+  --cw: 22px;
+}
+
+.seat__karten .card + .card {
+  margin-left: -15px;
+}
+
+.seat__dran {
+  display: none;
+}
+
+.blase--leer {
+  opacity: 0.5;
+}
+
+/* Stich: Karten um die Mitte, Abstände setzt jede Richtung über --tx/--ty */
+.trick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+.trick__karte {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: calc(1 + var(--n));
+  transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px))
+    rotate(var(--dreh, 0deg));
+}
+
+.trick:not([class*='zu-']) .trick__karte--unten {
+  animation: rein 0.32s ease-out;
+}
+
+@keyframes rein {
+  from {
+    translate: 0 160px;
+    scale: 1.15;
+  }
+}
+
+.trick--zu-rechts {
+  animation: zuRechts 0.55s ease-in forwards;
+}
+
+@keyframes zuRechts {
+  to {
+    translate: 46vw 0;
+    translate: 380px 0;
+    scale: 0.35;
+    opacity: 0;
+  }
+}
+
+/* Hand als Fächer */
+.hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.hand__platz {
+  transform-origin: 50% 120%;
+  transform: rotate(calc(var(--d) * var(--faecher, 0deg)))
+    translateY(calc(var(--d2) * var(--bogen, 0px)));
+}
+
+.hand__platz + .hand__platz {
+  margin-left: calc(var(--ueberlapp, 0px) * -1);
+}
+
+.hand .card {
+  transition: translate 0.15s ease;
+}
+
+.hand .card--spielbar:hover {
+  translate: 0 -14px;
+}
+
+.dialog {
+  position: absolute;
+  z-index: 20;
+}
+
+.dialog h2 {
+  margin: 0;
+}
+
+.ansage__arten,
+.ansage__farben {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ansage__fuss,
+.ergebnis__fuss {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ansage__knoepfe {
+  display: flex;
+  gap: 8px;
+}
+
+.wahl,
+.knopf {
+  font: inherit;
+  cursor: pointer;
+}
+
+.wahl:disabled,
+.knopf:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.wahl--farbe {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wahl--farbe svg {
+  width: 20px;
+  height: 20px;
+}
+
+.schalter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.schalter input {
+  position: absolute;
+  opacity: 0;
+}
+
+.schalter__bahn {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  position: relative;
+  background: #0004;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.schalter__bahn::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: currentColor;
+  transition: left 0.15s;
+}
+
+.schalter input:checked + .schalter__bahn::after {
+  left: 19px;
+}
+
+.ergebnis__augen {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: 0 8px;
+}
+
+.augen__balken {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.augen__balken span {
+  position: absolute;
+  inset: 0 auto 0 0;
+}
+
+.augen__balken i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+}
+
+.rechnung__z {
+  display: flex;
+  justify-content: space-between;
+}
+
+.stand {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stand th,
+.stand td {
+  text-align: left;
+  padding: 4px 0;
+}
+
+.stand .zahl {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.letzter {
+  display: flex;
+  gap: 8px;
+}
+
+.letzter figure {
+  margin: 0;
+  text-align: center;
+}
+
+.letzter .card {
+  --cw: 52px;
+}
+
+.letzter figcaption {
+  font-size: 11px;
+  margin-top: 4px;
+}

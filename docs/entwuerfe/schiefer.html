@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entwurf C · Schiefer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Kalam:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="gemeinsam.css" />
+    <style>
+      /*
+ * Richtung C · „Schiefer“ – modern-schlicht und typografisch: flaches Graphit,
+ * große Schrift, kein Tisch-Bild. Herzrot als einziges Signal (wer dran ist,
+ * was zu tun ist). Gegen das Kühle steht die Schiefertafel: Stand und
+ * Abrechnung in Kreideschrift, wie früher an der Wirtshauswand.
+ */
+      .app {
+        --grund: #1d1f22;
+        --flaeche: #26292d;
+        --linie: #383c42;
+        --tinte: #f1eee8;
+        --leise: #9a9690;
+        --rot: #e5484d;
+        --rot-hell: #ff8a8d;
+        --kreide: #ebe7dc;
+        --tafel: #2b3035;
+        --rahmen: #6b5440;
+        font-family: 'Archivo', system-ui, sans-serif;
+        color: var(--tinte);
+        background: var(--grund);
+        grid-template-columns: 1fr 360px;
+        grid-template-areas: 'bar seite' 'tisch seite' 'eigen seite';
+      }
+
+      .bar {
+        padding: 22px 36px 0;
+        font-size: 15px;
+        color: var(--leise);
+        align-items: baseline;
+      }
+
+      .bar__marke {
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--tinte);
+      }
+
+      .bar__vertrag {
+        text-align: left;
+        font-size: 15px;
+      }
+      .bar__vertrag b {
+        color: var(--tinte);
+        font-weight: 600;
+      }
+      .bar__wer {
+        color: var(--tinte);
+        font-weight: 600;
+      }
+
+      .knopf {
+        border: 0;
+        border-radius: 4px;
+        padding: 12px 22px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      .knopf--haupt {
+        background: var(--rot);
+        color: #fff;
+      }
+      .knopf--haupt:not(:disabled):hover {
+        background: #f05a5f;
+      }
+      .knopf--zweit {
+        background: transparent;
+        color: var(--tinte);
+        box-shadow: inset 0 0 0 1.5px var(--linie);
+      }
+      .knopf--leise {
+        background: transparent;
+        color: var(--leise);
+        padding: 4px 0;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .tisch__platte {
+        display: none;
+      }
+
+      /* Plätze: reine Typografie */
+      .seat {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .seat--links {
+        left: 36px;
+        top: 42%;
+        translate: 0 -50%;
+      }
+      .seat--oben {
+        left: 50%;
+        top: 28px;
+        translate: -50% 0;
+        align-items: center;
+      }
+      .seat--rechts {
+        right: 36px;
+        top: 42%;
+        translate: 0 -50%;
+        align-items: flex-end;
+        text-align: right;
+      }
+
+      .avatar {
+        display: none;
+      }
+
+      .seat__name,
+      .eigen__name {
+        font-weight: 800;
+        font-size: 30px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .seat.ist-dran .seat__name {
+        color: var(--rot);
+      }
+
+      .seat__info {
+        display: flex;
+        gap: 12px;
+        color: var(--leise);
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .seat__marken {
+        display: flex;
+        gap: 10px;
+      }
+
+      .marke {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--leise);
+      }
+
+      .marke--spieler,
+      .marke--partner {
+        color: var(--tinte);
+      }
+      .marke--spieler::before,
+      .marke--partner::before {
+        content: '● ';
+        color: var(--rot);
+      }
+      .marke--geber::before {
+        content: '◇ ';
+      }
+
+      .blase {
+        font-family: 'Kalam', cursive;
+        font-size: 22px;
+        color: var(--kreide);
+        line-height: 1.1;
+      }
+
+      .blase--leer {
+        color: var(--leise);
+      }
+
+      .seat__dran {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--rot);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      .seat__karten {
+        margin-top: 6px;
+      }
+      .seat__karten .card {
+        --cw: 20px;
+      }
+      .seat__karten .card + .card {
+        margin-left: -14px;
+      }
+
+      .card--back {
+        background: #3a3f46;
+        box-shadow:
+          inset 0 0 0 1.5px #f1eee8aa,
+          inset 0 0 0 4px #3a3f46,
+          inset 0 0 0 5px #e5484d88,
+          0 1px 3px #0008;
+      }
+
+      /* Stich */
+      .trick {
+        top: 52%;
+      }
+      .trick .card {
+        --cw: 108px;
+      }
+      .trick__karte--unten {
+        --ty: 74px;
+      }
+      .trick__karte--links {
+        --tx: -132px;
+        --dreh: -4deg;
+      }
+      .trick__karte--oben {
+        --ty: -74px;
+        --dreh: 2deg;
+      }
+      .trick__karte--rechts {
+        --tx: 132px;
+        --dreh: 5deg;
+      }
+
+      /* Eigener Platz */
+      .eigen {
+        padding: 0 36px 26px;
+      }
+
+      .eigen__info {
+        justify-content: flex-start;
+        gap: 14px;
+        color: var(--leise);
+        font-size: 14px;
+        margin-bottom: 14px;
+        align-items: baseline;
+      }
+
+      .eigen__name {
+        font-size: 22px;
+      }
+      .eigen.ist-dran .eigen__name {
+        color: var(--rot);
+      }
+      .eigen__dran {
+        color: var(--rot);
+        font-weight: 600;
+        margin-left: auto;
+        font-size: 15px;
+      }
+
+      .hand {
+        --ueberlapp: 22px;
+        justify-content: flex-start;
+        height: 182px;
+      }
+      .hand .card {
+        --cw: 112px;
+      }
+      .hand .card--spielbar {
+        translate: 0 -18px;
+        box-shadow:
+          inset 0 0 0 1px #d8ccb0,
+          0 0 0 3px var(--rot),
+          0 10px 24px #e5484d40;
+      }
+      .hand .card--spielbar:hover {
+        translate: 0 -26px;
+      }
+
+      /* Schiefertafel */
+      .seite {
+        display: flex;
+        flex-direction: column;
+        margin: 18px 18px 18px 0;
+        border-radius: 6px;
+        background:
+          radial-gradient(ellipse at 30% 20%, #ffffff0c, transparent 50%),
+          radial-gradient(ellipse at 70% 80%, #ffffff08, transparent 45%), var(--tafel);
+        box-shadow:
+          0 0 0 8px var(--rahmen),
+          0 0 0 9px #00000066,
+          0 20px 40px #0008;
+        margin-left: 8px;
+        color: var(--kreide);
+        font-family: 'Kalam', cursive;
+        overflow: hidden;
+      }
+
+      .seite__block {
+        padding: 18px 24px 8px;
+      }
+      .seite h3 {
+        margin: 0 0 4px;
+        font-weight: 700;
+        font-size: 22px;
+        color: var(--kreide);
+        border-bottom: 2px solid #ebe7dc55;
+        display: inline-block;
+      }
+      .seite p {
+        margin: 0;
+        font-size: 19px;
+        line-height: 1.3;
+        opacity: 0.9;
+      }
+      .seite .leer {
+        opacity: 0.6;
+      }
+      .seite__letzter {
+        order: 3;
+      }
+      .seite__stand {
+        order: 2;
+      }
+      .letzter {
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .letzter .card {
+        --cw: 56px;
+        font-family: Georgia, serif;
+      }
+      .letzter figcaption {
+        font-size: 15px;
+      }
+      .letzter__k--sieger figcaption {
+        color: var(--rot-hell);
+        font-weight: 700;
+      }
+
+      .stand {
+        font-size: 21px;
+      }
+      .stand th {
+        font-weight: 400;
+        font-size: 16px;
+        opacity: 0.65;
+      }
+      .stand td {
+        padding: 2px 0;
+      }
+      .stand small {
+        opacity: 0.6;
+        font-size: 14px;
+      }
+      .stand .minus {
+        color: #ffb3a8;
+      }
+
+      /* Dialoge: kein Kasten, sondern Fläche mitten am Tisch */
+      .dialog {
+        left: 50%;
+        top: 47%;
+        translate: -50% -50%;
+        width: 640px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .dialog h2 {
+        font-size: 44px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .dialog__kopf {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .dialog__hinweis {
+        color: var(--leise);
+        font-size: 15px;
+      }
+
+      .ansage__label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--leise);
+        margin-bottom: 6px;
+      }
+
+      .ansage__arten,
+      .ansage__farben {
+        gap: 4px 22px;
+      }
+
+      .wahl {
+        border: 0;
+        background: transparent;
+        color: var(--tinte);
+        padding: 6px 0;
+        font-size: 22px;
+        font-weight: 600;
+        border-bottom: 3px solid transparent;
+      }
+
+      .wahl--farbe {
+        font-size: 19px;
+      }
+      .wahl:not(:disabled):hover {
+        border-bottom-color: var(--linie);
+      }
+      .wahl.ist-gewaehlt {
+        border-bottom-color: var(--rot);
+      }
+
+      .schalter {
+        color: var(--leise);
+        font-weight: 600;
+      }
+      .schalter input:checked + .schalter__bahn {
+        color: var(--rot);
+      }
+
+      .dialog--ergebnis {
+        width: 600px;
+        gap: 22px;
+      }
+      .ergebnis__ueber {
+        color: var(--leise);
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+      .dialog--ergebnis h2 {
+        font-size: 40px;
+      }
+      .ergebnis__augen {
+        margin-top: 18px;
+      }
+      .augen__zahl {
+        font-size: 96px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        line-height: 0.9;
+        color: var(--rot);
+      }
+      .augen__wort {
+        font-size: 18px;
+        color: var(--leise);
+      }
+      .augen__balken {
+        background: var(--linie);
+        height: 6px;
+        border-radius: 0;
+      }
+      .augen__balken span {
+        background: var(--rot);
+      }
+      .augen__balken i {
+        background: var(--grund);
+      }
+      .ergebnis__rechnung {
+        display: grid;
+        gap: 4px;
+        font-size: 17px;
+        font-variant-numeric: tabular-nums;
+        color: var(--leise);
+        max-width: 320px;
+      }
+      .rechnung__z--summe {
+        color: var(--tinte);
+        font-weight: 600;
+        border-top: 1px solid var(--linie);
+        padding-top: 6px;
+      }
+      .ergebnis__fuss {
+        justify-content: flex-start;
+        flex-direction: row-reverse;
+      }
+
+      /* Ergebnis braucht die Mitte */
+      .geraet--desktop .app--ergebnis .seat--oben {
+        display: none;
+      }
+
+      /* Am Desktop zeigt die Tafel den Stand – mit Spalte für dieses Spiel */
+      .geraet--desktop .dialog--ergebnis .stand {
+        display: none;
+      }
+
+      /* ---------- Handy ---------- */
+      .geraet--handy .app {
+        grid-template-columns: 1fr;
+        grid-template-areas: 'bar' 'tisch' 'eigen';
+      }
+      .geraet--handy .seite {
+        display: none;
+      }
+      .geraet--handy .bar {
+        padding: 14px 16px 0;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+      }
+      .geraet--handy .bar__marke {
+        font-size: 12px;
+      }
+      .geraet--handy .bar__spiel {
+        font-size: 12px;
+      }
+      .geraet--handy .bar__vertrag {
+        order: 4;
+        width: 100%;
+        flex: none;
+        font-size: 14px;
+      }
+      .geraet--handy .bar__rechts {
+        margin-left: auto;
+      }
+      .geraet--handy .knopf--leise {
+        font-size: 13px;
+      }
+
+      .geraet--handy .seat {
+        top: 14px;
+        translate: none;
+        gap: 2px;
+        width: 33%;
+      }
+      .geraet--handy .seat--links {
+        left: 16px;
+      }
+      .geraet--handy .seat--oben {
+        left: 50%;
+        translate: -50% 0;
+      }
+      .geraet--handy .seat--rechts {
+        right: 16px;
+      }
+      .geraet--handy .seat__name {
+        font-size: 20px;
+      }
+      .geraet--handy .seat__info {
+        flex-direction: column;
+        gap: 0;
+        font-size: 12px;
+      }
+      .geraet--handy .seat--oben .seat__info {
+        align-items: center;
+      }
+      .geraet--handy .seat--rechts .seat__info {
+        align-items: flex-end;
+      }
+      .geraet--handy .marke {
+        font-size: 10px;
+      }
+      .geraet--handy .seat__marken {
+        flex-direction: column;
+        gap: 0;
+      }
+      .geraet--handy .seat__karten {
+        display: none;
+      }
+      .geraet--handy .seat__dran {
+        font-size: 11px;
+      }
+      .geraet--handy .blase {
+        font-size: 18px;
+      }
+
+      .geraet--handy .trick {
+        top: 55%;
+      }
+      .geraet--handy .trick .card {
+        --cw: 66px;
+      }
+      .geraet--handy .trick__karte--unten {
+        --ty: 52px;
+      }
+      .geraet--handy .trick__karte--links {
+        --tx: -78px;
+      }
+      .geraet--handy .trick__karte--oben {
+        --ty: -48px;
+      }
+      .geraet--handy .trick__karte--rechts {
+        --tx: 78px;
+      }
+
+      .geraet--handy .eigen {
+        padding: 0 12px 12px;
+      }
+      .geraet--handy .eigen__info {
+        gap: 10px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        flex-wrap: wrap;
+      }
+      .geraet--handy .eigen__name {
+        font-size: 18px;
+      }
+      .geraet--handy .eigen__dran {
+        margin-left: 0;
+        width: 100%;
+        font-size: 14px;
+      }
+      .geraet--handy .hand {
+        --ueberlapp: 22px;
+        height: 104px;
+        justify-content: center;
+      }
+      .geraet--handy .hand .card {
+        --cw: 62px;
+      }
+      .geraet--handy .hand .card--spielbar {
+        translate: 0 -12px;
+      }
+
+      .geraet--handy .dialog {
+        width: calc(100% - 32px);
+        top: auto;
+        bottom: 0;
+        translate: -50% 0;
+        gap: 14px;
+        padding-bottom: 6px;
+      }
+      .geraet--handy .dialog h2 {
+        font-size: 30px;
+      }
+      .geraet--handy .dialog__hinweis {
+        font-size: 13px;
+      }
+      .geraet--handy .ansage__arten,
+      .geraet--handy .ansage__farben {
+        gap: 0 16px;
+      }
+      .geraet--handy .wahl {
+        font-size: 18px;
+        padding: 4px 0;
+      }
+      .geraet--handy .wahl--farbe {
+        font-size: 15px;
+      }
+      .geraet--handy .ansage__fuss {
+        flex-wrap: wrap;
+      }
+      .geraet--handy .knopf {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+      .geraet--handy .app--ansage .seat {
+        top: 6px;
+      }
+      .geraet--handy .app--ansage .trick {
+        display: none;
+      }
+
+      .geraet--handy .app--ergebnis .seat {
+        display: none;
+      }
+      .geraet--handy .app--ergebnis .eigen {
+        display: none;
+      }
+      .geraet--handy .dialog {
+        scrollbar-width: none;
+      }
+      .geraet--handy .dialog--ergebnis {
+        top: 0;
+        bottom: 0;
+        translate: -50% 0;
+        overflow: auto;
+        gap: 16px;
+      }
+      .geraet--handy .dialog--ergebnis h2 {
+        font-size: 26px;
+      }
+      .geraet--handy .augen__zahl {
+        font-size: 56px;
+      }
+      .geraet--handy .ergebnis__augen {
+        margin-top: 6px;
+      }
+      .geraet--handy .ergebnis__rechnung {
+        font-size: 15px;
+        max-width: none;
+      }
+      .geraet--handy .stand td {
+        border-top: 1px solid var(--linie);
+        padding: 6px 0;
+        font-size: 15px;
+      }
+      .geraet--handy .stand th {
+        font-size: 12px;
+        color: var(--leise);
+        font-weight: 500;
+      }
+      .geraet--handy .stand small {
+        color: var(--leise);
+      }
+      .geraet--handy .stand .minus {
+        color: var(--rot-hell);
+      }
+    </style>
+  </head>
+  <body class="buehne">
+    <div class="leiste">
+      <h1>C · Schiefer</h1>
+      <a href="index.html">Übersicht</a>
+    </div>
+    <div class="flaeche"></div>
+    <script src="gemeinsam.js"></script>
+  </body>
+</html>
