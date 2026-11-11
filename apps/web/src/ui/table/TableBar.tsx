@@ -65,16 +65,17 @@ export function TableBar({
         {status}
       </p>
       <div className="tisch-leiste__knoepfe">
-        {onLastTrick && (
-          <Button
-            variant="secondary"
-            size="small"
-            aria-expanded={lastTrickOpen}
-            onClick={onLastTrick}
-          >
-            {TABLE_TEXT.lastTrick}
-          </Button>
-        )}
+        {/* Bleibt immer stehen (gesperrt, wenn es nichts zu zeigen gibt), damit die Leiste
+            nicht anders umbricht und der Tisch nicht springt. */}
+        <Button
+          variant="secondary"
+          size="small"
+          aria-expanded={lastTrickOpen}
+          disabled={!onLastTrick}
+          onClick={onLastTrick ?? undefined}
+        >
+          {TABLE_TEXT.lastTrick}
+        </Button>
         <Button variant="secondary" size="small" aria-expanded={rulesOpen} onClick={onRules}>
           {RULES_TEXT.info}
         </Button>

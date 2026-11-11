@@ -6,17 +6,16 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
-| Thema                                   | Größe                     | Klären                               |
-| --------------------------------------- | ------------------------- | ------------------------------------ |
-| Mehrere Kartensets                      | mittel                    | Welche Sets zuerst; Lizenzen         |
-| Watten                                  | groß                      | Variante(n); integrieren oder forken |
-| Android-App                             | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Weitere Hausregeln                      | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Mischen wie am echten Tisch             | klein                     | –                                    |
-| Letzten Stich besser zeigen             | klein                     | Wo soll er hin?                      |
-| Spielverlauf nach dem Spiel             | mittel                    | –                                    |
-| Fehler: Tisch springt bei letzter Karte | klein                     | –                                    |
-| Wer spielt was – besser sichtbar        | klein bis mittel          | Gestaltung mit Lukas                 |
+| Thema                            | Größe                     | Klären                               |
+| -------------------------------- | ------------------------- | ------------------------------------ |
+| Mehrere Kartensets               | mittel                    | Welche Sets zuerst; Lizenzen         |
+| Watten                           | groß                      | Variante(n); integrieren oder forken |
+| Android-App                      | klein bis mittel          | Reicht die installierbare Web-App?   |
+| Weitere Hausregeln               | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
+| Mischen wie am echten Tisch      | klein                     | –                                    |
+| Letzten Stich besser zeigen      | klein                     | Wo soll er hin?                      |
+| Spielverlauf nach dem Spiel      | mittel                    | –                                    |
+| Wer spielt was – besser sichtbar | klein bis mittel          | Gestaltung mit Lukas                 |
 
 ---
 
@@ -119,18 +118,6 @@ hat und welche Karte den Stich gemacht hat.
 - **Anzeige:** im Ergebnis-Dialog aufklappbar „So wurde gespielt“: acht Zeilen, je Stich die vier
   Karten in Spielreihenfolge, die stechende Karte hervorgehoben. Gehört zu U4 (Abrechnung und
   Verlauf) oder als eigenes Paket direkt danach; nach K3a, weil K3a das Ergebnis umbaut.
-
-## Fehler: Tisch springt bei letzter Karte
-
-Lukas: Wenn man die letzte Karte spielt, ändert der Tisch seine Größe.
-
-- **Vermutung (nicht geprüft):** Mit der leeren Hand fällt die Höhe der eigenen Kartenreihe weg,
-  und der Tisch darüber wächst nach. Abhilfe wäre eine feste Mindesthöhe für die Handzeile
-  (`apps/web/src/styles/table.css`, `ui/table/`).
-- **Prüfen:** in der Tischprobe (`#tisch?szene=…`) den letzten Stich bei 360×740, 740×360 und
-  1440×900; als E2E- oder Layout-Test absichern, dass sich die Tischfläche zwischen siebtem und
-  achtem Stich nicht ändert.
-- Klein genug, um es nebenbei zu beheben.
 
 ## Wer spielt was – besser sichtbar
 

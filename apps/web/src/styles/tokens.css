@@ -129,6 +129,7 @@
   --hand-arc: 2px; /* Bogen: Absenkung je Karte, quadratisch zum Rand hin */
   --hand-overlap-min: 0.08; /* Mindestüberlappung als Anteil der Kartenbreite */
   --hand-visible: 0.8; /* sichtbarer Anteil der Kartenhöhe, der Rest ragt unten hinaus */
+  --own-info-width: 11rem; /* eigene Infos links neben der Hand (Fenster niedrig) */
   /* Stich: richtet sich nach der Tischfläche (Container-Einheiten). */
   --trick-card-w: clamp(40px, 17cqmin, 104px);
   --trick-tilt: 4deg;

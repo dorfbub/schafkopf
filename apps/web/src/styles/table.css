@@ -450,18 +450,20 @@
 
 /* Niedrig (Handy quer): Infos links neben der Hand, Karten ragen weiter nach unten hinaus. */
 @media (max-height: 30rem) {
+  /* Die Hand steht rechts neben den Infos, damit diese keine Karte verdecken. */
   .eigen {
     position: relative;
     padding-top: 0;
+    padding-left: calc(var(--own-info-width) + var(--space-4) * 2);
   }
 
-  .eigen:not(.eigen--ohne-hand) .eigen__info {
+  .eigen__info {
     position: absolute;
     left: var(--space-4);
     bottom: var(--space-2);
     z-index: 3;
     justify-content: flex-start;
-    max-width: 11rem;
+    max-width: var(--own-info-width);
     margin: 0;
   }
 
@@ -470,6 +472,7 @@
   }
 
   .hand {
+    --hand-avail: min(100vw - var(--own-info-width) - var(--space-4) * 3, var(--hand-max-width));
     --hand-visible: 0.62;
     --hand-max-width: 26rem;
     padding-top: var(--space-3);

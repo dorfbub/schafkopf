@@ -246,7 +246,8 @@ Der Tisch nach der Richtung „Kartentisch“, gebaut mit den Bausteinen und Var
 
 **Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` („Ich würde“/„weiter“),
 `zweikampf` (du forderst), `halten` (du wirst gefordert), `nennen` (Spiel nennen), `warten`,
-`stich` (laufender Stich, du bist dran), `ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
+`stich` (laufender Stich, du bist dran), `letzter` (achter Stich, du legst die letzte Karte),
+`ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
 weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
 ### Aufbau
@@ -299,6 +300,13 @@ Werte in den Abfragen, weil dort keine Variablen gehen.
 Der Tisch hat `overflow: clip` (nicht `hidden`), damit der Fokus auf einer hinausragenden Karte
 ihn nicht verschiebt. Kein horizontales Scrollen: Die Überlappung der Hand richtet sich nach
 der Breite (`--hand-avail`).
+
+**Die Tischfläche bleibt im ganzen Spiel gleich groß** (Fehler vom Spielabend: „Tisch springt bei
+letzter Karte“). Deshalb bleibt die Handzeile auch ohne Karten mit ihrer Höhe stehen, und der Knopf
+„Letzter Stich“ ist gesperrt statt weg, solange es nichts zu zeigen gibt (sonst bricht die Leiste
+am Handy anders um). Im niedrigen Fenster steht die Hand rechts neben den eigenen Infos
+(`--own-info-width`), damit diese keine Karte verdecken. Abgesichert in `e2e/layout.spec.ts`
+(360×740, 740×360, 1440×900); in der Tischprobe zeigt die Szene `letzter` den achten Stich.
 
 ### Bewegung
 

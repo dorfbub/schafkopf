@@ -21,7 +21,8 @@ import { TableBoard } from '../ui/table/TableBoard';
  *
  * Szenen: ansage („Ich würde“/„weiter“), zweikampf (du forderst Xaver), halten (Resi fordert
  * dich), nennen (du nennst dein Spiel, mindestens Wenz), warten (andere sagen an), stich
- * (laufender Stich, du bist dran), ergebnis (Spiel beendet), zuschauer. Mit `&auto=1` spielen
+ * (laufender Stich, du bist dran), letzter (achter Stich, du legst die letzte Karte), ergebnis
+ * (Spiel beendet), zuschauer. Mit `&auto=1` spielen
  * die anderen weiter.
  * Beispielnamen stehen deshalb hier und nicht in i18n/de.ts.
  */
@@ -141,6 +142,12 @@ function scene(name: string): TableState {
       );
     case 'ergebnis':
       return advance(table, (t) => t.hand!.phase === 'finished');
+    case 'letzter':
+      // Achter Stich, du hast nur noch eine Karte und bist dran.
+      return advance(
+        table,
+        (t) => t.hand!.phase === 'playing' && done(t) >= 7 && t.hand!.turn === ME,
+      );
     case 'zuschauer':
     case 'stich':
     default:
