@@ -404,10 +404,15 @@ spielt Ramsch mit Blick auf Jungfrau und Durchmarsch, sagt Kontra bei starkem Bl
 
 ## I – Infrastruktur
 
-### I1 · Veröffentlichung
+### I1 · Veröffentlichung (erledigt)
 
 GitHub Pages einschalten (Settings → Pages → Source: GitHub Actions), ersten Deploy prüfen,
 Adresse ins README. Versionen der Actions im Workflow auf den aktuellen Stand heben.
+
+- **Stand:** Pages läuft unter https://dorfbub.github.io/schafkopf/ und steht im README. Actions
+  auf den aktuellen Hauptversionen (checkout 7, setup-node 7, upload-pages-artifact 5,
+  upload-artifact 7, deploy-pages 5). Der Lauf mit den neuen Versionen wird erst nach dem Push
+  geprüft.
 
 ### I2 · Ende-zu-Ende-Tests
 
