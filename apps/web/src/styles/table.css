@@ -1145,6 +1145,38 @@
     var(--shadow-card);
 }
 
+/* ---------- Hochzeit: Karte zurückgeben ---------- */
+
+/* Eine Zeile, leicht überlappend wie der Fächer der Hand – auch neun Karten passen aufs Handy. */
+.hochzeit__karten {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-3) 0 0;
+  /* Platz für die angehobene Wahl, damit nichts abgeschnitten wird. */
+  padding-top: var(--card-lift, var(--space-2));
+}
+
+.hochzeit__karte.card {
+  --card-w: calc(var(--trick-card-w) * 0.62);
+}
+
+.hochzeit__karte.card + .hochzeit__karte.card {
+  margin-left: calc(var(--card-w) * -0.3);
+}
+
+.hochzeit__karte.card:hover,
+.hochzeit__karte.card:focus-visible,
+.hochzeit__karte.card[aria-pressed='true'] {
+  z-index: 1;
+}
+
+.hochzeit__karte[aria-pressed='true'] {
+  transform: translateY(var(--card-lift));
+  box-shadow:
+    0 0 0 var(--border-thick) var(--color-accent),
+    var(--shadow-card);
+}
+
 /* ---------- Letzter Stich als Stapel auf dem Filz ---------- */
 
 .stapel {

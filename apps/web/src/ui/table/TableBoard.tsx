@@ -1,4 +1,4 @@
-import type { BidCall, Card, Seat, TableView } from '@schafkopf/core';
+import type { BidCall, Card, PreludeMove, Seat, TableView } from '@schafkopf/core';
 import type { AbsentSeatInfo } from '@schafkopf/net';
 import { useCallback, useState } from 'react';
 import { TABLE_TEXT } from '../../i18n/de';
@@ -8,6 +8,7 @@ import { LastTrickDialog } from './LastTrickDialog';
 import { LastTrickPile } from './LastTrickPile';
 import { seatInfo } from './layout';
 import { OwnSeat } from './OwnSeat';
+import { PreludeDialog } from './PreludeDialog';
 import { ResultDialog } from './ResultDialog';
 import { type AbsentActions, Seats } from './Seats';
 import { RulesDialog } from './RulesDialog';
@@ -19,6 +20,8 @@ export interface TableBoardProps {
   view: TableView;
   onBid: (call: BidCall) => void;
   onPlay: (card: Card) => void;
+  /** Zug im Vorspiel der Hochzeit (K5). */
+  onPrelude?: (move: PreludeMove) => void;
   /** Kontra bzw. Re sagen (K4). */
   onDouble?: () => void;
   /** Nur der Gastgeber gibt das nächste Spiel. */
@@ -39,6 +42,7 @@ export function TableBoard({
   view,
   onBid,
   onPlay,
+  onPrelude = () => {},
   onDouble = () => {},
   onNext,
   onLeave,
@@ -109,6 +113,15 @@ export function TableBoard({
             hand={hand}
             seats={seats}
             onBid={onBid}
+          />
+        )}
+        {hand.phase === 'prelude' && myTurn && (
+          <PreludeDialog
+            key={`${view.handNo}-${hand.prelude?.step}`}
+            view={view}
+            hand={hand}
+            seats={seats}
+            onMove={onPrelude}
           />
         )}
         {showResult && (

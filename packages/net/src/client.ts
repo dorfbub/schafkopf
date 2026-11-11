@@ -4,7 +4,7 @@
  * `subscribe`/`getSnapshot` an (passt direkt auf Reacts `useSyncExternalStore`).
  */
 
-import type { BidCall, Card, PlayerAction, Seat, TableView } from '@schafkopf/core';
+import type { BidCall, Card, PlayerAction, PreludeMove, Seat, TableView } from '@schafkopf/core';
 import {
   type AbsentSeat,
   type ClientTransport,
@@ -117,6 +117,11 @@ export class ClientSession {
 
   play(card: Card): void {
     this.act({ type: 'play', card });
+  }
+
+  /** Zug im Vorspiel (Hochzeit, K5): annehmen, ablehnen oder Karten zurückgeben. */
+  prelude(move: PreludeMove): void {
+    this.act({ type: 'prelude', move });
   }
 
   /** Kontra bzw. Re sagen (K4); der Host prüft, ob es gerade erlaubt ist. */

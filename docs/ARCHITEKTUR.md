@@ -34,6 +34,7 @@ Abhängigkeiten zeigen nur in Pfeilrichtung. `core` hängt von nichts ab.
 | `rules.ts`     | `RuleSet`: alles, was am Tisch einstellbar ist (Blatt, Spielarten, Tarif, „alle weiter“, …)                                   |
 | `hand.ts`      | Ein Spiel: `dealHand` (mit `HandCarry`), `applyAction`, `legalCards`, `legalContracts`                                        |
 | `allPassed.ts` | Registry `ALL_PASSED`: was bei „alle weiter“ geschieht, je `RuleSet.allPassed`                                                |
+| `prelude.ts`   | Vorspiel-Hook: `PreludeDefinition`, `PreludeState`, `weddingPrelude(n)` für die Hochzeit                                      |
 | `ramsch.ts`    | `ramschOutcome`: Stufe 1 der Abrechnung im Ramsch (Verlierer nach Augen, Gleichstand, Durchmarsch, Jungfrauen)                |
 | `scoring.ts`   | Abrechnung in drei Stufen: `Outcome` (Spielart), `Factor`s, Zahlungen und Pott (`HandResult`)                                 |
 | `table.ts`     | Der Tisch: Plätze, Kontostände, Pott, Geberwechsel; `settle` als einzige Stelle, an der ein Ergebnis auf den Tisch wirkt      |
@@ -195,6 +196,22 @@ eigenen Platz `canDouble`. Die Faktoren entstehen in Stufe 2 der Abrechnung (`fa
   über eine Kennung) – mit frischem Fenster, wenn nun ein Mensch Re sagen darf, sonst ohne.
 - **Bots** sagen nie Kontra (B3 kann das später übernehmen).
 
+**Hochzeit (K5).** Sagt jemand eine Spielart mit `prelude` an, geht das Spiel in die Phase
+`prelude` statt gleich zu den Stichen. Züge sind `{ type: 'prelude', move }` (`accept`, `decline`,
+`give` mit Karten); `legalPreludeMoves` liefert die erlaubten, der passive Zug zuerst. Der Stand
+liegt in `HandState.prelude` und ist öffentlich (wer gefragt wird, wer angenommen hat, Verlauf
+ohne Karten); die getauschten Karten sieht jeder nur in seiner eigenen `hand`. `host.ts` prüft nur
+die Form (`isWellFormedMove`), der Kern die Regel (Fehler `illegal_move`).
+
+- **Gescheitert:** Nimmt keiner an, setzt `preludeFailed` die Ansage fort: Spieler aus
+  `Auction.yielded` (wer im Zweikampf aufgegeben hat) tragen es neu aus, die Spielart steht in
+  `Auction.failed` und ist gesperrt; ohne Nachrücker greift `ALL_PASSED`.
+- **Bots** lehnen jede Hochzeit ab und sagen selbst keine an; müssen sie als Vertretung Karten
+  zurückgeben, nehmen sie die billigsten erlaubten (`preludeMove` in `packages/bots`). Der
+  Notfallzug des Hosts nimmt `legalMoves[0]`.
+- **E2E:** Der E2E-Build kennt `?seed=` für feste Karten (`connection.ts`); das Szenario
+  `e2e/hochzeit.spec.ts` nutzt es.
+
 **Neuladen des Gastgebers (N2).** Der Tisch lebt im Speicher des Gastgeber-Tabs. Damit ein
 Neuladen ihn nicht beendet, schreibt `apps/web/src/connection.ts` nach jeder Änderung
 `HostSession.exportSnapshot()` in den localStorage (`schafkopf.host`): `TableState`,
@@ -270,7 +287,7 @@ Bot-Vertretung (N3) – und vergleichen.
   stehen trotzdem erst nach dem Spiel in der Sicht (Tests in `core/test/log.test.ts` und
   `net/test/log.test.ts`). Der Ergebnis-Dialog zeigt sie unter „So wurde gespielt“.
 - **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5 (seit K3a 6: `pot`, `carry`, `HandResult` in
-  Stufen; seit K3b 7: `allPassed`, `tariff.ramsch`, `ramsch`; seit K3c 8: `tariff.stock`; seit K3d 9: `Auction.forced`; seit K4 10: `RuleSet.kontra`, `HandState.doubling`). Kontra und Re stehen als Aktion `double` mit Sitz im Protokoll. `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
+  Stufen; seit K3b 7: `allPassed`, `tariff.ramsch`, `ramsch`; seit K3c 8: `tariff.stock`; seit K3d 9: `Auction.forced`; seit K4 10: `RuleSet.kontra`, `HandState.doubling`; seit K5 11: `HandState.prelude`, `Auction.yielded`/`failed`, `laufende.hochzeit`). Kontra und Re stehen als Aktion `double` mit Sitz im Protokoll, Vorspiel-Züge als `prelude` samt zurückgegebener Karten (das Protokoll bleibt beim Host). `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
   ≈ 106 KiB JSON (Protokolle + Verlauf; je Protokoll stecken die Regeln mit ~½ KiB mit drin),
   also gut im Rahmen der ~5 MiB von localStorage.
 - Später möglich: den Host über den Seed festlegen (Schutz gegen Schummeln) und Spiele nachspielen.
@@ -303,8 +320,14 @@ eingezogen mit K3a). Jede Variante soll **ein Eintrag oder ein Hook** sein, kein
    den Stich mit Index `trick`; alle Aufrufer (Kern, Bots, Hand-Sortierung) geben den Index
    ausdrücklich mit (`orderFor(contract, trick)`, in Sichten `tricksPlayed(view)`).
    `laufendeTrumps` (Laufende über andere Karten als die Trümpfe), `eligible` (Bedingung ans
-   Blatt) und `outcome` (eigene Auswertung, z. B. Ramsch) sind optionale Hooks.
-3. **Vorspiel** (Hochzeit) – noch nicht eingezogen, kommt mit K5 (Entwurf §4).
+   Blatt), `outcome` (eigene Auswertung, z. B. Ramsch) und `prelude` (Vorspiel) sind optionale
+   Hooks.
+3. **Vorspiel.** Hat die angesagte Spielart eine `PreludeDefinition`, kommt zwischen Ansage und
+   erstem Stich die Phase `prelude`. Die Definition sagt, wer dran ist (`turn`), was erlaubt ist
+   (`legalMoves`) und was ein Zug bewirkt (`apply` → `continue`, `play` mit Partner und Händen,
+   oder `failed`). `hand.ts` kennt nur diesen Rahmen; nach `play` gelten die getauschten Hände
+   als `initialHands` (Laufende). `weddingPrelude(n)` setzt die Hochzeit um (n = 1); die
+   arabische Hochzeit (H3) ist derselbe Hook mit n = 2.
 4. **„Alle weiter“ als Registry.** `applyBid` ruft nur `ALL_PASSED[rules.allPassed](state)` und
    führt den Schritt aus: `finish` (Zusammenwerfen; Stock mit Einzahlung über `potDelta`),
    `play` (Ramsch: Spiel ohne Ansager, `declarer` bleibt `null`), `forced` (Muss: Stufe 3 mit

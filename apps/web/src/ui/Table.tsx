@@ -17,6 +17,7 @@ export function Table({ view, client, host, absent, onLeave }: Props) {
       view={view}
       onBid={(call) => client.bid(call)}
       onPlay={(card) => client.play(card)}
+      onPrelude={(move) => client.prelude(move)}
       onDouble={() => client.double()}
       onNext={host ? () => host.nextHand() : null}
       onLeave={onLeave}

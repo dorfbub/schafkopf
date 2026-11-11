@@ -636,7 +636,9 @@ export class HostSession {
         const fallback: PlayerAction =
           current.phase === 'bidding'
             ? { type: 'bid', call: view.legalCalls[0]! }
-            : { type: 'play', card: view.legalCards[0]! };
+            : current.phase === 'prelude'
+              ? { type: 'prelude', move: view.legalMoves[0]! }
+              : { type: 'play', card: view.legalCards[0]! };
         this.apply(seat, fallback);
       }
     }, delay);
@@ -658,7 +660,18 @@ function isWellFormed(action: unknown): action is PlayerAction {
   if (a.type === 'play') return isCard(a.card);
   if (a.type === 'double') return true;
   if (a.type === 'bid') return isWellFormedCall(a.call);
+  if (a.type === 'prelude') return isWellFormedMove((action as { move?: unknown }).move);
   return false;
+}
+
+/** Nur die Form eines Vorspiel-Zugs – ob er erlaubt ist, entscheidet der Kern. */
+function isWellFormedMove(move: unknown): boolean {
+  if (typeof move !== 'object' || move === null) return false;
+  const m = move as { type?: unknown; cards?: unknown };
+  if (m.type === 'accept' || m.type === 'decline') return true;
+  return (
+    m.type === 'give' && Array.isArray(m.cards) && m.cards.length <= 8 && m.cards.every(isCard)
+  );
 }
 
 const hasKind = (x: unknown): boolean =>

@@ -29,6 +29,7 @@ import {
   trickWinnerIndex,
   tricksPlayed,
 } from '@schafkopf/core';
+import { preludeMove } from './prelude';
 
 /**
  * Heuristik-Bot: sagt nach Blattstärke an und spielt nach einfachen Faustregeln,
@@ -56,6 +57,7 @@ export function createHeuristicBot(seed: number): Bot {
     decide(view: HandView): PlayerAction {
       updateMemory(memory, view);
       if (view.phase === 'bidding') return { type: 'bid', call: bid(view, rng) };
+      if (view.phase === 'prelude') return { type: 'prelude', move: preludeMove(view) };
       return { type: 'play', card: play(view, memory, rng) };
     },
   };
@@ -280,8 +282,9 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
     }
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
-    case 'ramsch':
-      return -10; // nicht ansagbar
+    case 'hochzeit': // bietet der Bot nicht an (nicht in `KNOWN_KINDS`)
+    case 'ramsch': // nicht ansagbar
+      return -10;
   }
 }
 

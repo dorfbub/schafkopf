@@ -111,7 +111,7 @@ Aufschlag 10 Cent.
 ## Varianten
 
 Von Lukas im November 2026 festgelegt. **Umgesetzt** sind die Regeln für alle „weiter“
-(Ramsch, Stock, Muss) und Kontra/Re (K4); Hochzeit ist **noch nicht umgesetzt**. Schnittstellen dazu:
+(Ramsch, Stock, Muss), Kontra/Re (K4) und die Hochzeit (K5). Schnittstellen dazu:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md); Pakete K3a–K3d, K4, K5 in
 [ARBEITSPAKETE.md](ARBEITSPAKETE.md). Alle Varianten sind Tischregeln, die der Gastgeber vor dem
 ersten Spiel wählt; Standard ist „aus“ bzw. Zusammenwerfen. Ergänzende Festlegungen
@@ -164,6 +164,10 @@ in den Pott; dann gibt der Nächste.
 - **Nimmt keiner an,** gilt der Hochzeiter als „weiter“. Wer vorher im Zweikampf gegen ihn
   aufgegeben hat (z. B. ein Sauspieler), darf jetzt doch spielen. Gibt es niemanden, gilt die
   Regel für alle „weiter“.
+- **Umgesetzt** (K5) als Spielart `hochzeit` in `contracts`, Standard aus. Der Annehmende bekommt
+  den Trumpf zuerst und gibt dann eine Karte zurück; Laufende zählen nach dem Tausch, die
+  Schwelle ist eigens einstellbar (Standard 3 wie im Sauspiel). Kontra und Re sind erst nach dem
+  Tausch möglich (Annahmen 15, 16, 26–30).
 
 ### Kontra und Re
 
@@ -215,32 +219,33 @@ Der Gastgeber stellt in der Lobby ein, womit der Tisch spielt (`RuleSet`); nach 
 nichts mehr änderbar. Alle Mitspieler sehen die Regeln (Lobby und Info-Knopf am Tisch). Die
 Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
 
-| Option (`RuleSet`)    | Bedeutung                                            | Standard          | Gültig                                      |
-| --------------------- | ---------------------------------------------------- | ----------------- | ------------------------------------------- |
-| `contracts`           | erlaubte Spielarten; Sauspiel ist immer an           | alle sechs        | Sauspiel enthalten                          |
-| `allowTout`           | Tout-Ansagen erlaubt                                 | an                | an/aus                                      |
-| `tariff.sauspiel`     | Grundtarif Sauspiel (Cent)                           | 10                | ganzzahlig ≥ 0                              |
-| `tariff.solo`         | Grundtarif Einzelspiele (Cent)                       | 50                | ganzzahlig ≥ 0                              |
-| `tariff.extra`        | Aufschlag je Schneider, Schwarz, Laufendem (Cent)    | 10                | ganzzahlig ≥ 0                              |
-| `laufende.<Spielart>` | Schwelle für Laufende je Spielart (ohne Bettel)      | 3 / 2 / 3 / 2 / 3 | ganzzahlig 1–8                              |
-| `sie`                 | „Sie“ (alle Ober und Unter) wird erkannt und bezahlt | an                | an/aus                                      |
-| `davonlaufen`         | Davonlaufen mit vier Karten der Ruffarbe erlaubt     | an                | an/aus                                      |
-| `allPassed`           | Was bei alle „weiter“ passiert                       | `zusammenwerfen`  | `zusammenwerfen`, `ramsch`, `stock`, `muss` |
-| `tariff.ramsch`       | Ramsch-Tarif (Cent), zahlt der Verlierer an jeden    | 10                | ganzzahlig ≥ 0                              |
-| `tariff.stock`        | Stock-Einsatz (Cent), zahlt jeder in den Pott        | 10                | ganzzahlig ≥ 0                              |
-| `ramsch.durchmarsch`  | Durchmarsch ab 91 Augen gewinnt                      | an                | an/aus                                      |
-| `ramsch.jungfrau`     | Jeder Spieler ohne Stich verdoppelt                  | an                | an/aus                                      |
-| `kontra`              | Kontra und Re erlaubt                                | aus               | an/aus                                      |
+| Option (`RuleSet`)    | Bedeutung                                            | Standard         | Gültig                                      |
+| --------------------- | ---------------------------------------------------- | ---------------- | ------------------------------------------- |
+| `contracts`           | erlaubte Spielarten; Sauspiel ist immer an           | die sechs klass. | Sauspiel enthalten                          |
+| `allowTout`           | Tout-Ansagen erlaubt                                 | an               | an/aus                                      |
+| `tariff.sauspiel`     | Grundtarif Sauspiel (Cent)                           | 10               | ganzzahlig ≥ 0                              |
+| `tariff.solo`         | Grundtarif Einzelspiele (Cent)                       | 50               | ganzzahlig ≥ 0                              |
+| `tariff.extra`        | Aufschlag je Schneider, Schwarz, Laufendem (Cent)    | 10               | ganzzahlig ≥ 0                              |
+| `laufende.<Spielart>` | Schwelle für Laufende je Spielart (ohne Bettel)      | 3/3/2/2/3/3      | ganzzahlig 1–8                              |
+| `sie`                 | „Sie“ (alle Ober und Unter) wird erkannt und bezahlt | an               | an/aus                                      |
+| `davonlaufen`         | Davonlaufen mit vier Karten der Ruffarbe erlaubt     | an               | an/aus                                      |
+| `allPassed`           | Was bei alle „weiter“ passiert                       | `zusammenwerfen` | `zusammenwerfen`, `ramsch`, `stock`, `muss` |
+| `tariff.ramsch`       | Ramsch-Tarif (Cent), zahlt der Verlierer an jeden    | 10               | ganzzahlig ≥ 0                              |
+| `tariff.stock`        | Stock-Einsatz (Cent), zahlt jeder in den Pott        | 10               | ganzzahlig ≥ 0                              |
+| `ramsch.durchmarsch`  | Durchmarsch ab 91 Augen gewinnt                      | an               | an/aus                                      |
+| `ramsch.jungfrau`     | Jeder Spieler ohne Stich verdoppelt                  | an               | an/aus                                      |
+| `kontra`              | Kontra und Re erlaubt                                | aus              | an/aus                                      |
 
-Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz → 3, 3, 2, 2, 3.
+Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz, Hochzeit →
+3, 3, 2, 2, 3, 3. Die klassischen sechs Spielarten sind Sauspiel, Bettel, Geier, Farbwenz, Wenz
+und Solo; die Hochzeit ist zusätzlich wählbar und standardmäßig aus.
 Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abgerechnet
 (Laufende zählen dann). Ist `davonlaufen` aus, darf die Ruffarbe nur mit der Sau angespielt werden.
 Die Unteroptionen für Ramsch gelten nur bei `allPassed: 'ramsch'`, der Stock-Einsatz nur bei
 `'stock'`; sie bleiben aber gespeichert.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Noch keine Optionen sind Hochzeit und die Hausregeln (siehe „Varianten“ und
-„Hausregeln“; Pakete K5, H1–H3). Fest bleiben die
+Noch keine Optionen sind die Hausregeln (siehe „Hausregeln“; Pakete H1–H3). Fest bleiben die
 Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
 
 ## Annahmen – bitte prüfen
@@ -315,3 +320,26 @@ Bei der Umsetzung von K4 offen geblieben und ohne Rückfrage festgelegt. **Bitte
     Kontra (Annahme 11). Im Bettel darf Kontra gegeben werden wie in jedem anderen Spiel.
 25. **Zusammen mit Bock:** Sollten Bockrunden je kommen, multiplizieren sich die Faktoren
     (Kontra im Bock ×4, mit Re ×8).
+
+### Annahmen zur Hochzeit (K5)
+
+Bei der Umsetzung von K5 offen geblieben und ohne Rückfrage nach gängiger Spielweise festgelegt.
+**Bitte prüfen.**
+
+26. **Tausch, Reihenfolge:** Der Annehmende bekommt den Trumpf des Hochzeiters zuerst auf die Hand
+    und wählt danach die Karte, die er zurückgibt. Zurückgeben muss er eine Karte, die kein Trumpf
+    ist, solange er eine hat; nur mit lauter Trümpfen gibt er einen Trumpf zurück (auch den
+    erhaltenen). Welche Karten getauscht wurden, sehen nur die beiden.
+27. **Nach gescheiterter Hochzeit, wer nachrückt:** Nur wer in einem Zweikampf **aufgegeben** hat,
+    rückt nach – nicht, wer in der ersten Runde „weiter“ gesagt hat. Die Nachrücker fangen ohne
+    Mindest-Spielart neu an (ein verdrängter Sauspieler darf wieder Sauspiel nennen), in
+    Sitzreihenfolge ab links vom Geber. Die Hochzeit darf in diesem Spiel niemand mehr nennen,
+    auch nicht ein anderer Spieler mit genau einem Trumpf. Wer nur die Hochzeit hätte spielen
+    können, rückt nicht nach.
+28. **Mehrere Hochzeiter:** Haben zwei Spieler je genau einen Trumpf, tragen sie es im Zweikampf
+    aus wie jede andere Spielart; der Frühere hat bei Gleichstand Vorrang.
+29. **Kontra und Re:** Das Fenster öffnet erst, wenn der Tausch erledigt ist und gespielt wird.
+    Der Partner steht dann fest, Re sagen dürfen beide.
+30. **Herauskommen:** Wie immer der Spieler links vom Geber, auch wenn er an der Hochzeit beteiligt
+    ist (Annahme 9). Ist „alle weiter“ auf Muss gestellt und scheitert eine Hochzeit ohne
+    Nachrücker, muss der Besitzer des Eichel-Obers spielen – auch wenn es der Hochzeiter ist.

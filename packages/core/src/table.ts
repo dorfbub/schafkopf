@@ -94,6 +94,27 @@ function settle(table: TableState, result: HandResult): TableState {
   };
 }
 
+/** Die Aktion so, wie sie ins Protokoll kommt: nur die bekannten Felder. */
+function cleanAction(action: Action, after: HandState): Action {
+  const seat = action.seat;
+  switch (action.type) {
+    case 'bid':
+      return { type: 'bid', seat, call: after.bids.at(-1)!.call };
+    case 'prelude': {
+      const { move } = action;
+      return {
+        type: 'prelude',
+        seat,
+        move: move.type === 'give' ? { type: 'give', cards: [...move.cards] } : { type: move.type },
+      };
+    }
+    case 'play':
+      return { type: 'play', seat, card: action.card };
+    case 'double':
+      return { type: 'double', seat };
+  }
+}
+
 export function applyTableAction(table: TableState, action: Action): TableResult {
   if (!table.hand) return { ok: false, error: 'no_hand' };
   const result = applyAction(table.hand, action);
@@ -102,12 +123,7 @@ export function applyTableAction(table: TableState, action: Action): TableResult
   const last = table.logs.at(-1);
   if (!last) return { ok: false, error: 'no_hand' };
   // Gespeichert wird die bereinigte Aktion (Rufe kommen aus dem Netz und können Überzähliges tragen).
-  const logged: Action =
-    action.type === 'bid'
-      ? { type: 'bid', seat: action.seat, call: hand.bids.at(-1)!.call }
-      : action.type === 'play'
-        ? { type: 'play', seat: action.seat, card: action.card }
-        : { type: 'double', seat: action.seat };
+  const logged = cleanAction(action, hand);
   const log: HandLog = { ...last, actions: [...last.actions, logged] };
   const summary = summarize(log, hand);
   const next: TableState = {

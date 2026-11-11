@@ -18,7 +18,9 @@ import {
   canDouble,
   legalCalls,
   legalCards,
+  legalPreludeMoves,
 } from './hand';
+import type { PreludeMove, PreludeState } from './prelude';
 import { type Contract, MODES } from './modes';
 import type { RuleSet } from './rules';
 import type { HandSummary } from './log';
@@ -38,8 +40,13 @@ export interface HandView {
   auction: Auction;
   contract: Contract | null;
   declarer: Seat | null;
-  /** Mitspieler im Sauspiel – erst gesetzt, wenn die Rufsau gefallen ist (oder man es selbst ist). */
+  /**
+   * Mitspieler im Sauspiel – erst gesetzt, wenn die Rufsau gefallen ist (oder man es selbst ist).
+   * In der Hochzeit sofort für alle.
+   */
   partner: Seat | null;
+  /** Stand des Vorspiels (Hochzeit) – ohne Karten, für alle gleich. */
+  prelude: PreludeState | null;
   currentTrick: Trick;
   lastTrick: CompletedTrick | null;
   /**
@@ -52,6 +59,8 @@ export interface HandView {
   /** Nur gefüllt, wenn man selbst an der Reihe ist. */
   legalCards: Card[];
   legalCalls: BidCall[];
+  /** Erlaubte Züge im Vorspiel – nur gefüllt, wenn man selbst am Zug ist. */
+  legalMoves: PreludeMove[];
   /** Kontra und Re (K4) – laut gesagt, für alle sichtbar. */
   doubling: Doubling;
   /** Darf man selbst jetzt Kontra bzw. Re sagen? */
@@ -103,6 +112,7 @@ export function handViewFor(state: HandState, viewer: Seat | null): HandView {
     contract: state.contract,
     declarer: state.declarer,
     partner: partnerVisible(state, viewer) ? state.partner : null,
+    prelude: state.prelude,
     currentTrick: state.currentTrick,
     lastTrick: state.tricks.at(-1) ?? null,
     tricks: state.phase === 'finished' ? state.tricks : null,
@@ -112,6 +122,7 @@ export function handViewFor(state: HandState, viewer: Seat | null): HandView {
     ),
     legalCards: viewer === null ? [] : legalCards(state, viewer),
     legalCalls: viewer === null ? [] : legalCalls(state, viewer),
+    legalMoves: viewer === null ? [] : legalPreludeMoves(state, viewer),
     doubling: state.doubling,
     canDouble: viewer === null ? false : canDouble(state, viewer),
     result: state.result,

@@ -165,6 +165,11 @@ am Tisch; Bots lehnen ab bzw. geben die niedrigsten Karten zurück.
   Bettel; Erster nimmt an; Rückgabe muss Nicht-Trumpf sein, wenn vorhanden; die Sichten der beiden
   Unbeteiligten verraten die getauschten Karten nicht; keiner nimmt an → verdrängter Sauspieler
   spielt; keiner nimmt an und niemand hat aufgegeben → Regel für „alle weiter“.
+- **Stand:** umgesetzt (November 2026). Tests in `packages/core/test/hochzeit.test.ts`,
+  `packages/net/test/hochzeit.test.ts` (Host mit Menschen und mit vier Bots, Speicherstand) und
+  E2E „Hochzeit“ (`e2e/hochzeit.spec.ts`, feste Karten über `?seed=`). Neue Annahmen 26–30 in
+  `REGELN.md` (bitte prüfen). Eigene Laufende-Schwelle `laufende.hochzeit` (Standard 3).
+  H3 braucht nur noch den Eintrag mit `weddingPrelude(2)`.
 
 ### K6 · Kurzes Blatt und Dreier-Modus
 

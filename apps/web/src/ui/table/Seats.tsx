@@ -1,7 +1,7 @@
 import type { BidCall, HandView, Seat, TableView } from '@schafkopf/core';
 import type { AbsentSeatInfo } from '@schafkopf/net';
 import { useEffect, useState } from 'react';
-import { TABLE_TEXT, callLabel, money } from '../../i18n/de';
+import { TABLE_TEXT, callLabel, money, preludeMoveLabel } from '../../i18n/de';
 import { Button, CardBack, PlayerSeat } from '../kit';
 import { GameSign, gameSign } from './GameSign';
 import type { SeatInfo } from './layout';
@@ -112,6 +112,9 @@ export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
         if (seat === view.you) return null;
         const turn = hand.turn === seat && hand.phase !== 'finished';
         const bid = hand.phase === 'bidding' ? lastCall(hand, seat) : null;
+        // Im Vorspiel der Hochzeit: „nein“ bzw. „nehme an“.
+        const said =
+          hand.phase === 'prelude' ? hand.prelude?.log.findLast((e) => e.seat === seat) : undefined;
         const size = hand.handSizes[seat]!;
         const away = absent.find((a) => a.seat === seat);
         const name = seats.nameOf(seat);
@@ -163,7 +166,14 @@ export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
               )
             }
             bubble={
-              bid && <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>
+              (bid && (
+                <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>
+              )) ||
+              (said && (
+                <span className={said.move === 'decline' ? 'blase--weiter' : ''}>
+                  {preludeMoveLabel(said.move)}
+                </span>
+              ))
             }
             cards={
               size > 0 &&
