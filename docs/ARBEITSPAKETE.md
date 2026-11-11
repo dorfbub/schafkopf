@@ -12,11 +12,36 @@ Pakete verschiedener Buchstaben können parallel laufen, sofern keine Abhängigk
 
 ## Reihenfolge
 
-| Stufe | Ziel                      | Pakete                     |
-| ----- | ------------------------- | -------------------------- |
-| 1     | Mit Freunden gut spielbar | K1, N1, N2, U1, U2, B1, I1 |
-| 2     | Komfort und Tischregeln   | K2, N3, N4, U3, U4, U5, I2 |
-| 3     | Ausbau                    | K3, K4, K5, K6, U6, U7, B2 |
+| Stufe | Ziel                      | Pakete                             |
+| ----- | ------------------------- | ---------------------------------- |
+| 1     | Mit Freunden gut spielbar | D1, D2, D3, K1, N1, N2, U2, B1, I1 |
+| 2     | Komfort und Tischregeln   | D4, K2, N3, N4, U4, U5, I2         |
+| 3     | Ausbau                    | K3, K4, K5, K6, U6, U7, B2         |
+
+## Welches Modell für welches Paket
+
+Grundsatz: **Opus ist der Standard.** Fable nur dort, wo eine Entscheidung das ganze Projekt
+prägt und ein Fehler teuer wird. Sonnet für klar umrissene Pakete, bei denen der Weg feststeht.
+Haiku für rein mechanische Handgriffe.
+
+| Modell | Wofür                                                        | Pakete                                |
+| ------ | ------------------------------------------------------------ | ------------------------------------- |
+| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | K5 (nur Entwurf), K3 (nur Entwurf)    |
+| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K4, K6, N1, N2, N3, B1, B2 |
+| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K7, N4, U2, U4, U5, U6, U7, I2    |
+| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                |
+
+Hinweise dazu:
+
+- **K3 und K5 in zwei Schritten:** Fable entwirft nur die Erweiterung der Schnittstellen
+  (`ModeDefinition`, `RuleSet`, `TableState`) als kurze Notiz mit Typen; die Umsetzung macht Opus.
+  So fällt der teure Teil klein aus.
+- **Gestaltung (D-Pakete):** Opus. Wenn die Entwürfe aus D1 nicht überzeugen, D1 einmal mit Fable
+  wiederholen – die Richtung ist die Entscheidung mit der größten Wirkung, die Umsetzung danach nicht.
+- **Hochstufen statt vorsorglich teuer:** Scheitert ein Paket auf Sonnet (Abnahme nicht erreicht,
+  dreht sich im Kreis), dasselbe Paket mit Opus neu starten, nicht nachbessern lassen.
+- **Prüfen ist billiger als Bauen:** Ein Review der fertigen Änderung (`/code-review`) durch Opus
+  lohnt sich bei Kern- und Netz-Paketen mehr als ein größeres Modell für die Umsetzung.
 
 ---
 
@@ -88,8 +113,18 @@ Jedes Spiel als Seed + Aktionsliste festhalten; daraus Wiederholung und „letzt
 
 Der Aufbau über öffentliche Nostr-Relays funktioniert, dauerte im Test aber teils über eine Minute.
 
+Praxisbefund (Spielabend am 10.11.2026, 4 Spieler, 4 Runden): Das Spiel lief, aber beim Gastgeber
+meldete Chrome wiederholt `Trystero: relay failure from wss://relay.layer.systems/ - rate-limited:
+slow down, please`. Schon im ersten Test war dasselbe Relay gedrosselt und andere
+(`nostr.robosats.org`, `relay.bullishbounty.com`) gar nicht erreichbar. Ursache klären: Wie viele
+Nachrichten schickt Trystero pro Raum und Minute an jedes Relay (Ankündigungen, Wiederholungen,
+weiter nach dem Verbindungsaufbau?), und lässt sich das senken – etwa die Signalisierung ruhen
+lassen, sobald alle Plätze verbunden sind, und erst bei Verbindungsverlust wieder aufnehmen.
+
 - Signalisierungs-Strategien von Trystero vergleichen (Nostr, BitTorrent, MQTT), ggf. eigene
   Relay-Liste; die schnellste und zuverlässigste wählen.
+- Drosselnde oder tote Relays aus der Liste nehmen; Relay-Liste konfigurierbar machen. Der
+  Gastgeber darf keine Drosselungsmeldungen mehr bekommen, solange der Tisch normal läuft.
 - Verbindungsstatus in der Oberfläche (suche Tisch / verbunden / fehlgeschlagen), Zeitüberschreitung
   mit verständlicher Meldung.
 - TURN-Fallback dokumentieren und konfigurierbar machen (`TrysteroOptions.turnConfig`).
@@ -122,29 +157,69 @@ laufen direkt über `HostSession`, nicht über das Protokoll.
 
 ---
 
+## D – Gestaltung (`apps/web`)
+
+Das jetzige Aussehen ist ein Platzhalter und wird grundlegend überarbeitet. **Lukas entscheidet
+über die Gestaltung.** Jedes D-Paket hat deshalb feste Haltepunkte: Der Agent legt etwas zum
+Anschauen vor, wartet auf die Entscheidung und baut erst dann weiter. Ohne Freigabe wird kein
+D-Paket abgeschlossen. Die Pakete laufen nacheinander und in einer Sitzung mit Lukas, nicht
+unbeaufsichtigt im Hintergrund.
+
+### D1 · Gestaltungsrichtung finden
+
+Drei deutlich verschiedene Richtungen für den Spieltisch als klickbare Entwürfe (statisches HTML,
+kein Umbau der App), jeweils Handy hochkant und Desktop, in den Zuständen Ansage, laufender Stich
+und Ergebnis. Vorher mit Lukas klären: Stimmung (Wirtshaus/traditionell, modern-schlicht,
+verspielt …), Vorbilder, was auf keinen Fall.
+
+- **Haltepunkt 1:** Fragen zur Richtung, bevor etwas gezeichnet wird.
+- **Haltepunkt 2:** Lukas wählt eine Richtung oder mischt; eine Überarbeitungsrunde ist eingeplant.
+- **Abnahme:** Gewählte Richtung mit Begründung und Bildern in `docs/DESIGN.md`.
+
+### D2 · Gestaltungsgrundlagen
+
+Aus der gewählten Richtung ein kleines System: Farben, Schrift, Abstände, Schatten als
+CSS-Variablen; Grundbausteine (Schaltfläche, Feld, Tafel, Dialog, Karte, Spielerplatz) auf einer
+Musterseite. Hell/Dunkel entscheiden.
+
+- **Bereich:** `apps/web/src/styles/`, Musterseite, `docs/DESIGN.md`.
+- **Haltepunkt:** Lukas gibt die Musterseite frei.
+- **Abnahme:** Keine festen Farb- oder Größenwerte mehr außerhalb der Variablen; Kontraste
+  ausreichend (WCAG AA).
+
+### D3 · Spieltisch umsetzen
+
+Den Tisch nach D1/D2 bauen: Hand als Fächer, Stich mittig, Stich bleibt kurz liegen und wandert zum
+Gewinner, letzter Stich einsehbar; klar erkennbar, wer dran ist, wer gibt, was gespielt wird und
+wer zusammenspielt. Handy hochkant und quer, Desktop. Ansage-Dialog, der den Tisch nicht verdeckt:
+erst Spielart, dann Farbe, Tout als Schalter (nach K1 an die zweistufige Ansage anpassen).
+
+- **Bereich:** `apps/web/src/ui/Table.tsx`, `CardView.tsx`, Stile. Kern und Netz bleiben unberührt.
+- **Haltepunkte:** Nach dem Layout (ohne Bewegung) und nach den Animationen je eine Vorlage mit
+  Bildschirmfotos.
+- **Abnahme:** Bildschirmfotos für 360×740, 740×360 und 1440×900; per Tastatur bedienbar;
+  `prefers-reduced-motion` beachtet; Freigabe durch Lukas.
+
+### D4 · Start, Lobby, Ergebnis
+
+Die übrigen Ansichten im selben Stil: Startbildschirm, Lobby mit Einladung, Verbindungsstatus,
+Ergebnis-Dialog, Fehlermeldungen.
+
+- **Abhängigkeit:** D2; sinnvoll nach N1 (Statusanzeige) und N4 (Lobby-Funktionen).
+- **Haltepunkt:** Vorlage mit Bildschirmfotos, Freigabe durch Lukas.
+
+---
+
 ## U – Oberfläche (`apps/web`)
-
-### U1 · Spieltisch gestalten
-
-Das jetzige Layout ist ein funktionaler Platzhalter. Ziel: ein Tisch, der auf Handy (hochkant und
-quer) und Desktop gut aussieht. Karten fächern, Stich mittig, wer ist dran, wer hat was angesagt,
-Stich bleibt kurz liegen und wandert zum Gewinner, letzter Stich einsehbar.
-
-- **Abnahme:** Screenshots für 360×740, 740×360 und 1440×900; bedienbar per Tastatur;
-  `prefers-reduced-motion` beachtet.
 
 ### U2 · Bayerisches Kartenbild
 
 Gezeichnete Karten als weiteres `CardTheme`. **Lizenz zuerst klären** – nur gemeinfreie oder
 passend lizenzierte Vorlagen (z. B. von Wikimedia Commons) oder selbst gezeichnete SVGs; Quelle und
 Lizenz in `apps/web/src/assets/LIZENZEN.md` festhalten. Theme-Auswahl in den Einstellungen.
+Lukas wählt die Vorlage aus zwei bis drei Vorschlägen, bevor alle 32 Karten gebaut werden.
 
 - **Abnahme:** Alle 32 Karten vorhanden und bei 44 px Breite noch unterscheidbar.
-
-### U3 · Ansage-Dialog
-
-Kompakter Dialog, der den Tisch nicht verdeckt: erst Spielart, dann Farbe, Tout als Schalter;
-bisherige Ansagen der anderen sichtbar. Nach K1 an die zweistufige Ansage anpassen.
 
 ### U4 · Abrechnung und Verlauf
 
