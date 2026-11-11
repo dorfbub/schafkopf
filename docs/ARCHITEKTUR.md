@@ -27,6 +27,7 @@ Abhängigkeiten zeigen nur in Pfeilrichtung. `core` hängt von nichts ab.
 | Datei        | Inhalt                                                                       |
 | ------------ | ---------------------------------------------------------------------------- |
 | `cards.ts`   | Karten als Strings (`"EA"`, `"HO"`), Augen, Blatt (lang/kurz)                |
+| `log.ts`     | Spielprotokoll `HandLog`, `replay`, `HandSummary`                            |
 | `rng.ts`     | Seed-basierter Zufall und Mischen                                            |
 | `trick.ts`   | Bedienpflicht und Stichgewinner – allgemein, über eine `CardOrder`           |
 | `modes.ts`   | Spielarten als deklarative `ModeDefinition` (Trümpfe, Rang, Sonderregeln)    |
@@ -227,6 +228,27 @@ React + Vite, keine weitere Zustandsbibliothek.
 - **Hinweis:** `src/updates.ts` meldet eine neue Version (wartender Worker, abweichende
   `version.json`, fehlendes Kartenbild); `App.tsx` zeigt sie als `Notice` oben. Geladen wird nie
   von allein neu. Im Entwicklungsserver ist das alles aus.
+
+## Spielprotokoll (K7)
+
+Ein Spiel ist durch `RuleSet`, Geber, `Seed` und die Folge der Aktionen (mit Sitz) vollständig
+bestimmt. `HandLog` (`packages/core/src/log.ts`) hält genau das fest; `replay(log)` gibt das Spiel
+mit `dealHand` + `applyAction` wieder und liefert denselben `HandState` wie der echte Ablauf (wirft,
+wenn eine Aktion nicht regelkonform ist). Die Tests spielen viele Zufallsspiele – im Netz auch mit
+Bot-Vertretung (N3) – und vergleichen.
+
+- **Im Tisch:** `TableState.logs` (die letzten `MAX_LOGS` = 100 Protokolle; das letzte gehört zum
+  laufenden Spiel, `applyTableAction` hängt jede angenommene Aktion in bereinigter Form an) und
+  `TableState.history` (eine `HandSummary` je fertigem Spiel: Nummer, Geber und `HandResult` mit
+  Ansage, Spieler, Augen, Ergebnis, Zahlungen). Die Zusammenfassungen bleiben dauerhaft.
+- **Beim Host:** Protokolle enthalten über den Seed alle Karten und verlassen den Host nie.
+  `TableView.history` trägt nur die Zusammenfassungen _fertiger_ Spiele – ohne Karten, für alle
+  Plätze gleich. Daraus baut U4 die Verlaufstabelle.
+- **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5. `parseHostSnapshot` prüft die Protokolle und spielt
+  das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
+  ≈ 106 KiB JSON (Protokolle + Verlauf; je Protokoll stecken die Regeln mit ~½ KiB mit drin),
+  also gut im Rahmen der ~5 MiB von localStorage.
+- Später möglich: den Host über den Seed festlegen (Schutz gegen Schummeln) und Spiele nachspielen.
 
 ## So wird erweitert
 

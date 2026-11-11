@@ -16,6 +16,10 @@ import {
   dealHand,
   handViewFor,
   isCard,
+  isSeed,
+  replay,
+  MAX_LOGS,
+  type HandLog,
   parseRuleOptions,
   tableViewFor,
 } from '@schafkopf/core';
@@ -24,7 +28,8 @@ import {
 /** 2: zweistufige Ansage (K1) hat `HandState` verändert. */
 /** 3: Lobby-Funktionen (N4): `watching`, `spectatorsWelcome`. */
 /** 4: Tischregeln erweitert (K2): `RuleSet.laufende`, `sie`, `davonlaufen`. */
-export const HOST_SNAPSHOT_VERSION = 4;
+/** 5: Spielprotokoll (K7): `TableState.logs`, `history`. */
+export const HOST_SNAPSHOT_VERSION = 5;
 
 export interface HostSnapshot {
   v: number;
@@ -94,7 +99,7 @@ function check(raw: unknown): HostSnapshot | null {
   if (!parseRuleOptions(rules)) return null;
   const last = players - 1;
 
-  const { seats, balances, dealer, handNo, hand } = table;
+  const { seats, balances, dealer, handNo, hand, logs, history } = table;
   if (!Array.isArray(seats) || seats.length !== players) return null;
   for (const s of seats) {
     if (s === null) continue;
@@ -116,6 +121,12 @@ function check(raw: unknown): HostSnapshot | null {
     if (!isInt(hand.dealer, 0, last)) return null;
     if (!isCardRows(hand.hands, players) || !isCardRows(hand.initialHands, players)) return null;
     if (!Array.isArray(hand.bids) || !Array.isArray(hand.tricks)) return null;
+  }
+
+  if (
+    !checkLogs(logs, history, hand as Obj | null, rules as unknown as TableState['rules'], handNo)
+  ) {
+    return null;
   }
 
   if (!Array.isArray(seatByClient)) return null;
@@ -150,6 +161,39 @@ function check(raw: unknown): HostSnapshot | null {
   return snapshot;
 }
 
+/** Protokolle und Verlauf: Form prüfen, dann das laufende Spiel wirklich nachspielen. */
+function checkLogs(
+  logs: unknown,
+  history: unknown,
+  hand: Obj | null,
+  rules: TableState['rules'],
+  handNo: number,
+): boolean {
+  if (!Array.isArray(logs) || !Array.isArray(history)) return false;
+  if (logs.length > MAX_LOGS || history.length > handNo) return false;
+  for (const log of logs) {
+    if (!isObj(log) || !isInt(log.handNo, 1, handNo) || !isSeed(log.seed)) return false;
+    if (!isInt(log.dealer, 0, rules.players - 1) || !Array.isArray(log.actions)) return false;
+    if (!isObj(log.rules) || !hasKeys(log.rules, DEFAULT_RULES)) return false;
+    if (!parseRuleOptions(log.rules)) return false;
+  }
+  for (const entry of history) {
+    if (!isObj(entry) || !isInt(entry.handNo, 1, handNo) || !isInt(entry.dealer, 0, 7))
+      return false;
+    if (!isObj(entry.result) || !Array.isArray(entry.result.payments)) return false;
+  }
+  if (hand === null) return logs.length === 0;
+  // Das letzte Protokoll muss zum laufenden Spiel führen – sonst ist der Stand widersprüchlich.
+  const last = logs.at(-1) as HandLog | undefined;
+  if (!last || last.handNo !== handNo) return false;
+  try {
+    const state = replay(last);
+    return JSON.stringify(state) === JSON.stringify(hand);
+  } catch {
+    return false;
+  }
+}
+
 const emptyTable: Record<keyof TableState, null> = {
   rules: null,
   seats: null,
@@ -157,4 +201,6 @@ const emptyTable: Record<keyof TableState, null> = {
   dealer: null,
   handNo: null,
   hand: null,
+  logs: null,
+  history: null,
 };

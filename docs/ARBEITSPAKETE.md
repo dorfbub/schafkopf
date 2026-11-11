@@ -105,6 +105,7 @@ ungetestet). Zu klären: welche Spielarten zu dritt, Sie mit kurzer Karte, Tisch
 Jedes Spiel als Seed + Aktionsliste festhalten; daraus Wiederholung und „letzte Spiele“-Liste.
 
 - **Abnahme:** `replay(protokoll)` ergibt denselben Endzustand; Test dafür.
+- **Stand:** umgesetzt (siehe `docs/ARCHITEKTUR.md`, „Spielprotokoll“); die Anzeige baut U4.
 
 ---
 
