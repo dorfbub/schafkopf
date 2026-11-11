@@ -7,8 +7,11 @@
 import { createRandomBot } from '@schafkopf/bots';
 import {
   ClientSession,
+  type HostOptions,
   HostSession,
+  type HostSnapshot,
   createLoopbackPair,
+  parseHostSnapshot,
   isSignalingStrategy,
   parseRelayUrls,
   parseTurnConfig,
@@ -51,12 +54,158 @@ function remembered(storage: () => Storage, key: string, create: () => string): 
  * Kennung dieses Browser-Tabs. Übersteht ein Neuladen (so findet man seinen
  * Platz wieder), ist aber pro Tab verschieden – zwei Tabs sind zwei Spieler.
  */
+const CLIENT_ID_KEY = 'schafkopf.clientId';
+
 function clientId(): string {
   return remembered(
     () => sessionStorage,
-    'schafkopf.clientId',
+    CLIENT_ID_KEY,
     () => crypto.randomUUID(),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Speicherstand des Gastgebers (N2)
+//
+// Der Host schreibt nach jeder Änderung seinen Zustand in den localStorage. Der
+// Stand enthält alle Hände und verlässt das Gerät nie – er wird weder verschickt
+// noch in die URL geschrieben. Lädt derselbe Tab neu (gleiche Kennung im
+// sessionStorage), geht es ohne Rückfrage weiter: Die Gäste warten, und wer neu
+// lädt, will weiterspielen. In einem anderen Tab oder nach einem Neustart des
+// Browsers bietet die Startseite „Tisch fortsetzen“ an – dort könnte der Tisch
+// längst vergessen sein. Ein Web Lock zeigt, ob ein anderer Tab den Tisch noch
+// hostet; dann wird nichts fortgesetzt, sonst gäbe es zwei Hosts im selben Raum.
+// ---------------------------------------------------------------------------
+
+const SAVE_KEY = 'schafkopf.host';
+/** Erhöhen, wenn sich die Hülle (`StoredTable`) ändert; der Inhalt hat eine eigene Version. */
+const SAVE_VERSION = 1;
+/** Ältere Stände gelten als vergessen und werden verworfen. */
+const SAVE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+const HOST_LOCK = 'schafkopf.host';
+
+interface StoredTable {
+  v: number;
+  savedAt: number;
+  /** `clientId` des Gastgebers – erkennt den eigenen Tab und den eigenen Platz. */
+  owner: string;
+  name: string;
+  snapshot: HostSnapshot;
+}
+
+export interface SavedTable {
+  snapshot: HostSnapshot;
+  owner: string;
+  name: string;
+  savedAt: number;
+  /** Derselbe Tab hat neu geladen. */
+  sameTab: boolean;
+}
+
+function readStored(): StoredTable | null {
+  try {
+    const text = localStorage.getItem(SAVE_KEY);
+    return text ? (JSON.parse(text) as StoredTable) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Liest und prüft den Speicherstand; Beschädigtes, Fremdes und Altes wird gelöscht. */
+export function readSavedTable(now = Date.now()): SavedTable | null {
+  let raw: unknown;
+  try {
+    const text = localStorage.getItem(SAVE_KEY);
+    if (!text) return null;
+    raw = JSON.parse(text);
+  } catch {
+    raw = null;
+  }
+  const saved = checkStored(raw, now);
+  if (!saved) clearSavedTable();
+  return saved;
+}
+
+function checkStored(raw: unknown, now: number): SavedTable | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const { v, savedAt, owner, name, snapshot } = raw as Partial<Record<keyof StoredTable, unknown>>;
+  if (v !== SAVE_VERSION || typeof owner !== 'string' || typeof name !== 'string') return null;
+  if (typeof savedAt !== 'number' || savedAt > now || now - savedAt > SAVE_MAX_AGE_MS) return null;
+  const parsed = parseHostSnapshot(snapshot);
+  if (!parsed) return null;
+  return { snapshot: parsed, owner, name, savedAt, sameTab: owner === clientId() };
+}
+
+/**
+ * Wie `readSavedTable`, aber nur, wenn kein anderer Tab diesen Tisch gerade
+ * hostet (Web Lock). Ohne Web Locks wird der Stand trotzdem angeboten.
+ */
+export async function findSavedTable(): Promise<SavedTable | null> {
+  const saved = readSavedTable();
+  if (!saved) return null;
+  try {
+    const state = await navigator.locks.query();
+    if (state.held?.some((lock) => lock.name === HOST_LOCK)) return null;
+  } catch {
+    // keine Web Locks: anbieten
+  }
+  return saved;
+}
+
+export function clearSavedTable(): void {
+  try {
+    localStorage.removeItem(SAVE_KEY);
+  } catch {
+    // nichts zu löschen
+  }
+}
+
+/**
+ * Speichert den Zustand des Hosts nach jeder Änderung. Hat inzwischen ein anderer
+ * Tab einen eigenen Tisch eröffnet, hört dieser auf zu schreiben. Die Rückgabe
+ * beendet das Speichern; mit `true` wird der Stand auch gelöscht („Tisch verlassen“).
+ */
+function keepSaved(host: HostSession, owner: string, name: string): (clear: boolean) => void {
+  let active = true;
+  const save = () => {
+    if (!active) return;
+    const current = readStored();
+    if (current && current.owner !== owner && current.savedAt > startedAt) {
+      active = false; // ein anderer Tab hostet jetzt; seinen Stand nicht überschreiben
+      return;
+    }
+    const stored: StoredTable = {
+      v: SAVE_VERSION,
+      savedAt: Date.now(),
+      owner,
+      name,
+      snapshot: host.exportSnapshot(),
+    };
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(stored));
+    } catch {
+      // Speicher voll oder gesperrt: dann übersteht der Tisch ein Neuladen nicht
+    }
+  };
+  const startedAt = Date.now();
+  const unsubscribe = host.subscribe(save);
+  save();
+
+  let releaseLock: (() => void) | null = null;
+  try {
+    void navigator.locks
+      .request(HOST_LOCK, () => new Promise<void>((resolve) => (releaseLock = resolve)))
+      .catch(() => {});
+  } catch {
+    // keine Web Locks
+  }
+
+  return (clear) => {
+    active = false;
+    unsubscribe();
+    releaseLock?.();
+    if (clear && readStored()?.owner === owner) clearSavedTable();
+  };
 }
 
 export function loadName(): string {
@@ -98,20 +247,45 @@ export function signalingOptions(): TrysteroOptions {
   return options;
 }
 
-export function openTable(name: string, online: boolean): Connection {
-  const host = new HostSession({
+function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
+  return {
     createBot: (seat) => createRandomBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
-  });
+  };
+}
+
+export function openTable(name: string, online: boolean): Connection {
+  const roomId = online ? randomRoomId() : null;
+  return hostConnection(new HostSession({ ...hostOptions(), roomId }), name);
+}
+
+/** Setzt einen gespeicherten Tisch fort – gleicher Raum-Code, gleiche Plätze. */
+export function resumeTable(saved: SavedTable): Connection {
+  // Aus einem anderen Tab fortgesetzt: dessen Kennung übernehmen, damit der
+  // Gastgeber seinen eigenen Platz und seine Hand zurückbekommt.
+  if (!saved.sameTab) {
+    try {
+      sessionStorage.setItem(CLIENT_ID_KEY, saved.owner);
+    } catch {
+      // ohne sessionStorage sitzt der Gastgeber eben als Zuschauer am Tisch
+    }
+  }
+  return hostConnection(HostSession.restore(saved.snapshot, hostOptions()), saved.name);
+}
+
+function hostConnection(host: HostSession, name: string): Connection {
   const pair = createLoopbackPair();
   host.addTransport(pair.host);
-  const roomId = online ? randomRoomId() : null;
+  const { roomId } = host;
   if (roomId) host.addTransport(createTrysteroHost(roomId, signalingOptions()));
-  const client = new ClientSession(pair.client, { name, clientId: clientId() });
+  const id = clientId();
+  const stopSaving = keepSaved(host, id, name);
+  const client = new ClientSession(pair.client, { name, clientId: id });
   return {
     client,
     host,
     roomId,
     close() {
+      stopSaving(true);
       client.close();
       host.close();
     },

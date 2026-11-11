@@ -14,8 +14,9 @@ const messung = import.meta.env.DEV ? new URLSearchParams(location.search).get('
 
 // Nur im Entwicklungsserver: Musterseite der Bausteine (http://localhost:5180/#muster) und
 // Tischprobe mit festen Spielständen (#tisch?szene=ansage|warten|stich|ergebnis|zuschauer).
+// Einladungslinks (#tisch=code) gehören nicht dazu.
 const devPage = (hash: string) =>
-  hash.startsWith('#muster') ? 'muster' : hash.startsWith('#tisch') ? hash : null;
+  hash.startsWith('#muster') ? 'muster' : /^#tisch(\?|$)/.test(hash) ? hash : null;
 
 if (import.meta.env.DEV) {
   window.addEventListener('hashchange', (e) => {
