@@ -6,6 +6,7 @@
 
 import type { BidCall, Card, PlayerAction, Seat, TableView } from '@schafkopf/core';
 import {
+  type AbsentSeat,
   type ClientTransport,
   type HostErrorCode,
   type HostMessage,
@@ -22,6 +23,15 @@ import { defaultSetTimer } from './signaling';
  */
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'failed';
 
+/** Ein getrennter Spieler aus Sicht dieses Geräts (siehe `AbsentSeat`). */
+export interface AbsentSeatInfo {
+  seat: Seat;
+  /** Ein Bot vertritt den Spieler gerade. */
+  standIn: boolean;
+  /** Zeitpunkt nach der Uhr dieses Geräts, ab dem der Bot vertritt; null, wenn er es schon tut. */
+  standInAt: number | null;
+}
+
 export interface ClientSnapshot {
   status: ConnectionStatus;
   seat: Seat | null;
@@ -31,6 +41,8 @@ export interface ClientSnapshot {
   lobby: LobbyInfo | null;
   /** Der Name, den dieser Mitspieler gerade führt. */
   name: string;
+  /** Getrennte Mitspieler im laufenden Spiel. */
+  absent: AbsentSeatInfo[];
 }
 
 export interface ClientOptions {
@@ -40,6 +52,8 @@ export interface ClientOptions {
   connectTimeoutMs?: number;
   /** Zeitgeber mit Abbruchfunktion; in Tests synchron ersetzbar. */
   setTimer?: (fn: () => void, ms: number) => () => void;
+  /** Uhr, um Restzeiten des Hosts in Zeitpunkte umzurechnen. Standard: `Date.now`. */
+  now?: () => number;
 }
 
 export const DEFAULT_CONNECT_TIMEOUT_MS = 45_000;
@@ -52,6 +66,7 @@ export class ClientSession {
     lastError: null,
     lobby: null,
     name: '',
+    absent: [],
   };
   private readonly listeners = new Set<() => void>();
   private cancelTimeout: (() => void) | null = null;
@@ -152,12 +167,27 @@ export class ClientSession {
         this.update({ status: 'connected', seat: message.seat });
         break;
       case 'state':
-        this.update({ view: message.view, seat: message.view.you, lobby: message.lobby });
+        this.update({
+          view: message.view,
+          seat: message.view.you,
+          lobby: message.lobby,
+          absent: this.readAbsent(message.absent),
+        });
         break;
       case 'error':
         this.update({ lastError: message.code });
         break;
     }
+  }
+
+  private readAbsent(absent: unknown): AbsentSeatInfo[] {
+    if (!Array.isArray(absent)) return [];
+    const now = (this.options.now ?? Date.now)();
+    return absent.map((a: AbsentSeat) => ({
+      seat: a.seat,
+      standIn: a.standIn,
+      standInAt: a.standInInMs === null ? null : now + a.standInInMs,
+    }));
   }
 
   private update(patch: Partial<ClientSnapshot>): void {

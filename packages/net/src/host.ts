@@ -20,6 +20,7 @@ import {
   tableViewFor,
 } from '@schafkopf/core';
 import {
+  type AbsentSeat,
   type ClientMessage,
   type HostErrorCode,
   type HostMessage,
@@ -42,6 +43,25 @@ export interface HostOptions {
   schedule?: (fn: () => void, ms: number) => void;
   /** Raum-Code; wird nur in den Speicherstand übernommen (`exportSnapshot`). */
   roomId?: string | null;
+  /**
+   * Frist in Millisekunden, nach der ein Bot für einen getrennten Spieler zieht.
+   * Standard 30 s.
+   */
+  standInDelayMs?: number;
+  /** Uhr für die Restzeit bis zur Vertretung; in Tests ersetzbar. Standard: `Date.now`. */
+  now?: () => number;
+}
+
+export const DEFAULT_STAND_IN_DELAY_MS = 30_000;
+
+/** Ein getrennter Spieler im laufenden Spiel (siehe `AbsentSeat`). */
+interface Absence {
+  /** Zeitpunkt (Host-Uhr), ab dem der Bot vertritt. */
+  deadline: number;
+  /** Unterscheidet Fristen: ein alter Zeitgeber nach Rückkehr und erneutem Trennen zählt nicht. */
+  token: number;
+  /** Der vertretende Bot; null, solange die Frist läuft. */
+  standIn: Bot | null;
 }
 
 /** Höchstlänge eines Namens. */
@@ -69,6 +89,9 @@ export class HostSession {
   private readonly peers = new Map<string, Peer>();
   private readonly seatByClient = new Map<string, Seat>();
   private readonly bots = new Map<Seat, Bot>();
+  /** Plätze, deren Spieler im laufenden Spiel getrennt ist. */
+  private readonly absences = new Map<Seat, Absence>();
+  private absenceToken = 0;
   private readonly transports: HostTransport[] = [];
   private readonly listeners = new Set<() => void>();
   private botPending = false;
@@ -83,6 +106,8 @@ export class HostSession {
   private readonly botDelayMs: number;
   private readonly seed: () => number;
   private readonly schedule: (fn: () => void, ms: number) => void;
+  private readonly standInDelayMs: number;
+  private readonly now: () => number;
   readonly roomId: string | null;
 
   constructor(options: HostOptions) {
@@ -93,12 +118,16 @@ export class HostSession {
     this.botDelayMs = options.botDelayMs ?? 800;
     this.seed = options.seed ?? cryptoSeed;
     this.schedule = options.schedule ?? ((fn, ms) => void setTimeout(fn, ms));
+    this.standInDelayMs = options.standInDelayMs ?? DEFAULT_STAND_IN_DELAY_MS;
+    this.now = options.now ?? Date.now;
   }
 
   /**
    * Setzt einen Tisch aus einem Speicherstand fort (vorher mit
    * `parseHostSnapshot` prüfen). Alle Menschen gelten als getrennt, bis sie sich
    * mit ihrer alten `clientId` wieder melden; die Bots werden neu erzeugt.
+   * Läuft ein Spiel, beginnt für jeden die Frist bis zur Vertretung von vorn –
+   * auch für Plätze, die vor dem Neuladen schon ein Bot vertreten hat.
    */
   static restore(
     snapshot: HostSnapshot,
@@ -117,6 +146,11 @@ export class HostSession {
     for (const seat of snapshot.botSeats) host.bots.set(seat, host.createBot(seat));
     host.watching = new Set(snapshot.watching);
     host.spectatorsWelcome = snapshot.spectatorsWelcome;
+    if (host.table.hand) {
+      host.table.seats.forEach((s, seat) => {
+        if (s?.kind === 'human') host.markAbsent(seat);
+      });
+    }
     host.updateDiscovery();
     host.driveBots();
     return host;
@@ -235,6 +269,76 @@ export class HostSession {
     return true;
   }
 
+  /** Getrennte Spieler im laufenden Spiel, mit Restzeit bis zur Vertretung. */
+  getAbsentSeats(): AbsentSeat[] {
+    const now = this.now();
+    return [...this.absences].map(([seat, absence]) => ({
+      seat,
+      standIn: absence.standIn !== null,
+      standInInMs: absence.standIn ? null : Math.max(0, absence.deadline - now),
+    }));
+  }
+
+  /**
+   * Gastgeber-Befehl: Ein Bot vertritt den getrennten Spieler auf `seat` sofort,
+   * ohne das Ende der Frist abzuwarten. Kommt der Spieler zurück, spielt er weiter.
+   */
+  standInNow(seat: Seat): boolean {
+    const absence = this.isSeat(seat) ? this.absences.get(seat) : undefined;
+    if (!absence || absence.standIn) return false;
+    this.activateStandIn(seat, absence);
+    return true;
+  }
+
+  /**
+   * Gastgeber-Befehl (im laufenden Spiel): nimmt einen getrennten Spieler
+   * dauerhaft vom Platz. Ein Bot übernimmt Platz und Kontostand; kommt der
+   * Spieler doch zurück, schaut er zu.
+   */
+  replaceWithBot(seat: Seat): boolean {
+    if (!this.table.hand || !this.isSeat(seat)) return false;
+    const absence = this.absences.get(seat);
+    if (!absence) return false;
+    this.absences.delete(seat);
+    this.bots.set(seat, absence.standIn ?? this.createBot(seat));
+    const clientId = this.clientAt(seat);
+    if (clientId) {
+      this.seatByClient.delete(clientId);
+      this.watching.add(clientId);
+    }
+    const seats = [...this.table.seats];
+    seats[seat] = { name: this.botName(seat), kind: 'bot', connected: true };
+    this.table = { ...this.table, seats };
+    this.changed();
+    return true;
+  }
+
+  /** Startet die Frist bis zur Vertretung für einen getrennten Spieler. */
+  private markAbsent(seat: Seat): void {
+    const token = ++this.absenceToken;
+    this.absences.set(seat, { deadline: this.now() + this.standInDelayMs, token, standIn: null });
+    this.schedule(() => {
+      const absence = this.absences.get(seat);
+      if (this.closed || !absence || absence.token !== token || absence.standIn) return;
+      this.activateStandIn(seat, absence);
+    }, this.standInDelayMs);
+  }
+
+  private activateStandIn(seat: Seat, absence: Absence): void {
+    this.absences.set(seat, { ...absence, standIn: this.createBot(seat) });
+    this.changed();
+  }
+
+  private botName(seat: Seat): string {
+    const name = this.botNames[seat % this.botNames.length] ?? `Bot ${seat + 1}`;
+    return `${name} (Bot)`;
+  }
+
+  /** Wer zieht für diesen Platz automatisch: ein fester Bot oder die Vertretung. */
+  private botFor(seat: Seat): Bot | null {
+    return this.bots.get(seat) ?? this.absences.get(seat)?.standIn ?? null;
+  }
+
   private isSeat(seat: unknown): seat is Seat {
     return (
       Number.isInteger(seat) && (seat as number) >= 0 && (seat as number) < this.table.seats.length
@@ -272,8 +376,7 @@ export class HostSession {
     const seats = this.table.seats.map((player, seat) => {
       if (player) return player;
       this.bots.set(seat, this.createBot(seat));
-      const name = this.botNames[seat % this.botNames.length] ?? `Bot ${seat + 1}`;
-      return { name: `${name} (Bot)`, kind: 'bot' as const, connected: true };
+      return { name: this.botName(seat), kind: 'bot' as const, connected: true };
     });
     this.table = { ...this.table, seats };
     return this.deal();
@@ -338,6 +441,8 @@ export class HostSession {
       const existing = this.table.seats[seat];
       if (existing) name = existing.name;
       this.assign(message.clientId, seat);
+      // Zurück am Platz: Die Vertretung endet, ab dem nächsten Zug spielt wieder der Mensch.
+      this.absences.delete(seat);
       const seats = [...this.table.seats];
       seats[seat] = { name, kind: 'human', connected: true };
       this.table = { ...this.table, seats };
@@ -412,6 +517,7 @@ export class HostSession {
       // Im laufenden Spiel bleibt der Platz reserviert, bis der Spieler zurückkommt.
       const player = seats[seat];
       if (player) seats[seat] = { ...player, connected: false };
+      this.markAbsent(seat);
     } else {
       seats[seat] = null;
       if (peer.clientId) this.seatByClient.delete(peer.clientId);
@@ -438,6 +544,7 @@ export class HostSession {
   /** Nach jeder Zustandsänderung: Sichten verteilen, Beobachter wecken, Bots anstoßen. */
   private changed(): void {
     let lobby: LobbyInfo | undefined;
+    let absent: AbsentSeat[] | undefined;
     for (const peer of this.peers.values()) {
       if (peer.clientId === null) continue;
       peer.send({
@@ -447,6 +554,7 @@ export class HostSession {
           watchers: this.watcherNames(),
           spectatorsWelcome: this.spectatorsWelcome,
         }),
+        absent: (absent ??= this.getAbsentSeats()),
       });
     }
     for (const listener of this.listeners) listener();
@@ -466,14 +574,20 @@ export class HostSession {
     const hand = this.table.hand;
     if (!hand || hand.phase === 'finished') return;
     const seat = hand.turn;
-    const bot = this.bots.get(seat);
+    const bot = this.botFor(seat);
     if (!bot) return;
 
     this.botPending = true;
     this.schedule(() => {
       this.botPending = false;
       const current = this.table.hand;
-      if (this.closed || !current || current.phase === 'finished' || current.turn !== seat) {
+      if (
+        this.closed ||
+        !current ||
+        current.phase === 'finished' ||
+        current.turn !== seat ||
+        this.botFor(seat) !== bot // Spieler ist zurück und zieht selbst
+      ) {
         return this.driveBots();
       }
       const view = handViewFor(current, seat);
