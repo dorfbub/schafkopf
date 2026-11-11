@@ -78,11 +78,11 @@ aber keine Schmid-Scans abpausen. Als Vorlage taugen gemeinfreie Drucke des Mün
 
 - **Eckzeichen zu klein:** In den Vorlagen sind Zahl und Farbzeichen in der Ecke etwa 9 % der
   Kartenbreite; in der überlappenden Hand und bei 44 px kaum lesbar. U2 vergrößert sie.
-- **Handy, Ansage:** Der Dialog überdeckt die seitlichen Plätze; in D3 kompakter machen.
+- ~~**Handy, Ansage:** Der Dialog überdeckt die seitlichen Plätze~~ – in D3 gelöst (Dialog unten,
+  Plätze oben).
 - **Kartenrücken:** Platzhalter; endgültig mit U2.
-- **Animationen** (Lukas, D2): Karten austeilen, Karte legen, Stich zum Gewinner wegräumen usw.
-  Eigenes Arbeitspaket; die Bewegungsvariablen (`--duration-*`, `--ease-*`, abgeschaltet bei
-  „Bewegung reduzieren“) stehen seit D2 bereit.
+- **Animationen** (Lukas, D2): Karte legen, Stich zum Gewinner wegräumen und Austeilen sind seit
+  D3 umgesetzt (siehe „Spieltisch“).
 
 ## Gestaltungssystem (D2, freigegeben am 11.11.2026)
 
@@ -97,7 +97,7 @@ Aus der Richtung „Kartentisch“ abgeleitet. **Freigegeben von Lukas am 11.11.
 | `apps/web/src/styles/components.css` | Klassen der Bausteine (`.btn`, `.field`, `.tafel`, `.dialog`, …)             |
 | `apps/web/src/styles/contrast.ts`    | Kontrastformel und die Farbpaare, die WCAG AA erreichen müssen               |
 | `apps/web/src/ui/kit/`               | Bausteine als React-Komponenten                                              |
-| `apps/web/src/styles.css`            | Bisherige Ansichten, auf die Variablen umgestellt; Layout bauen D3/D4 neu    |
+| `apps/web/src/styles.css`            | Start und Lobby, auf die Variablen umgestellt; Layout baut D4 neu            |
 | `apps/web/src/muster/`               | Musterseite, nur im Entwicklungsserver: `http://localhost:5180/#muster`      |
 
 Regel: **Außerhalb von `tokens.css` keine festen Farben, Längen oder Zeiten.** Erlaubt sind
@@ -143,16 +143,16 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 
 ### Schrift, Abstände, Radien, Schatten, Bewegung
 
-| Gruppe     | Variablen                                                                                                                |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Schriftart | `--font-display` (Fraunces: Namen, Überschriften, Augenzahl), `--font-body` (Source Sans 3)                              |
-| Größen     | `--text-xs` 12 · `-sm` 14 · `-md` 16 · `-lg` 20 · `-xl` 24 · `-2xl` 32 px                                                |
-| Gewichte   | `--weight-regular` 400 · `-semibold` 600 · `-bold` 700 · `-display` 650 · `-display-light` 500                           |
-| Abstände   | `--space-1` … `--space-7`: 4 · 8 · 12 · 16 · 24 · 32 · 48 px                                                             |
-| Größen     | `--control-height` 44 px (Tippfläche), `-sm` 36 px, `--avatar-size`, `--card-w`, `--card-h`, `--card-ratio` 115 : 195    |
-| Radien     | `--radius-sm` 6 · `-md` 10 · `-lg` 16 px · `-pill`; Karte `--card-radius`                                                |
-| Schatten   | `--shadow-card`, `-raised` (Tafel), `-dialog`, `-turn` (Messing-Schein), `-playable`, `-rim` (Holzrand)                  |
-| Bewegung   | `--duration-fast` 120 · `-base` 200 · `-slow` 360 ms, `--ease-out`, `--ease-in-out`; bei „Bewegung reduzieren“ alle 0 ms |
+| Gruppe     | Variablen                                                                                                                                                                                      |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Schriftart | `--font-display` (Fraunces: Namen, Überschriften, Augenzahl), `--font-body` (Source Sans 3)                                                                                                    |
+| Größen     | `--text-xs` 12 · `-sm` 14 · `-md` 16 · `-lg` 20 · `-xl` 24 · `-2xl` 32 px                                                                                                                      |
+| Gewichte   | `--weight-regular` 400 · `-semibold` 600 · `-bold` 700 · `-display` 650 · `-display-light` 500                                                                                                 |
+| Abstände   | `--space-1` … `--space-7`: 4 · 8 · 12 · 16 · 24 · 32 · 48 px                                                                                                                                   |
+| Größen     | `--control-height` 44 px (Tippfläche), `-sm` 36 px, `--avatar-size`, `--card-w`, `--card-h`, `--card-ratio` 115 : 195                                                                          |
+| Radien     | `--radius-sm` 6 · `-md` 10 · `-lg` 16 px · `-pill`; Karte `--card-radius`                                                                                                                      |
+| Schatten   | `--shadow-card`, `-raised` (Tafel), `-dialog`, `-turn` (Messing-Schein), `-playable`, `-rim` (Holzrand)                                                                                        |
+| Bewegung   | `--duration-fast` 120 · `-base` 200 · `-slow` 360 ms, `--ease-out`, `--ease-in-out`; bei „Bewegung reduzieren“ alle 0 ms; seit D3 dazu `--duration-sweep`, `--duration-deal-step`, `--ease-in` |
 
 ### Bausteine
 
@@ -193,6 +193,100 @@ der Musterseite angezeigt. Schrift auf Grün wird gegen die hellste Stelle des F
 | Fokusring auf Papier / auf Filz     | 4,7 / 4,5  | 3       |
 
 Ausnahme: deaktivierte Knöpfe (45 % Deckkraft) – WCAG nimmt inaktive Bedienelemente aus.
+
+## Spieltisch (D3, freigegeben am 11.11.2026)
+
+Der Tisch nach der Richtung „Kartentisch“, gebaut mit den Bausteinen und Variablen aus D2.
+**Layout und Bewegung von Lukas freigegeben am 11.11.2026** (zwei Haltepunkte).
+
+| Ansage                                                   | Laufender Stich                                        | Ergebnis                                                     |
+| -------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| ![Ansage, Desktop](bilder/tisch/desktop-1-ansage.webp)   | ![Stich, Desktop](bilder/tisch/desktop-2-stich.webp)   | ![Ergebnis, Desktop](bilder/tisch/desktop-3-ergebnis.webp)   |
+| ![Ansage, hochkant](bilder/tisch/hochkant-1-ansage.webp) | ![Stich, hochkant](bilder/tisch/hochkant-2-stich.webp) | ![Ergebnis, hochkant](bilder/tisch/hochkant-3-ergebnis.webp) |
+| ![Ansage, quer](bilder/tisch/quer-1-ansage.webp)         | ![Stich, quer](bilder/tisch/quer-2-stich.webp)         | ![Ergebnis, quer](bilder/tisch/quer-3-ergebnis.webp)         |
+
+### Dateien
+
+| Datei                                      | Inhalt                                                                                      |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `apps/web/src/ui/Table.tsx`                | verbindet den Tisch mit `ClientSession`/`HostSession`                                       |
+| `apps/web/src/ui/table/TableBoard.tsx`     | der Tisch; arbeitet nur auf `TableView`, Aktionen über Rückrufe                             |
+| `apps/web/src/ui/table/*`                  | `TableBar`, `Seats`, `TrickArea`, `OwnSeat`, `BidDialog`, `ResultDialog`, `LastTrickDialog` |
+| `apps/web/src/ui/table/useTrickDisplay.ts` | hält den fertigen Stich fest und steuert das Wegräumen                                      |
+| `apps/web/src/styles/table.css`            | Layout, Größenstufen und Bewegung des Tischs                                                |
+| `apps/web/src/muster/Tischprobe.tsx`       | Tischprobe mit festen Spielständen, nur im Entwicklungsserver (siehe unten)                 |
+
+**Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` (du sagst an), `warten`,
+`stich` (laufender Stich, du bist dran), `ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
+weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
+
+### Aufbau
+
+- **Leiste:** Spielnummer und Stich („Stich 4 von 8“), was gespielt wird („Xaver spielt Sauspiel
+  auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Letzter Stich“ und „Verlassen“.
+- **Plätze der anderen** (`PlayerSeat`): am Zug = Messingschein + Marke „am Zug“, Geber = „G“ am
+  Bild, Marken „Spieler“/„Mitspieler“ (Papier), sobald bekannt; Stiche und Kontostand (Minus in
+  Minusfarbe); in der Ansage das Gesagte als Sprechblase („weiter“ kursiv).
+- **Stich:** mittig, jede Karte vor ihrem Spieler, leicht gedreht. Der fertige Stich bleibt liegen,
+  die stechende Karte hat den hellen Rand, darüber „Lukas sticht · 14 Augen“.
+- **Eigener Platz:** Bild, Name, Stiche, Stand, Marken, „Du bist dran“/„Du sagst an“ in Messing.
+  Darunter die Hand als Fächer, Trümpfe zuerst; die Karten ragen unten aus dem Bild (sichtbar
+  `--hand-visible`). Spielbar = Messingrand und hebt sich; nicht spielbar = abgedunkelt.
+- **Ansage-Dialog:** erst Spielart, dann Farbe (mit Farbzeichen aus dem Kartenbild,
+  `CardTheme.suit`), Tout als Schalter in der Knopfzeile. Nur was `legalContracts` erlaubt ist
+  wählbar, der Rest gesperrt. Oben: wer was gesagt hat, wer noch kommt, was zu überbieten ist.
+  Ist nur eine Farbe möglich, ist sie vorgewählt. Nicht modal; der Fokus springt beim Erscheinen
+  in den Dialog.
+- **Ergebnis-Dialog:** Spielart, „Xaver und Lukas haben gewonnen“, Augen groß mit Balken (Marke
+  bei 61), Stiche/Schneider/Schwarz/Sie/Laufende als Stichworte, Betrag je Gegenspieler, Tabelle
+  Spiel/Stand. Die Aufschlüsselung und der Verlauf folgen mit U4. Erscheint erst, wenn der letzte
+  Stich weggeräumt ist.
+- **Letzter Stich:** Dialog mit den vier Karten und Namen; Escape schließt, der Fokus kehrt zurück.
+
+### Größenstufen
+
+Der Raum zwischen Leiste und Hand ist ein Größen-Container (`container: tisch`); Stichkarten
+(`--trick-card-w`, `17cqmin`) und Plätze richten sich nach ihm. Die Grenzwerte stehen als feste
+Werte in den Abfragen, weil dort keine Variablen gehen.
+
+| Stufe           | Abfrage                        | Änderung                                                                    |
+| --------------- | ------------------------------ | --------------------------------------------------------------------------- |
+| breiter Tisch   | Container ≥ 40rem breit        | oberer Platz liegt quer (Bild, Name, Marken, Karten in einer Reihe)         |
+| hochkant        | Container Seitenverhältnis < 1 | alle drei Plätze oben, Stich tiefer, Ansage unten über der Hand             |
+| schmal          | Container ≤ 30rem breit        | Dialoge knapper (kleinere Wahlknöpfe, Farben in einer Zeile)                |
+| niedrig (quer)  | Container ≤ 18rem hoch         | Plätze ohne verdeckte Karten, Ansage ohne Statuszeile, Ergebnis zweispaltig |
+| Leiste schmal   | Fenster ≤ 40rem / ≤ 50rem      | Status in eigener Zeile / ohne Schriftzug                                   |
+| Fenster niedrig | Fenster ≤ 30rem hoch           | eigene Infos links neben der Hand, Karten ragen weiter hinaus               |
+
+Der Tisch hat `overflow: clip` (nicht `hidden`), damit der Fokus auf einer hinausragenden Karte
+ihn nicht verschiebt. Kein horizontales Scrollen: Die Überlappung der Hand richtet sich nach
+der Breite (`--hand-avail`).
+
+### Bewegung
+
+| Bewegung              | Dauer                                                 | Wie                                                          |
+| --------------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| Karte legen           | `--duration-slow` 360 ms                              | gleitet vom Platz des Spielers in den Stich                  |
+| Stich liegt           | 1 s (`TRICK_HOLD_MS`)                                 | ruhig; stechende Karte hebt sich (`scale`)                   |
+| Stich wegräumen       | `--duration-sweep` 420 ms                             | wandert zum Gewinner, wird kleiner und blasser (`--ease-in`) |
+| Austeilen             | 360 ms, Versatz `--duration-deal-step` 45 ms je Karte | Karten kommen nacheinander vom Tisch herunter                |
+| Fächer zusammenrücken | `--duration-base` 200 ms                              | nach dem Ausspielen                                          |
+| Dialoge, Sprechblasen | `--duration-slow` / `-base`                           | blenden ein und wachsen leicht (nur Deckkraft und `scale`)   |
+
+Bei „Bewegung reduzieren“ sind alle Dauern 0: Alles steht sofort an seinem Platz; der fertige
+Stich bleibt trotzdem 1 s liegen, damit man die vierte Karte sieht. `useTrickDisplay` liest
+`--duration-sweep` aus dem CSS, damit Zeitgeber und Animation zusammenpassen.
+
+![Karte legen](bilder/tisch/bewegung-1-karte-legen.webp)
+![Stich wandert zum Gewinner](bilder/tisch/bewegung-3-stich-wandert.webp)
+
+### Offen (für spätere Pakete)
+
+- **Sichten:** Für den Tisch hat in `TableView`/`HandView` nichts gefehlt.
+- **Hand umsortieren:** Wird nach der Ansage nach der Spielart neu sortiert, springen die Karten
+  an ihren Platz (keine Bewegung).
+- **Quer:** Die Ansage verdeckt den oberen Platz teilweise; das Gesagte steht im Dialog selbst.
+- **Verdeckte Karten der anderen** werden nicht einzeln ausgeteilt, sondern blenden ein.
 
 ## Verworfene Richtungen
 
