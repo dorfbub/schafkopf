@@ -3,7 +3,15 @@
  * lassen sich später als zweite Datei mit denselben Schlüsseln ergänzen.
  */
 
-import type { BidCall, BidLevel, Contract, ContractKind, Rank, Suit } from '@schafkopf/core';
+import type {
+  AllPassedRule,
+  BidCall,
+  BidLevel,
+  Contract,
+  ContractKind,
+  Rank,
+  Suit,
+} from '@schafkopf/core';
 import type { HostErrorCode } from '@schafkopf/net';
 
 export const SUIT_NAME: Record<Suit, string> = {
@@ -33,6 +41,7 @@ export function contractLabel(contract: Contract): string {
     wenz: 'Wenz',
     geier: 'Geier',
     bettel: 'Bettel',
+    ramsch: 'Ramsch',
   }[contract.kind];
   return contract.tout ? `${base} Tout` : base;
 }
@@ -120,6 +129,11 @@ export function money(cents: number): string {
   return `${sign}${(Math.abs(cents) / 100).toFixed(2).replace('.', ',')} €`;
 }
 
+/** Betrag ohne Vorzeichen: 150 → "1,50 €". */
+export function plainMoney(cents: number): string {
+  return money(cents).replace(/^[+−]/, '');
+}
+
 /** Texte der Grundbausteine (src/ui/kit). */
 export const UI_TEXT = {
   seatTurn: 'am Zug',
@@ -137,6 +151,7 @@ export const KIND_NAME: Record<ContractKind, string> = {
   farbwenz: 'Farbwenz',
   geier: 'Geier',
   bettel: 'Bettel',
+  ramsch: 'Ramsch',
 };
 
 /** Spielart ohne Farbe, wie sie im Zweikampf genannt wird. */
@@ -223,8 +238,33 @@ export const TABLE_TEXT = {
       .join(' · '),
   bidSaid: (name: string, what: string) => `${name}: ${what}`,
   bidMinimum: (label: string) => `Mindestens: ${label}`,
+  ramschStatus: 'Ramsch – jeder für sich',
+  pot: (amount: string) => `Pott ${amount}`,
+  mussStatus: (name: string) => `Muss – ${name} hat den Eichel-Ober`,
+  mussYou: 'Muss – du hast den Eichel-Ober',
+  mussTitle: 'Du musst spielen',
+  mussBody: 'Alle haben „weiter“ gesagt. Du hast den Eichel-Ober und musst ein Sauspiel spielen.',
+  mussBlocked:
+    'Du bist gesperrt: Du darfst auch eine Sau rufen, von deren Farbe du keine Karte hast.',
   // Ergebnis
   passedTitle: 'Alle weiter – es wird zusammengeworfen',
+  stockTitle: 'Alle weiter – jeder zahlt in den Stock',
+  mussFallbackTitle: 'Muss geht nicht – es wird zusammengeworfen',
+  mussFallbackHint: 'Wer den Eichel-Ober hat, hält alle drei Säue und kann keine rufen.',
+  potFilled: (each: string) => `Im Pott (jeder ${each} eingezahlt)`,
+  potWon: 'Pott gewonnen',
+  potStays: 'Pott bleibt stehen',
+  ramschLoser: (name: string) => `Ramsch – ${name} verliert`,
+  ramschDurchmarsch: (name: string) => `Durchmarsch – ${name} gewinnt`,
+  ramschHint: 'Alle weiter – jeder für sich. Wer die meisten Augen hat, zahlt an jeden.',
+  ramschHintDurchmarsch: 'Ab 91 Augen gewinnt der Spieler allein und bekommt von jedem.',
+  ramschJungfrauen: (names: string[]) =>
+    names.length === 1
+      ? `Jungfrau: ${names[0]} – der Betrag verdoppelt sich`
+      : `Jungfrauen: ${names.join(' und ')} – der Betrag vervierfacht sich`,
+  ramschPerPlayer: 'je Mitspieler',
+  colPoints: 'Augen',
+  jungfrau: 'Jungfrau',
   resultTitle: (names: string, plural: boolean, won: boolean) =>
     `${names} ${plural ? 'haben' : 'hat'} ${won ? 'gewonnen' : 'verloren'}`,
   and: ' und ',
@@ -319,6 +359,26 @@ export const RULES_TEXT = {
   invalid: 'Bitte eine ganze Zahl eingeben.',
   invalidRange: 'Bitte eine Zahl von 1 bis 8 eingeben.',
   guestHint: 'So wird an diesem Tisch gespielt. Der Gastgeber kann das vor dem Start ändern.',
+  allPassed: 'Wenn alle „weiter“ sagen',
+  allPassedName: {
+    zusammenwerfen: 'Zusammenwerfen',
+    ramsch: 'Ramsch',
+    stock: 'Stock',
+    muss: 'Muss',
+  } satisfies Record<AllPassedRule, string>,
+  allPassedHint: {
+    zusammenwerfen: 'Die Karten werden neu gegeben, niemand zahlt.',
+    ramsch: 'Jeder spielt für sich. Wer die meisten Augen hat, zahlt den Ramsch-Tarif an jeden.',
+    stock:
+      'Jeder zahlt den Einsatz in den Pott. Den Pott gewinnt, wer das nächste Spiel gewinnt (im Sauspiel geteilt).',
+    muss: 'Wer den Eichel-Ober hat, muss ein Sauspiel spielen. Hat er alle drei Säue, wird zusammengeworfen.',
+  } satisfies Record<AllPassedRule, string>,
+  tariffRamsch: 'Ramsch',
+  tariffStock: 'Stock-Einsatz',
+  durchmarsch: 'Durchmarsch: ab 91 Augen gewinnt man allein',
+  jungfrau: 'Jungfrau: jeder ohne Stich verdoppelt',
+  durchmarschShort: 'Durchmarsch',
+  jungfrauShort: 'Jungfrau',
   yes: 'ja',
   no: 'nein',
   cent: (n: number) => `${n} Cent`,

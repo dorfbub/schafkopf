@@ -21,7 +21,7 @@ import {
   sameContract,
 } from './modes';
 import { createRng, shuffle, type SeedInput } from './rng';
-import type { RuleSet } from './rules';
+import type { AllPassedRule, RuleSet } from './rules';
 import { type HandResult, scoreHand } from './scoring';
 import { followable, trickWinnerIndex } from './trick';
 
@@ -66,6 +66,8 @@ export interface Auction {
   waiting: Seat[];
   /** Zuletzt im Zweikampf genannte Spielart; das Spiel muss mindestens so hoch sein. */
   level: BidLevel | null;
+  /** Muss: `holder` muss ein Sauspiel nennen (Stufe 3 ohne „weiter“). */
+  forced: boolean;
 }
 
 export interface Trick {
@@ -144,7 +146,14 @@ export function dealHand(
     hands,
     initialHands: hands.map((h) => [...h]),
     bids: [],
-    auction: { stage: 'interest', holder: null, challenger: null, waiting: [], level: null },
+    auction: {
+      stage: 'interest',
+      holder: null,
+      challenger: null,
+      waiting: [],
+      level: null,
+      forced: false,
+    },
     contract: null,
     declarer: null,
     partner: null,
@@ -183,14 +192,19 @@ export function allLevels(rules: RuleSet): BidLevel[] {
   return out.sort((a, b) => bidValue(a) - bidValue(b));
 }
 
-/** Spiele, die `seat` mit seinem Blatt spielen dürfte, ab dem Rang `minValue`. */
+/**
+ * Spiele, die `seat` mit seinem Blatt spielen dürfte, ab dem Rang `minValue`. Im Muss
+ * (`auction.forced`) nur Sauspiele, mit gelockerter Ruf-Bedingung.
+ */
 function playable(state: HandState, seat: Seat, minValue: number): Contract[] {
   const hand = state.hands[seat]!;
+  const forced = state.auction.forced;
   return allContracts(state.rules).filter((contract) => {
     if (bidValue(contract) < minValue) return false;
+    if (forced && contract.kind !== 'sauspiel') return false;
     const mode = MODES[contract.kind];
     if (mode.eligible && !mode.eligible(hand)) return false;
-    return !mode.suitChoices || mode.suitChoices(hand).includes(contract.suit!);
+    return !mode.suitChoices || mode.suitChoices(hand, { forced }).includes(contract.suit!);
   });
 }
 
@@ -308,12 +322,24 @@ function startPlay(next: HandState, declarer: Seat | null, contract: Contract): 
 }
 
 /** Alle haben „weiter“ gesagt: die Tischregel aus der Registry entscheidet. Ändert `next`. */
-function allPassed(next: HandState): void {
-  const step = ALL_PASSED[next.rules.allPassed](next);
+function allPassed(next: HandState, rule: AllPassedRule = next.rules.allPassed): void {
+  const step = ALL_PASSED[rule](next);
   switch (step.type) {
     case 'finish':
       next.phase = 'finished';
       next.result = step.result;
+      return;
+    case 'play':
+      startPlay(next, null, step.contract);
+      return;
+    case 'forced':
+      next.auction.stage = 'declare';
+      next.auction.holder = step.seat;
+      next.auction.forced = true;
+      next.turn = step.seat;
+      return;
+    case 'fallback':
+      allPassed(next, step.rule);
       return;
   }
 }

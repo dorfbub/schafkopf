@@ -4,7 +4,7 @@
  *
  *  1. `Outcome` – wer hat gewonnen, was ist das Spiel wert (ohne Faktoren). Hängt als
  *     einzige Stufe an der Spielart: `MODES[kind].outcome` oder `partyOutcome`.
- *  2. `Factor`s – Verdopplungen von außen (Kontra/Re, Bock, Jungfrau; noch keine aktiv).
+ *  2. `Factor`s – Verdopplungen (Jungfrau im Ramsch; später Kontra/Re, Bock).
  *  3. Zahlungen und Pott – für alle Spielarten dieselbe Formel.
  *
  * Tarif (siehe RuleSet.tariff): Grundtarif + Schneider + Schwarz + Laufende.
@@ -37,6 +37,21 @@ export interface PartyDetails {
   sie: boolean;
 }
 
+/** Einzelheiten eines Ramschs (jeder für sich). Alle Listen nach Sitz. */
+export interface RamschDetails {
+  type: 'ramsch';
+  /** Augen je Sitz. */
+  points: number[];
+  /** Gewonnene Stiche je Sitz. */
+  tricks: number[];
+  /** Wer verliert; `null` beim Durchmarsch. */
+  loser: Seat | null;
+  /** Wer mit Durchmarsch gewinnt; sonst `null`. */
+  durchmarsch: Seat | null;
+  /** Spieler ohne Stich, die verdoppeln (leer, wenn abgeschaltet oder beim Durchmarsch). */
+  jungfrauen: Seat[];
+}
+
 /** Stufe 1 – wer hat gewonnen und was ist das Spiel wert (ohne Faktoren). */
 export interface Outcome {
   winners: Seat[];
@@ -50,7 +65,7 @@ export interface Outcome {
   parts: { label: ValuePart; amount: number }[];
   /** Hat die Spielerpartei gewonnen? `null`, wenn es keine gibt (Ramsch). */
   declarerWon: boolean | null;
-  details: PartyDetails;
+  details: PartyDetails | RamschDetails;
 }
 
 /** Stufe 2 – ein Faktor auf den Spielwert. Die Reihenfolge ist egal. */
@@ -199,9 +214,17 @@ export function outcomeOf(state: HandState): Outcome {
   return MODES[state.contract.kind].outcome?.(state) ?? partyOutcome(state);
 }
 
-/** Stufe 2: Faktoren von außen. Heute nur der Übertrag vom Tisch (Bock, K4; sonst 1). */
-export function factorsFor(state: HandState): Factor[] {
+/**
+ * Stufe 2: Faktoren. Jede Jungfrau im Ramsch verdoppelt; dazu der Übertrag vom Tisch
+ * (Bock, K4; sonst 1).
+ */
+export function factorsFor(state: HandState, outcome: Outcome): Factor[] {
   const factors: Factor[] = [];
+  if (outcome.details.type === 'ramsch') {
+    factors.push(
+      ...outcome.details.jungfrauen.map(() => ({ reason: 'jungfrau' as const, factor: 2 })),
+    );
+  }
   if (state.carry.factor !== 1) factors.push({ reason: 'bock', factor: state.carry.factor });
   return factors;
 }
@@ -209,7 +232,7 @@ export function factorsFor(state: HandState): Factor[] {
 /**
  * Stufe 3: Zahlungen. Jeder auf der größeren Seite zahlt bzw. bekommt `value × Faktoren`,
  * die kleinere Seite teilt sich die Gegensumme – bei 2:2, 1:3 und 3:1 dieselbe Formel.
- * Gewinnt die Spielerpartei, bekommt sie den Pott zu gleichen Teilen.
+ * Gewinnt die Spielerpartei, bekommt sie den Pott zu gleichen Teilen (Rest bleibt stehen).
  */
 export function settleOutcome(
   outcome: Outcome,
@@ -221,7 +244,9 @@ export function settleOutcome(
   const amount = factors.reduce((v, f) => v * f.factor, outcome.value);
   const larger = Math.max(winners.length, losers.length);
   const total = amount * larger;
-  const potWon = outcome.declarerWon === true && pot > 0 ? pot : 0;
+  // Jeder Gewinner bekommt den gleichen ganzen Betrag; ein Rest bleibt im Pott (Annahme 21).
+  const potShare = outcome.declarerWon === true && pot > 0 ? Math.floor(pot / winners.length) : 0;
+  const potWon = potShare * winners.length;
   const payments = Array.from({ length: players }, (_, s) => {
     // `|| 0` macht aus −0 (Spielwert 0) eine schlichte 0.
     if (winners.includes(s)) return (total + potWon) / winners.length || 0;
@@ -234,7 +259,7 @@ export function settleOutcome(
 /** Rechnet ein fertig gespieltes Spiel ab: alle drei Stufen. */
 export function scoreHand(state: HandState): HandResult {
   const outcome = outcomeOf(state);
-  const factors = factorsFor(state);
+  const factors = factorsFor(state, outcome);
   return {
     kind: 'played',
     outcome,

@@ -28,7 +28,7 @@ export interface TableState {
   seats: (PlayerInfo | null)[];
   /** Kontostand je Sitz in Cent. Immer gilt: Summe(balances) + pot = 0. */
   balances: number[];
-  /** Stock in Cent (noch nie gefüllt, solange es die Regel nicht gibt). */
+  /** Stock in Cent (nur mit `allPassed: 'stock'` je gefüllt). */
   pot: number;
   dealer: Seat;
   /** Laufende Nummer des Spiels, beginnend bei 1. 0 = noch in der Lobby. */

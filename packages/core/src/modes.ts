@@ -11,14 +11,23 @@
 import { type Card, type Rank, type Suit, RANKS, SUITS, card, rankOf, suitOf } from './cards';
 import type { HandState } from './hand';
 import type { Tariff } from './rules';
+import { ramschOutcome } from './ramsch';
 import type { Outcome } from './scoring';
 import { type CardOrder, effectiveSuit } from './trick';
 
 /**
  * Alle Spielarten, die ansagbaren in ihrer Rangfolge (niedrigste zuerst). Nicht ansagbare
- * Spielarten (später Ramsch) stehen am Ende; maßgeblich für den Rang ist `BID_ORDER`.
+ * Spielarten (Ramsch) stehen am Ende; maßgeblich für den Rang ist `BID_ORDER`.
  */
-export const CONTRACT_KINDS = ['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo'] as const;
+export const CONTRACT_KINDS = [
+  'sauspiel',
+  'bettel',
+  'geier',
+  'farbwenz',
+  'wenz',
+  'solo',
+  'ramsch',
+] as const;
 export type ContractKind = (typeof CONTRACT_KINDS)[number];
 
 /**
@@ -67,7 +76,7 @@ export type Parties =
   | 'everyone';
 
 /** Tarifklasse einer Spielart: welcher Grundtarif aus `RuleSet.tariff` gilt. */
-export type TariffClass = Exclude<keyof Tariff, 'extra'>;
+export type TariffClass = Exclude<keyof Tariff, 'extra' | 'stock'>;
 
 export interface ModeDefinition {
   kind: ContractKind;
@@ -80,8 +89,11 @@ export interface ModeDefinition {
   /** Welcher Grundtarif gilt. */
   tariff: TariffClass;
   canTout: boolean;
-  /** 'points' = 61 Augen nötig; 'noTricks' = Ansager darf keinen Stich machen. */
-  goal: 'points' | 'noTricks';
+  /**
+   * 'points' = 61 Augen nötig; 'noTricks' = Ansager darf keinen Stich machen;
+   * 'fewestPoints' = jeder für sich, wer die meisten Augen hat, verliert (Ramsch).
+   */
+  goal: 'points' | 'noTricks' | 'fewestPoints';
   /** Gibt es Laufende? Die Schwelle steht im `RuleSet` (`laufende`). */
   hasLaufende: boolean;
   /**
@@ -95,8 +107,11 @@ export interface ModeDefinition {
   rankOrder?: readonly Rank[];
   /** Darf dieses Blatt die Spielart überhaupt ansagen? (Standard: ja; Hochzeit: genau ein Trumpf) */
   eligible?(hand: readonly Card[]): boolean;
-  /** Welche Farben darf ein Spieler mit dieser Hand ansagen? (Standard: alle) */
-  suitChoices?(hand: readonly Card[]): Suit[];
+  /**
+   * Welche Farben darf ein Spieler mit dieser Hand ansagen? (Standard: alle)
+   * `forced`: er muss spielen (Muss) – die Spielart darf die Bedingung dann lockern.
+   */
+  suitChoices?(hand: readonly Card[], ctx?: { forced: boolean }): Suit[];
   /** Sonderregeln, die die bedienbaren Karten weiter einschränken (z. B. Rufsau). */
   restrictLegal?(ctx: LegalContext, candidates: Card[]): Card[];
   /** Eigene Auswertung statt der Partei-Abrechnung (Stufe 1, z. B. Ramsch). */
@@ -111,9 +126,27 @@ function suitCards(suit: Suit, without: readonly Rank[]): Card[] {
   return RANKS.filter((r) => !without.includes(r)).map((r) => card(suit, r));
 }
 
+/** Trümpfe wie im Sauspiel: Ober, Unter, Herz. */
+function sauspielTrumps(): Card[] {
+  return [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])];
+}
+
 function requireSuit(contract: Contract): Suit {
   if (!contract.suit) throw new Error(`Spielart ${contract.kind} braucht eine Farbe`);
   return contract.suit;
+}
+
+/**
+ * Rufbar ist jede Farbe außer Herz, von der man eine Farbkarte, aber nicht die Sau hat.
+ * Muss (`forced`) und nach diesen Regeln „gesperrt“: dann auch eine Sau, von deren Farbe man
+ * keine Karte hat – nur nicht Herz und keine, die man selbst hält.
+ */
+function rufbar(hand: readonly Card[], ctx?: { forced: boolean }): Suit[] {
+  const candidates = SUITS.filter((suit) => suit !== 'herz' && !hand.includes(card(suit, 'A')));
+  const normal = candidates.filter((suit) =>
+    hand.some((c) => suitOf(c) === suit && rankOf(c) !== 'O' && rankOf(c) !== 'U'),
+  );
+  return normal.length === 0 && ctx?.forced ? candidates : normal;
 }
 
 /**
@@ -154,15 +187,8 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     canTout: false,
     goal: 'points',
     hasLaufende: true,
-    trumps: () => [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])],
-    // Rufbar ist jede Farbe außer Herz, von der man eine Karte, aber nicht die Sau hat.
-    suitChoices: (hand) =>
-      SUITS.filter(
-        (suit) =>
-          suit !== 'herz' &&
-          !hand.includes(card(suit, 'A')) &&
-          hand.some((c) => suitOf(c) === suit && rankOf(c) !== 'O' && rankOf(c) !== 'U'),
-      ),
+    trumps: () => sauspielTrumps(),
+    suitChoices: rufbar,
     restrictLegal: restrictRufsau,
   },
   bettel: {
@@ -221,6 +247,19 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     goal: 'points',
     hasLaufende: true,
     trumps: (contract) => [...OBER, ...UNTER, ...suitCards(requireSuit(contract), ['O', 'U'])],
+  },
+  ramsch: {
+    kind: 'ramsch',
+    biddable: false,
+    suitRole: 'none',
+    parties: 'everyone',
+    tariff: 'ramsch',
+    canTout: false,
+    goal: 'fewestPoints',
+    hasLaufende: false,
+    trumps: () => sauspielTrumps(),
+    // Aufruf erst zur Laufzeit: `ramsch.ts` liest seinerseits `MODES` (Kreis der Module).
+    outcome: (state) => ramschOutcome(state),
   },
 };
 

@@ -1,6 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
-Stand November 2026. Umgesetzt ist bisher K3a (Umbau ohne Verhaltensänderung), siehe §12. Die
+Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung), K3b (Ramsch), K3c (Stock) und
+K3d (Muss), siehe §12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -471,9 +472,7 @@ durch 500 Referenzspiele (`packages/core/test/reference.test.ts`). `PROTOCOL_VER
 
 Noch nicht eingezogen, weil erst das jeweilige Paket sie braucht (ohne Verhalten wären es tote
 Zweige): Vorspiel-Hook und Phase `'prelude'` (§4, K5), `Auction.yielded` (K5), `suit2`/`suitCount`
-(H2), `suitChoices(hand, { forced })` und `Auction.forced` (K3d), `goal: 'fewestPoints'` und
-`RamschDetails` (K3b), die Schrittarten `play`, `forced`, `fallback` in `AllPassedStep` (K3b, K3d),
-`doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
+(H2), `doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
 
 Abweichungen von den Skizzen oben, mit Grund:
 
@@ -494,10 +493,45 @@ Abweichungen von den Skizzen oben, mit Grund:
   `tricksWon`) liefert den Index für Bots und die Hand-Sortierung (`sortHand(hand, contract, trick)`).
 - **Bots.** Der Heuristik-Bot bewertet nur die Spielarten in seiner Liste `KNOWN_KINDS` (§8) –
   neue Spielarten in `BID_ORDER` sagt er nicht von selbst an.
-- **Offen für K3c.** Stufe 3 teilt den Pott zu gleichen Teilen auf die Spielerpartei. Bei einem
-  Pott, der sich nicht glatt teilen lässt (ungerade bei zwei Spielern), entstünden gebrochene Cent.
-  Mit `Pott = 4 × Einsatz` kommt das nicht vor; K3c sichert das ab (Prüfung im Speicherstand oder
-  Regel für den Rest) – nicht raten, sondern bei Bedarf nachfragen.
+- **Teilung des Potts (erledigt mit K3c).** Stufe 3 teilt den Pott zu gleichen ganzen Cent auf die
+  Spielerpartei; ein Rest bleibt im Pott (Annahme 21, zur Bestätigung offen). Mit
+  `Pott = 4 × Einsatz` kommt ein Rest bei vier Spielern nicht vor.
 - **Speicherstand.** `parseHostSnapshot` prüft zusätzlich, dass `rules.allPassed` ein Eintrag in
   `ALL_PASSED` ist und `carry` gültig ist (Pott ≥ 0, Faktor ≥ 1), sonst würde ein beschädigter Stand
   erst bei „alle weiter“ abstürzen.
+
+**K3b (Ramsch, November 2026)** hat eingezogen: Spielart `ramsch` (`biddable: false`,
+`parties: 'everyone'`, `goal: 'fewestPoints'`, Trümpfe wie im Sauspiel) mit `outcome:
+ramschOutcome` in eigener Datei `ramsch.ts`; `RamschDetails` als zweite Form von
+`Outcome.details`; Schrittart `play` in `AllPassedStep`; `RuleSet.allPassed` jetzt in
+`RuleOptions` (vom Gastgeber wählbar, geprüft in `parseRuleOptions` gegen `ALL_PASSED_RULES`),
+`tariff.ramsch`, `RuleSet.ramsch` (`durchmarsch`, `jungfrau`). `PROTOCOL_VERSION` 7,
+`HOST_SNAPSHOT_VERSION` 7. Abweichungen und Ergänzungen:
+
+- **Jungfrau als Faktor.** `factorsFor(state, outcome)` bekommt das Outcome mit, weil die
+  Jungfrauen in `RamschDetails` stehen; je Jungfrau ein Eintrag `{ reason: 'jungfrau', factor: 2 }`.
+- **Gleichstand.** Annahme 10 lässt einen Rest offen (gleiche Augen und Stiche, keiner hat einen
+  Trumpf in seinen Stichen). Neu als Annahme 20: Dann verliert, wer den späteren Stich gemacht hat.
+- **`LaufendeKind`** schließt `ramsch` aus wie `bettel`.
+- **Bots.** Der Heuristik-Bot spielt im Ramsch nach einer einfachen Regel (drunter bleiben und
+  dabei teure Karten loswerden); besseres Spiel gehört zu B3.
+
+**K3c (Stock, November 2026)** hat eingezogen: Eintrag `stock` in `ALL_PASSED` (Schritt `finish`
+mit `payments = −Einsatz` je Sitz, `potDelta = Spieler × Einsatz`, `kind: 'passed'`),
+`tariff.stock` (nicht als Tarifklasse einer Spielart: `TariffClass` schließt `stock` aus), Rest der
+Pott-Teilung bleibt stehen (Annahme 21). Der Pott selbst lief schon seit K3a über `HandCarry`,
+`TableState.pot`, `TableView.pot` und `settle`. Oberfläche: Pott in der Tischleiste (bei Stock
+oder gefülltem Pott) und im Ergebnis (`PotNote`: eingezahlt, gewonnen, bleibt stehen).
+`PROTOCOL_VERSION` 8, `HOST_SNAPSHOT_VERSION` 8. Die Rückzahlung eines stehengebliebenen Potts am
+Ende des Abends (Annahme 13) gehört zu U4 und ist dort vermerkt.
+
+**K3d (Muss, November 2026)** hat eingezogen: Eintrag `muss` in `ALL_PASSED` mit den Schrittarten
+`forced` (Besitzer des Eichel-Obers, Stufe 3 mit `Auction.forced`) und `fallback` (Zusammenwerfen,
+wenn er alle drei Farb-Säue hält); `suitChoices(hand, ctx?: { forced })` – das Sauspiel lockert
+den Ruf nur, wenn die normale Liste leer ist („gesperrt“); `playable` lässt bei `forced` nur
+Sauspiele zu, „weiter“ gibt es dann nicht. Gespielt wird ein gewöhnliches Sauspiel (Rufsau-Regeln
+unverändert). Oberfläche: Ansage-Dialog „Du musst spielen“ mit vorgewähltem Sauspiel und Hinweis
+bei „gesperrt“, Tischleiste „Muss – … hat den Eichel-Ober“, eigener Titel beim Zusammenwerfen.
+Der Heuristik-Bot bewertet in Stufe 3 jetzt genau die erlaubten Spiele (auch gelockerte Rufe).
+`PROTOCOL_VERSION` 9, `HOST_SNAPSHOT_VERSION` 9. Abweichung: `fallback` trägt die Regel als
+`Exclude<AllPassedRule, 'muss'>`, damit kein Kreis entstehen kann.

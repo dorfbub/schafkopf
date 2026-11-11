@@ -1,7 +1,9 @@
 import type { HandView, TableView } from '@schafkopf/core';
-import { TABLE_TEXT, contractLabel, money } from '../../i18n/de';
+import { TABLE_TEXT, contractLabel, money, plainMoney } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
 import type { SeatInfo } from './layout';
+import { PotNote } from './PotNote';
+import { RamschResult } from './RamschResult';
 
 interface Props {
   view: TableView;
@@ -12,7 +14,7 @@ interface Props {
 }
 
 /** Betrag mit Minusfarbe, falls negativ. */
-function Money({ cents }: { cents: number }) {
+export function Money({ cents }: { cents: number }) {
   return <span className={cents < 0 ? 'text-negative' : undefined}>{money(cents)}</span>;
 }
 
@@ -66,8 +68,22 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
   );
 
   if (result.kind === 'passed' || !result.outcome) {
+    // Zusammengeworfen trotz Muss: der Eichel-Ober hält alle drei Säue.
+    const muss = view.rules.allPassed === 'muss';
     return (
-      <Dialog className="ergebnis" title={TABLE_TEXT.passedTitle} actions={actions}>
+      <Dialog
+        className="ergebnis"
+        title={
+          result.potDelta > 0
+            ? TABLE_TEXT.stockTitle
+            : muss
+              ? TABLE_TEXT.mussFallbackTitle
+              : TABLE_TEXT.passedTitle
+        }
+        actions={actions}
+      >
+        {muss && <p className="ergebnis__spiel">{TABLE_TEXT.mussFallbackHint}</p>}
+        <PotNote view={view} result={result} />
         {table}
       </Dialog>
     );
@@ -75,6 +91,11 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
 
   const { value } = result.outcome;
   const details = result.outcome.details;
+  if (details.type === 'ramsch') {
+    return (
+      <RamschResult view={view} result={result} details={details} seats={seats} actions={actions} />
+    );
+  }
   const names = details.party.map(seats.nameOf).join(TABLE_TEXT.and);
   const extras = [
     TABLE_TEXT.extras.tricks(details.partyTricks),
@@ -108,8 +129,9 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
       </div>
       <p className="ergebnis__wert">
         <span>{TABLE_TEXT.valuePerPlayer}</span>
-        <span className="num">{money(value).replace(/^[+−]/, '')}</span>
+        <span className="num">{plainMoney(value)}</span>
       </p>
+      <PotNote view={view} result={result} />
       {table}
     </Dialog>
   );

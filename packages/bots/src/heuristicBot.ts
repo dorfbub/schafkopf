@@ -280,6 +280,8 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
     }
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
+    case 'ramsch':
+      return -10; // nicht ansagbar
   }
 }
 
@@ -325,15 +327,12 @@ function bid(view: HandView, rng: Rng): BidCall {
       return passive;
     }
     case 'declare': {
-      const legal = calls.flatMap((c) => (c.type === 'declare' ? [c.contract] : []));
-      const legalRated = rated.filter((r) =>
-        legal.some(
-          (l) =>
-            l.kind === r.contract.kind &&
-            l.suit === r.contract.suit &&
-            Boolean(l.tout) === Boolean(r.contract.tout),
-        ),
-      );
+      // Bewertet werden genau die erlaubten Spiele – im Muss auch gelockerte Rufe, die
+      // `candidateContracts` nicht kennt.
+      const legalRated = calls
+        .flatMap((c) => (c.type === 'declare' ? [c.contract] : []))
+        .filter((contract) => KNOWN_KINDS.includes(contract.kind))
+        .map((contract) => ({ contract, margin: rateContract(view.hand, contract, deckSize) }));
       const pickWanted = bestOf(legalRated.filter((r) => r.margin >= 0));
       const fallback = [...legalRated].sort((a, b) => b.margin - a.margin)[0];
       const chosen = pickWanted ?? fallback;
@@ -370,7 +369,8 @@ function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
   const me = view.turn;
   const deck = createDeck(memory.deckSize < 32 ? 'kurz' : 'lang');
   const unseen = deck.filter((c) => !view.hand.includes(c) && !memory.played.has(c));
-  const declarer = view.declarer!;
+  // Im Ramsch gibt es keinen Ansager; dann ist jeder Gegner (`sideOf` liefert 'unknown').
+  const declarer = view.declarer;
   const alone = MODES[contract.kind].parties === 'alone';
   const partner = view.partner;
   const declarerSide = me === declarer || partner === me;
@@ -395,6 +395,7 @@ function play(view: HandView, memory: Memory, rng: Rng): Card {
   if (legal.length === 1) return legal[0]!;
   const ctx = makeCtx(view, memory, rng);
   if (ctx.contract.kind === 'bettel') return bettelCard(ctx, legal);
+  if (ctx.contract.kind === 'ramsch') return ramschCard(ctx, legal);
   return view.currentTrick.cards.length === 0 ? lead(ctx, legal) : follow(ctx, legal);
 }
 
@@ -589,6 +590,28 @@ function follow(ctx: Ctx, legal: readonly Card[]): Card {
     return maxBy(winners, (c) => str(ctx, c));
   }
   return cheapest(ctx, legal);
+}
+
+/**
+ * Ramsch: jeder für sich, Augen vermeiden. Regelgerecht und schlicht (bessere Strategie: B3):
+ *  - Anspielen: die niedrigste Karte, bevorzugt eine Farbkarte ohne Augen.
+ *  - Zugeben: Kann man drunter bleiben, die teuerste Karte, die den Stich nicht nimmt
+ *    (hohe Karten und Augen loswerden). Muss man stechen, die Karte mit den wenigsten Augen
+ *    (als Letzter davon die höchste, um sie loszuwerden).
+ */
+function ramschCard(ctx: Ctx, legal: readonly Card[]): Card {
+  const trick = ctx.view.currentTrick;
+  const jitter = () => ctx.rng() * 0.01;
+  if (trick.cards.length === 0) {
+    return minBy(legal, (c) => str(ctx, c) + (isTrump(ctx, c) ? 20 : 0) + pointsOf(c) + jitter());
+  }
+  const wins = (c: Card) => trickWinnerIndex([...trick.cards, c], ctx.order) === trick.cards.length;
+  const under = legal.filter((c) => !wins(c));
+  if (under.length > 0) return maxBy(under, (c) => pointsOf(c) * 2 + str(ctx, c) + jitter());
+  // Als Letzter gehört einem der Stich sicher: wenig Augen dazulegen, dabei eine hohe Karte loswerden.
+  if (laterSeats(ctx).length === 0)
+    return minBy(legal, (c) => pointsOf(c) * 10 - str(ctx, c) + jitter());
+  return minBy(legal, (c) => pointsOf(c) + str(ctx, c) * 0.1 + jitter());
 }
 
 /** Bettel: Der Spieler will keinen Stich, die Gegner wollen ihm einen aufzwingen. */

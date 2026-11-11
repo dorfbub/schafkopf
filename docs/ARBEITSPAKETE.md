@@ -69,7 +69,7 @@ Laufende. Annahmen aus REGELN.md, die Geschmackssache sind, als Optionen abbilde
 - **Abhängigkeit:** N4 (Lobby-Einstellungen).
 - **Abnahme:** Jede Option hat einen Test, der ihr Verhalten zeigt; Standard bleibt wie bisher.
 
-### K3 · „Alle weiter“: Ramsch, Stock, Muss (in K3a–K3d geschnitten)
+### K3 · „Alle weiter“: Ramsch, Stock, Muss (in K3a–K3d geschnitten, erledigt)
 
 Regeln: [REGELN.md](REGELN.md), „Varianten“. Schnittstellen:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md). Die Pakete K3a–K3d, K5, H1–H3 und K4 berühren
@@ -96,7 +96,7 @@ Eintrag `zusammenwerfen`; `DEFAULT_RULES.contracts` ausdrücklich aufgezählt.
   wie eine vor dem Umbau erzeugte, eingecheckte Liste. `docs/ARCHITEKTUR.md` („So wird erweitert“,
   Tabelle der Dateien) beschreibt die neuen Erweiterungspunkte.
 
-### K3b · Ramsch
+### K3b · Ramsch (erledigt)
 
 `allPassed: 'ramsch'`: Spielart `ramsch` (nicht ansagbar, jeder für sich), `ramschOutcome` mit
 Verlierer nach Augen, Durchmarsch ab 91 Augen, Jungfrau als Faktor; `RuleSet.ramsch`,
@@ -109,7 +109,7 @@ Verlierer nach Augen, Durchmarsch ab 91 Augen, Jungfrau als Faktor; `RuleSet.ram
   zwei Jungfrauen; Durchmarsch mit genau 91 und 90 Augen; beide Unteroptionen aus. Zufallsspiel-Test
   über Host mit vier Bots, in dem jedes Spiel „alle weiter“ beginnt. Summe der Zahlungen 0.
 
-### K3c · Stock
+### K3c · Stock (erledigt)
 
 `allPassed: 'stock'`: Einzahlung über `potDelta`, `TableState.pot`, Auszahlung an die Spielerpartei
 des nächsten gewonnenen Spiels gleich welcher Art; `tariff.stock`; `TableView.pot`, Pott-Anzeige am
@@ -122,7 +122,7 @@ Tisch und im Ergebnis; Lobby.
   `Summe(balances) + pot = 0`; Speicherstand mit Pott wird wiederhergestellt. Rückzahlung am Ende
   des Abends gehört zu U4 und ist dort vermerkt.
 
-### K3d · Muss
+### K3d · Muss (erledigt)
 
 `allPassed: 'muss'`: Besitzer des Eichel-Obers nennt ein Sauspiel (`auction.forced`), gelockerte
 Ruf-Bedingung nur wenn gesperrt, Zusammenwerfen bei drei eigenen Säuen; Hinweis im Ansage-Dialog;
@@ -349,7 +349,8 @@ Lukas wählt die Vorlage aus zwei bis drei Vorschlägen, bevor alle 32 Karten ge
 ### U4 · Abrechnung und Verlauf
 
 Ergebnis verständlich aufschlüsseln (Grundtarif, Schneider, Laufende …), Tabelle aller Spiele des
-Abends, Endabrechnung „wer zahlt wem“.
+Abends, Endabrechnung „wer zahlt wem“. Dazu gehört die Rückzahlung eines stehengebliebenen Potts
+(Stock, K3c) zu gleichen Teilen in der Endabrechnung (REGELN.md, Annahme 13).
 
 - **Abhängigkeit:** K7 für den Verlauf.
 

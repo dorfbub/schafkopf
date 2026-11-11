@@ -1,4 +1,5 @@
 import {
+  ALL_PASSED_RULES,
   BID_ORDER,
   LAUFENDE_KINDS,
   type ContractKind,
@@ -7,7 +8,7 @@ import {
   type TableView,
 } from '@schafkopf/core';
 import type { HostSession } from '@schafkopf/net';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
 
 interface Props {
@@ -16,11 +17,14 @@ interface Props {
 }
 
 function options(view: TableView): RuleOptions {
-  const { contracts, allowTout, tariff, laufende, sie, davonlaufen } = view.rules;
+  const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen } =
+    view.rules;
   return {
     contracts,
     allowTout,
+    allPassed,
     tariff: { ...tariff },
+    ramsch: { ...ramsch },
     laufende: { ...laufende },
     sie,
     davonlaufen,
@@ -30,6 +34,7 @@ function options(view: TableView): RuleOptions {
 /** Tischregeln des Gastgebers in der Lobby. Jede gültige Änderung gilt sofort für alle. */
 export function LobbySettings({ view, host }: Props) {
   const current = options(view);
+  const allPassedGroup = useId();
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
 
   const toggleContract = (kind: ContractKind, on: boolean) => {
@@ -85,6 +90,71 @@ export function LobbySettings({ view, host }: Props) {
           {T.davonlaufen}
         </label>
       </div>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.allPassed}</legend>
+        <div className="row">
+          {ALL_PASSED_RULES.map((rule) => (
+            <label key={rule} className="check">
+              <input
+                type="radio"
+                name={allPassedGroup}
+                value={rule}
+                checked={current.allPassed === rule}
+                onChange={() => change({ allPassed: rule })}
+              />
+              {T.allPassedName[rule]}
+            </label>
+          ))}
+        </div>
+        <p className="hint">{T.allPassedHint[current.allPassed]}</p>
+        {current.allPassed === 'stock' && (
+          <div className="row">
+            <NumberField
+              key={`stock-${current.tariff.stock}`}
+              label={T.tariffStock}
+              value={current.tariff.stock}
+              min={0}
+              max={100_000}
+              error={T.invalid}
+              onValid={(n) => change({ tariff: { ...current.tariff, stock: n } })}
+            />
+          </div>
+        )}
+        {current.allPassed === 'ramsch' && (
+          <div className="row">
+            <NumberField
+              key={`ramsch-${current.tariff.ramsch}`}
+              label={T.tariffRamsch}
+              value={current.tariff.ramsch}
+              min={0}
+              max={100_000}
+              error={T.invalid}
+              onValid={(n) => change({ tariff: { ...current.tariff, ramsch: n } })}
+            />
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={current.ramsch.durchmarsch}
+                onChange={(e) =>
+                  change({ ramsch: { ...current.ramsch, durchmarsch: e.target.checked } })
+                }
+              />
+              {T.durchmarsch}
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={current.ramsch.jungfrau}
+                onChange={(e) =>
+                  change({ ramsch: { ...current.ramsch, jungfrau: e.target.checked } })
+                }
+              />
+              {T.jungfrau}
+            </label>
+          </div>
+        )}
+      </fieldset>
 
       <fieldset className="regeln-einstellung__gruppe">
         <legend>{T.tariff}</legend>

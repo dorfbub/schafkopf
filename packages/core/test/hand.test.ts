@@ -405,7 +405,10 @@ describe('Spielablauf', () => {
         expect(state.tricks).toHaveLength(8);
         expect(state.tricks.reduce((sum, t) => sum + t.points, 0)).toBe(120);
         expect(state.hands.every((h) => h.length === 0)).toBe(true);
-        expect(sameContract(result.outcome!.details.contract, state.contract!)).toBe(true);
+        const details = result.outcome!.details;
+        expect(details.type === 'party' && sameContract(details.contract, state.contract!)).toBe(
+          true,
+        );
       }
     }
   });

@@ -11,7 +11,10 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * 6: Umbau für Sonderspiele (K3a): `HandResult` in Stufen (`outcome`, `factors`, `potDelta`),
  * `TableView.pot`.
  */
-export const PROTOCOL_VERSION = 6;
+/** 7: Ramsch (K3b): Spielart `ramsch` ohne Ansager, `RamschDetails`, `RuleSet.allPassed`/`ramsch`. */
+/** 8: Stock (K3c): `tariff.stock`, `allPassed: 'stock'`, Pott in `TableView.pot` gefüllt. */
+/** 9: Muss (K3d): `Auction.forced` in der Sicht, `allPassed: 'muss'`. */
+export const PROTOCOL_VERSION = 9;
 
 export type ClientMessage =
   | {

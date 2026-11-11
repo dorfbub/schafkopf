@@ -10,7 +10,6 @@
  */
 
 import {
-  ALL_PASSED,
   DEFAULT_RULES,
   type Seat,
   type TableState,
@@ -34,7 +33,10 @@ import {
  * 6: Umbau für Sonderspiele (K3a): `TableState.pot`, `HandState.carry`, `HandLog.carry`,
  * `HandResult` in Stufen.
  */
-export const HOST_SNAPSHOT_VERSION = 6;
+/** 7: Ramsch (K3b): `RuleSet.allPassed` einstellbar, `tariff.ramsch`, `ramsch`. */
+/** 8: Stock (K3c): `tariff.stock`; `TableState.pot` kann jetzt gefüllt sein. */
+/** 9: Muss (K3d): `Auction.forced` in `HandState`. */
+export const HOST_SNAPSHOT_VERSION = 9;
 
 export interface HostSnapshot {
   v: number;
@@ -101,8 +103,8 @@ function check(raw: unknown): HostSnapshot | null {
   if (!isObj(rules) || !hasKeys(rules, DEFAULT_RULES)) return null;
   const players = rules.players;
   if (!isInt(players, 2, 8)) return null;
+  // Prüft auch `allPassed` gegen die bekannten Regeln (`ALL_PASSED_RULES`).
   if (!parseRuleOptions(rules)) return null;
-  if (!isRuleKey(rules.allPassed)) return null;
   const last = players - 1;
 
   const { seats, balances, pot, dealer, handNo, hand, logs, history } = table;
@@ -183,7 +185,7 @@ function checkLogs(
     if (!isObj(log) || !isInt(log.handNo, 1, handNo) || !isSeed(log.seed)) return false;
     if (!isInt(log.dealer, 0, rules.players - 1) || !Array.isArray(log.actions)) return false;
     if (!isObj(log.rules) || !hasKeys(log.rules, DEFAULT_RULES)) return false;
-    if (!parseRuleOptions(log.rules) || !isRuleKey(log.rules.allPassed)) return false;
+    if (!parseRuleOptions(log.rules)) return false;
     if (!isCarry(log.carry)) return false;
   }
   for (const entry of history) {
@@ -208,11 +210,6 @@ function checkLogs(
   } catch {
     return false;
   }
-}
-
-/** Ist der Wert eine bekannte Regel für „alle weiter“? */
-function isRuleKey(value: unknown): boolean {
-  return typeof value === 'string' && Object.hasOwn(ALL_PASSED, value);
 }
 
 /** Übertrag vom Tisch: Pott ≥ 0, Faktor ≥ 1. */
