@@ -3,6 +3,7 @@ import type { AbsentSeatInfo } from '@schafkopf/net';
 import { useEffect, useState } from 'react';
 import { TABLE_TEXT, callLabel, money } from '../../i18n/de';
 import { Button, CardBack, PlayerSeat } from '../kit';
+import { GameSign, gameSign } from './GameSign';
 import type { SeatInfo } from './layout';
 
 /** Gastgeber-Befehle für getrennte Mitspieler; fehlt bei Gästen. */
@@ -51,10 +52,13 @@ export function SeatStats({ view, hand, seat }: { view: TableView; hand: HandVie
   );
 }
 
-/** Marken „Spieler“ und „Mitspieler“, sobald sie bekannt sind. */
+/**
+ * Am Platz des Spielers das Schild mit dem Spiel (siehe `GameSign`), am Platz des Mitspielers
+ * die Marke „Mitspieler“, sobald er bekannt ist.
+ */
 export function PartyMarks({ hand, seat }: { hand: HandView; seat: Seat }) {
-  if (hand.declarer === seat)
-    return <span className="marke marke--paper">{TABLE_TEXT.markDeclarer}</span>;
+  const sign = gameSign(hand);
+  if (sign && sign.seat === seat) return <GameSign info={sign} />;
   if (hand.partner === seat)
     return <span className="marke marke--paper">{TABLE_TEXT.markPartner}</span>;
   return null;
@@ -125,6 +129,7 @@ export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
                 </>
               )
             }
+            party={inParty(hand, seat)}
             marks={inParty(hand, seat) && <PartyMarks hand={hand} seat={seat} />}
             bubble={
               bid && <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>

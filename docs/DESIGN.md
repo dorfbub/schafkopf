@@ -193,7 +193,7 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 | Dialog       | `<Dialog>` / `.dialog`               | mittig auf dem Tisch oder im Fluss; nicht modal, die Hand bleibt bedienbar                                                |
 | Spielerplatz | `<PlayerSeat>` / `.player-seat`      | normal, am Zug (Messing-Schein + Marke), Geber („G“ am Bild), getrennt (gestrichelt + Marke), dazu Marken und Sprechblase |
 | Karte        | `<CardView>`, `<CardBack>` / `.card` | offen, verdeckt, spielbar (Messingrand, hebt sich), gesperrt (abgedunkelt), sticht (heller Rand)                          |
-| Marke        | `.marke`, `--brass`, `--paper`       | kleines Schild: „am Zug“, „Spieler“, „Mitspieler“, „getrennt“                                                             |
+| Marke        | `.marke`, `--brass`, `--paper`       | kleines Schild: „am Zug“, „Mitspieler“, „getrennt“, „Tout“                                                                |
 
 Karten laufen über die Schnittstelle `CardTheme`. **Einziges Kartenbild ist das bayerische Blatt**
 (`bayerischTheme` in `ui/cardTheme.tsx`), auch in der App selbst; das frühere schlichte Text-Kartenbild
@@ -246,6 +246,7 @@ Der Tisch nach der Richtung „Kartentisch“, gebaut mit den Bausteinen und Var
 
 **Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` („Ich würde“/„weiter“),
 `zweikampf` (du forderst), `halten` (du wirst gefordert), `nennen` (Spiel nennen), `warten`,
+`wenz` (du spielst einen Wenz), `tout` (Resi spielt ein Solo Tout),
 `stich` (laufender Stich, du bist dran), `letzter` (achter Stich, du legst die letzte Karte),
 `ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
 weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
@@ -255,8 +256,22 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 - **Leiste:** Spielnummer und Stich („Stich 4 von 8“), was gespielt wird („Xaver spielt Sauspiel
   auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Letzter Stich“ und „Verlassen“.
 - **Plätze der anderen** (`PlayerSeat`): am Zug = Messingschein + Marke „am Zug“, Geber = „G“ am
-  Bild, Marken „Spieler“/„Mitspieler“ (Papier), sobald bekannt; Stiche und Kontostand (Minus in
+  Bild, Spielschild bzw. Marke „Mitspieler“ (siehe unten), sobald bekannt; Stiche und Kontostand (Minus in
   Minusfarbe); in der Ansage das Gesagte als Sprechblase („weiter“ kursiv).
+- **Wer spielt was** (Punkt vom Spielabend, umgesetzt nach D3; Lukas soll noch bestätigen):
+  - Am Platz des Spielers steht statt der Marke „Spieler“ das **Spielschild** (`GameSign.tsx`):
+    Papier mit Schatten, Fraunces, darin das Zeichen und der kurze Name der Spielart – im
+    Sauspiel das Farbzeichen der Rufsau, im Solo und Farbwenz das der Trumpffarbe, bei Wenz „U“
+    und Geier „O“ (Eckbuchstabe in Akzentfarbe), beim Bettel nur das Wort. Tout als
+    Messing-Marke im Schild. Auf breitem Tisch `--text-lg`, sonst `--text-md`; erscheint mit
+    `dialog-rein`. Für Bildschirmleser „spielt Sauspiel auf die Gras-Sau“.
+  - **Partei hervorgehoben:** Spieler und – sobald bekannt – Mitspieler haben ein helles Bild
+    (Papier statt Filz, `player-seat--party` bzw. `eigen--partei`); der Mitspieler behält die
+    Marke „Mitspieler“. Der Messingschein „am Zug“ liegt darüber.
+  - Die Zeile in der Leiste („Xaver spielt Sauspiel auf die Eichel-Sau“) bleibt als Langform.
+  - **Erweiterbar:** `gameSign(hand)` liefert Platz, Zeichen, Namen und Zusätze. Ramsch (kein
+    Spieler) bekommt dort `seat: null` und ein Schild in der Tischmitte, Kontra/Re weitere
+    Zusätze (`extras`), die Hochzeit einen eigenen Namen.
 - **Stich:** mittig, jede Karte vor ihrem Spieler, leicht gedreht. Der fertige Stich bleibt liegen,
   die stechende Karte hat den hellen Rand, darüber „Lukas sticht · 14 Augen“.
 - **Eigener Platz:** Bild, Name, Stiche, Stand, Marken, „Du bist dran“/„Du sagst an“ in Messing.

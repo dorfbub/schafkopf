@@ -6,6 +6,8 @@ interface Props {
   /** Nebeninfo unter dem Namen, z. B. „2 Stiche · +0,30 €“. */
   info?: ReactNode;
   turn?: boolean;
+  /** Gehört zur Partei des Spielers (Spieler oder bekannter Mitspieler). */
+  party?: boolean;
   dealer?: boolean;
   disconnected?: boolean;
   /** Ein Bot vertritt den getrennten Spieler. */
@@ -24,13 +26,14 @@ interface Props {
 }
 
 /**
- * Platz eines Mitspielers am Tisch mit den Zuständen „am Zug“, „Geber“, „getrennt“ und
- * „Bot vertritt“.
+ * Platz eines Mitspielers am Tisch mit den Zuständen „am Zug“, „Partei des Spielers“, „Geber“,
+ * „getrennt“ und „Bot vertritt“.
  */
 export function PlayerSeat({
   name,
   info,
   turn,
+  party,
   dealer,
   disconnected,
   standIn,
@@ -44,6 +47,7 @@ export function PlayerSeat({
   const classes = [
     'player-seat',
     turn && 'player-seat--turn',
+    party && 'player-seat--party',
     dealer && 'player-seat--dealer',
     disconnected && 'player-seat--disconnected',
     disconnected && standIn && 'player-seat--stand-in',

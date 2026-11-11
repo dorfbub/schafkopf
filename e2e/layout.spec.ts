@@ -25,11 +25,15 @@ for (const size of SIZES) {
 
     // Bei jedem Bild die Größe der Tischfläche und die Zahl der eigenen Karten mitschreiben.
     await page.evaluate(() => {
-      const w = window as unknown as { __raum: [number, number, number][] };
+      const w = window as unknown as { __raum: [number, number, number][]; __schild: boolean };
       w.__raum = [];
+      w.__schild = false;
       const step = () => {
         const tisch = document.querySelector('main.tisch');
         const raum = document.querySelector('.tisch__raum');
+        // Im Spiel steht am Platz des Spielers das Spielschild.
+        if (tisch?.classList.contains('tisch--playing') && document.querySelector('.spielschild'))
+          w.__schild = true;
         if (tisch && raum && !tisch.classList.contains('tisch--bidding')) {
           const r = raum.getBoundingClientRect();
           const cards = document.querySelectorAll('.hand .card').length;
@@ -57,6 +61,9 @@ for (const size of SIZES) {
 
     const samples = await page.evaluate(
       () => (window as unknown as { __raum: [number, number, number][] }).__raum,
+    );
+    expect(await page.evaluate(() => (window as unknown as { __schild: boolean }).__schild)).toBe(
+      true,
     );
     // Es muss mit einer und ohne Karte gemessen worden sein (siebter → achter Stich → Ende).
     expect(samples.some(([, , cards]) => cards === 1)).toBe(true);

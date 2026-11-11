@@ -6,16 +6,15 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
-| Thema                            | Größe                     | Klären                               |
-| -------------------------------- | ------------------------- | ------------------------------------ |
-| Mehrere Kartensets               | mittel                    | Welche Sets zuerst; Lizenzen         |
-| Watten                           | groß                      | Variante(n); integrieren oder forken |
-| Android-App                      | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Weitere Hausregeln               | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Mischen wie am echten Tisch      | klein                     | –                                    |
-| Letzten Stich besser zeigen      | klein                     | Wo soll er hin?                      |
-| Spielverlauf nach dem Spiel      | mittel                    | –                                    |
-| Wer spielt was – besser sichtbar | klein bis mittel          | Gestaltung mit Lukas                 |
+| Thema                       | Größe                     | Klären                               |
+| --------------------------- | ------------------------- | ------------------------------------ |
+| Mehrere Kartensets          | mittel                    | Welche Sets zuerst; Lizenzen         |
+| Watten                      | groß                      | Variante(n); integrieren oder forken |
+| Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
+| Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
+| Mischen wie am echten Tisch | klein                     | –                                    |
+| Letzten Stich besser zeigen | klein                     | Wo soll er hin?                      |
+| Spielverlauf nach dem Spiel | mittel                    | –                                    |
 
 ---
 
@@ -118,19 +117,3 @@ hat und welche Karte den Stich gemacht hat.
 - **Anzeige:** im Ergebnis-Dialog aufklappbar „So wurde gespielt“: acht Zeilen, je Stich die vier
   Karten in Spielreihenfolge, die stechende Karte hervorgehoben. Gehört zu U4 (Abrechnung und
   Verlauf) oder als eigenes Paket direkt danach; nach K3a, weil K3a das Ergebnis umbaut.
-
-## Wer spielt was – besser sichtbar
-
-Lukas: Man sollte einfacher sehen, wer spielt und was. Die Zeile oben in der Tischleiste ist sehr
-klein und nur Text.
-
-- **Heute:** Spielart und Spieler stehen als Text in der Tischleiste (`TableBar.tsx`,
-  `tisch-leiste__status`); am Spielerplatz gibt es zusätzlich die Marken „Spieler“ und
-  „Mitspieler“ (sobald bekannt).
-- **Ideen:** ein deutliches Schild in der Tischmitte bzw. am Platz des Spielers mit dem
-  Spiel-Symbol (z. B. Farbzeichen der Rufsau oder Trumpffarbe, „Wenz“, „Geier“) und dem Namen;
-  Spieler-Platz farbig hervorgehoben; bei Tout/Sonderspielen eigene Kennzeichnung. Muss mit den
-  kommenden Sonderspielen (K3–K5, H1–H3) mitwachsen, etwa Ramsch ohne Spieler oder die Hochzeit.
-- **Vorgehen:** Gestaltungspaket mit Lukas im Dialog (Haltepunkt mit Bildschirmfotos), gut
-  zusammen mit „Letzten Stich besser zeigen“; nach K3a, damit die neuen Ergebnis- und
-  Spielarten-Strukturen schon stehen.

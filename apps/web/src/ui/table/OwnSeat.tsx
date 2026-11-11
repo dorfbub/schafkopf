@@ -38,11 +38,12 @@ export function OwnSeat({ view, hand, seats, onPlay }: Props) {
   const myTurn = hand.turn === me && hand.phase !== 'finished';
   const cards = sortHand(hand.hand, hand.contract, tricksPlayed(hand));
   const n = cards.length;
-  const turnText =
-    myTurn && (hand.phase === 'bidding' ? TABLE_TEXT.yourTurnBid : TABLE_TEXT.yourTurnPlay);
+  const turnText = hand.phase === 'bidding' ? TABLE_TEXT.yourTurnBid : TABLE_TEXT.yourTurnPlay;
 
   return (
-    <footer className={`eigen${myTurn ? ' eigen--dran' : ''}`}>
+    <footer
+      className={`eigen${myTurn ? ' eigen--dran' : ''}${inParty(hand, me) ? ' eigen--partei' : ''}`}
+    >
       <div className="eigen__info">
         <span className="eigen__avatar" aria-hidden="true">
           {seats.nameOf(me).slice(0, 1).toUpperCase()}
@@ -58,7 +59,9 @@ export function OwnSeat({ view, hand, seats, onPlay }: Props) {
           <SeatStats view={view} hand={hand} seat={me} />
         </span>
         {inParty(hand, me) && <PartyMarks hand={hand} seat={me} />}
-        {turnText && <strong className="eigen__dran">{turnText}</strong>}
+        {/* Steht immer da (unsichtbar, wenn andere dran sind), damit die Zeile gleich umbricht
+            und der Tisch nicht springt. */}
+        <strong className={`eigen__dran${myTurn ? '' : ' eigen__dran--aus'}`}>{turnText}</strong>
       </div>
       {/*
        * Die Handzeile bleibt auch ohne Karten stehen und behält ihre Höhe – sonst wächst der

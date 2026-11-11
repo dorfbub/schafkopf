@@ -183,7 +183,7 @@ export const TABLE_TEXT = {
   waitingFor: (name: string) => `${name} ist dran`,
   tricks: (n: number) => (n === 1 ? '1 Stich' : `${n} Stiche`),
   cards: (n: number) => (n === 1 ? '1 Karte' : `${n} Karten`),
-  markDeclarer: 'Spieler',
+  signLabel: (label: string) => `spielt ${label}`,
   markPartner: 'Mitspieler',
   pass: 'weiter',
   thinking: '…',
