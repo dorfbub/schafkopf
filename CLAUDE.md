@@ -9,6 +9,7 @@ bleiben deutsch (`sauspiel`, `wenz`, `laufende`).
 - `docs/ARCHITEKTUR.md` – Aufbau, Schnittstellen, Erweiterungspunkte
 - `docs/REGELN.md` – verbindliche Spielregeln; Referenz für Tests
 - `docs/ARBEITSPAKETE.md` – die offenen Pakete mit Abnahmekriterien
+- `docs/BACKLOG.md` – langfristige Themen, noch nicht in Pakete geschnitten
 
 ## Befehle
 

@@ -2,7 +2,8 @@
 
 Jedes Paket ist so geschnitten, dass ein Agent es eigenständig erledigen kann: klarer Bereich,
 klare Abnahme. Vor dem Start [ARCHITEKTUR.md](ARCHITEKTUR.md) und [REGELN.md](REGELN.md) lesen;
-die Arbeitsweise steht in [`CLAUDE.md`](../CLAUDE.md).
+die Arbeitsweise steht in [`CLAUDE.md`](../CLAUDE.md). Langfristige Themen ohne Paket stehen
+im [Backlog](BACKLOG.md).
 
 **Für alle Pakete gilt als Abnahme zusätzlich:** `npm run check` und `npm run build` laufen sauber
 durch, neue Logik hat Tests, betroffene Doku ist angepasst.
