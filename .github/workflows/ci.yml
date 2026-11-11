@@ -26,11 +26,32 @@ jobs:
         with:
           path: apps/web/dist
 
+  # Ende-zu-Ende-Tests (I2): zwei Tabs im selben Browser, Transport ohne öffentliche Relays.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
   # Veröffentlicht main auf GitHub Pages.
   # Einmalig nötig: Settings → Pages → Source: "GitHub Actions".
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: check
+    needs: [check, e2e]
     runs-on: ubuntu-latest
     permissions:
       pages: write

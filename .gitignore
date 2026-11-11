@@ -10,3 +10,6 @@ coverage/
 
 # Lokale Worktrees der Claude-Sitzungen
 .claude/worktrees/
+dist-e2e/
+test-results/
+playwright-report/

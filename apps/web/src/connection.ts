@@ -16,6 +16,7 @@ import {
   parseRelayUrls,
   parseTurnConfig,
 } from '@schafkopf/net';
+import { createBroadcastClient, createBroadcastHost } from '@schafkopf/net/broadcast';
 import {
   type TrysteroOptions,
   createTrysteroClient,
@@ -247,8 +248,24 @@ export function signalingOptions(): TrysteroOptions {
   return options;
 }
 
+/**
+ * Einstellungen nur für die Ende-zu-Ende-Tests (I2): ein Transport ohne Relays
+ * (`?transport=broadcast`) und verkürzte Zeiten (`?botDelay=`, `?standIn=`, in ms).
+ * Gibt es nur in einem Build mit `VITE_E2E=1`; sonst entfernt der Build den Zweig samt Transport.
+ */
+const E2E = import.meta.env.VITE_E2E === '1';
+const E2E_PARAMS = E2E ? new URLSearchParams(window.location.search) : null;
+const USE_BROADCAST = E2E && E2E_PARAMS?.get('transport') === 'broadcast';
+
+function e2eNumber(key: string): number | undefined {
+  const text = E2E_PARAMS?.get(key);
+  const n = text === null || text === undefined || text === '' ? NaN : Number(text);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
+
 function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
   return {
+    ...(E2E ? { botDelayMs: e2eNumber('botDelay'), standInDelayMs: e2eNumber('standIn') } : {}),
     createBot: (seat) => createHeuristicBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
   };
 }
@@ -276,7 +293,11 @@ function hostConnection(host: HostSession, name: string): Connection {
   const pair = createLoopbackPair();
   host.addTransport(pair.host);
   const { roomId } = host;
-  if (roomId) host.addTransport(createTrysteroHost(roomId, signalingOptions()));
+  if (roomId) {
+    host.addTransport(
+      USE_BROADCAST ? createBroadcastHost(roomId) : createTrysteroHost(roomId, signalingOptions()),
+    );
+  }
   const id = clientId();
   const stopSaving = keepSaved(host, id, name);
   const client = new ClientSession(pair.client, { name, clientId: id });
@@ -293,10 +314,10 @@ function hostConnection(host: HostSession, name: string): Connection {
 }
 
 export function joinTable(name: string, roomId: string): Connection {
-  const client = new ClientSession(createTrysteroClient(roomId, signalingOptions()), {
-    name,
-    clientId: clientId(),
-  });
+  const transport = USE_BROADCAST
+    ? createBroadcastClient(roomId)
+    : createTrysteroClient(roomId, signalingOptions());
+  const client = new ClientSession(transport, { name, clientId: clientId() });
   return { client, host: null, roomId, close: () => client.close() };
 }
 

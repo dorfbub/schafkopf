@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./trystero": "./src/trysteroTransport.ts"
+    "./trystero": "./src/trysteroTransport.ts",
+    "./broadcast": "./src/broadcastTransport.ts"
   },
   "dependencies": {
     "@schafkopf/core": "*",
