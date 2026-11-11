@@ -216,7 +216,8 @@ Der Tisch nach der Richtung „Kartentisch“, gebaut mit den Bausteinen und Var
 | `apps/web/src/styles/table.css`            | Layout, Größenstufen und Bewegung des Tischs                                                |
 | `apps/web/src/muster/Tischprobe.tsx`       | Tischprobe mit festen Spielständen, nur im Entwicklungsserver (siehe unten)                 |
 
-**Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` (du sagst an), `warten`,
+**Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` („Ich würde“/„weiter“),
+`zweikampf` (du forderst), `halten` (du wirst gefordert), `nennen` (Spiel nennen), `warten`,
 `stich` (laufender Stich, du bist dran), `ergebnis`, `zuschauer`; mit `&auto=1` spielen die anderen
 weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
@@ -232,11 +233,20 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 - **Eigener Platz:** Bild, Name, Stiche, Stand, Marken, „Du bist dran“/„Du sagst an“ in Messing.
   Darunter die Hand als Fächer, Trümpfe zuerst; die Karten ragen unten aus dem Bild (sichtbar
   `--hand-visible`). Spielbar = Messingrand und hebt sich; nicht spielbar = abgedunkelt.
-- **Ansage-Dialog:** erst Spielart, dann Farbe (mit Farbzeichen aus dem Kartenbild,
-  `CardTheme.suit`), Tout als Schalter in der Knopfzeile. Nur was `legalContracts` erlaubt ist
-  wählbar, der Rest gesperrt. Oben: wer was gesagt hat, wer noch kommt, was zu überbieten ist.
-  Ist nur eine Farbe möglich, ist sie vorgewählt. Nicht modal; der Fokus springt beim Erscheinen
-  in den Dialog.
+- **Ansage-Dialog** (zweistufig, K1), je Stufe ein eigener Inhalt:
+  - „Würdest du spielen?“ – Knöpfe „Weiter“ und „Ich würde“.
+  - Zweikampf, man fordert: „Gegen Xaver: Was hast du?“ – nur die Spielart (keine Farbe), Tout als
+    Schalter; Knöpfe „Aufgeben“ und „„Wenz“ sagen“. Darunter, wer hält und was zu überbieten ist.
+  - Zweikampf, man hält: „Resi sagt: Solo“ – Knöpfe „Gut“ und „Ich auch“.
+  - Spiel nennen: erst Spielart, dann Farbe (mit Farbzeichen aus dem Kartenbild, `CardTheme.suit`),
+    Tout als Schalter; oben „Mindestens: Wenz“. Geht eine Spielart nur noch als Tout, schaltet die
+    Wahl Tout ein und sperrt den Schalter. Ist nur eine Farbe möglich, ist sie vorgewählt.
+
+  Nur was `legalCalls` erlaubt ist wählbar, der Rest gesperrt. Oben: was die anderen zuletzt gesagt
+  haben, in der ersten Runde auch, wer noch kommt. Nicht modal; der Fokus springt bei jedem neuen
+  Schritt in den Dialog. Die Sprechblasen an den Plätzen zeigen den letzten Ruf („weiter“ und
+  „gut“ kursiv).
+
 - **Ergebnis-Dialog:** Spielart, „Xaver und Lukas haben gewonnen“, Augen groß mit Balken (Marke
   bei 61), Stiche/Schneider/Schwarz/Sie/Laufende als Stichworte, Betrag je Gegenspieler, Tabelle
   Spiel/Stand. Die Aufschlüsselung und der Verlauf folgen mit U4. Erscheint erst, wenn der letzte
