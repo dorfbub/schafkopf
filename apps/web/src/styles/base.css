@@ -1,0 +1,109 @@
+/*
+ * Grundstile: Schriften, Zurücksetzen, Grundtypografie und Flächen.
+ * Nur Variablen aus tokens.css, keine festen Werte.
+ */
+
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/source-sans-3/index.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  font-size: 100%;
+  line-height: var(--leading-normal);
+  color: var(--color-on-felt);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 42%, var(--color-ground-glow) 0%, transparent 72%) fixed,
+    var(--color-ground);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  line-height: var(--leading-tight);
+}
+
+h1 {
+  font-size: var(--text-2xl);
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+
+/* Zahlen in Tabellen und Ständen untereinander */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Flächen: setzen Schrift- und Fokusfarbe für alles darin */
+.surface-felt {
+  color: var(--color-on-felt);
+  --focus-color: var(--color-brass);
+  --text-muted: var(--color-on-felt-muted);
+  --text-negative: var(--color-negative-on-felt);
+}
+
+.surface-paper {
+  color: var(--color-on-paper);
+  --focus-color: var(--color-accent);
+  --text-muted: var(--color-on-paper-muted);
+  --text-negative: var(--color-negative-on-paper);
+}
+
+:root {
+  --text-muted: var(--color-on-felt-muted);
+  --text-negative: var(--color-negative-on-felt);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-negative {
+  color: var(--text-negative);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: var(--border-thin);
+  height: var(--border-thin);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,173 @@
+/*
+ * Gestaltungsvariablen „Kartentisch“ (D2). Einzige Stelle mit festen Farb-, Größen- und
+ * Zeitwerten; alle anderen Stile verwenden nur diese Variablen. Beschreibung und
+ * Kontrastwerte: docs/DESIGN.md, Abschnitt „Gestaltungssystem“.
+ *
+ * Es gibt nur die dunkle Filz-Variante (Entscheidung Lukas, D2). Eine helle Variante
+ * ließe sich später als zweiter Satz derselben Namen ergänzen.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- Farben: Tisch ---------- */
+  --color-ground: #0d2a18; /* Hintergrund um den Tisch */
+  --color-ground-glow: #1a4a2c; /* Lichtschein hinter dem Tisch */
+  --color-felt: #17603a; /* Tischplatte */
+  --color-felt-deep: #0f4428; /* Verlauf zum Rand */
+  --color-felt-light: #1b663f; /* Lampenlicht – hellste Stelle, maßgeblich für Kontraste */
+  --color-felt-raised: #12391f; /* Flächen auf dem Filz: Platz, Leiste */
+  --color-felt-line: #3d7a52; /* Linien und Ränder auf Grün */
+  --color-felt-shade: rgb(0 0 0 / 0.25); /* Marken auf Grün */
+  --color-wood: #4a2f1c; /* Holzrand */
+  --color-wood-dark: #2a1a0e;
+  --color-wood-edge: rgb(138 106 74 / 0.33);
+
+  /* ---------- Farben: Schrift auf Grün ---------- */
+  --color-on-felt: #f5f0e4;
+  --color-on-felt-muted: #d0dfd0;
+  --color-negative-on-felt: #ffc8bd;
+
+  /* ---------- Farben: Messing (wer dran ist, spielbar) ---------- */
+  --color-brass: #e9c46a;
+  --color-brass-soft: rgb(233 196 106 / 0.2);
+  --color-brass-glow: rgb(233 196 106 / 0.53);
+  --color-on-brass: #2a1a08;
+
+  /* ---------- Farben: Papier (Dialoge, Tafeln) ---------- */
+  --color-paper: #fbf7ec;
+  --color-paper-raised: #ffffff; /* Eingabefelder, Wahlknöpfe auf Papier */
+  --color-paper-line: #d9d0bd;
+  --color-paper-line-soft: #e9e1cf;
+  --color-paper-control: #8a7d66; /* Rand von Eingabefeldern, ≥ 3 : 1 */
+  --color-on-paper: #1f1a14;
+  --color-on-paper-muted: #6b6355;
+  --color-negative-on-paper: #b42318;
+
+  /* ---------- Farben: Akzent (Hauptknopf, Auswahl) ---------- */
+  --color-accent: #b45309;
+  --color-accent-hover: #9a4708;
+  --color-on-accent: #ffffff;
+
+  /* ---------- Farben: Karten ---------- */
+  --color-card-face: #ffffff;
+  --color-card-edge: #a8a29e;
+  --color-card-back: #1f4f8a;
+  --color-card-back-line: rgb(255 255 255 / 0.13);
+  --color-card-back-rim: #ffffff;
+
+  /* ---------- Farben: Sonstiges ---------- */
+  --color-scrim: rgb(0 0 0 / 0.45); /* Abdunkeln hinter Dialogen */
+  --color-locked: rgb(13 42 24 / 0.55); /* Schleier über gesperrten Karten */
+
+  /* Fokusring: auf Grün Messing, auf Papier der Akzent (je ≥ 3 : 1). */
+  --focus-color: var(--color-brass);
+  --focus-width: 3px;
+  --focus-offset: 2px;
+
+  /* ---------- Schrift ---------- */
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-body: 'Source Sans 3 Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --text-xs: 0.75rem; /* 12 px – nur Marken */
+  --text-sm: 0.875rem; /* 14 px – Nebeninfos */
+  --text-md: 1rem; /* 16 px – Grundtext */
+  --text-lg: 1.25rem; /* 20 px – Namen, Dialogtitel klein */
+  --text-xl: 1.5rem; /* 24 px – Dialogtitel */
+  --text-2xl: 2rem; /* 32 px – Seitentitel, Augenzahl */
+
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-display: 650;
+  --weight-display-light: 500;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --tracking-caps: 0.03em; /* Großbuchstaben in Marken */
+
+  /* ---------- Abstände (4-px-Raster) ---------- */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem; /* 16 */
+  --space-5: 1.5rem; /* 24 */
+  --space-6: 2rem; /* 32 */
+  --space-7: 3rem; /* 48 */
+
+  /* ---------- Größen ---------- */
+  --control-height: 2.75rem; /* 44 px Tippfläche */
+  --control-height-sm: 2.25rem;
+  --border-thin: 1px;
+  --border-medium: 1.5px;
+  --border-thick: 3px;
+  --avatar-size: 2.75rem;
+  --content-width: 34rem; /* Start, Lobby */
+  --dialog-width: 30rem;
+  --dialog-width-wide: 38rem; /* Ansage: alle Spielarten in einer Reihe */
+  --seat-max-width: 34vw;
+  --rim-width: 12px; /* Holzrand um den Filz */
+
+  /* Karten: Breite passt sich dem Bildschirm an; Seitenverhältnis des bayerischen Blatts. */
+  --card-w: clamp(44px, 9.5vw, 78px);
+  --card-w-mini: 20px; /* verdeckte Karten am Platz */
+  --card-ratio: 115 / 195;
+  --card-h: calc(var(--card-w) * 195 / 115);
+  --card-radius: calc(var(--card-w) * 0.1);
+  --card-lift: -12%; /* spielbare Karte hebt sich beim Zeigen */
+
+  /* ---------- Spieltisch (D3) ---------- */
+  /* Hand: Karten werden mit Breite und Höhe des Bildschirms größer; Fächer je Karte. */
+  --hand-card-w: clamp(56px, min(18vw, 16vh), 104px);
+  --hand-card-h: calc(var(--hand-card-w) * 195 / 115);
+  --hand-max-width: 60rem;
+  --hand-fan: 3deg; /* Drehung je Karte */
+  --hand-arc: 2px; /* Bogen: Absenkung je Karte, quadratisch zum Rand hin */
+  --hand-overlap-min: 0.08; /* Mindestüberlappung als Anteil der Kartenbreite */
+  --hand-visible: 0.8; /* sichtbarer Anteil der Kartenhöhe, der Rest ragt unten hinaus */
+  /* Stich: richtet sich nach der Tischfläche (Container-Einheiten). */
+  --trick-card-w: clamp(40px, 17cqmin, 104px);
+  --trick-tilt: 4deg;
+  --seat-avatar-sm: 2.25rem; /* eigener Platz, enge Plätze */
+  --switch-w: 3.25rem;
+  --switch-h: 1.75rem;
+
+  /* ---------- Radien ---------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ---------- Schatten ---------- */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.33), 0 4px 10px rgb(0 0 0 / 0.2);
+  --shadow-raised: 0 4px 14px rgb(0 0 0 / 0.35);
+  --shadow-dialog: 0 24px 70px rgb(0 0 0 / 0.72);
+  --shadow-turn: 0 0 0 var(--border-thick) var(--color-brass), 0 0 24px var(--color-brass-glow);
+  --shadow-playable:
+    0 0 0 var(--border-thick) var(--color-brass), 0 8px 24px var(--color-brass-glow);
+  --shadow-felt-inset: inset 0 2px 30px rgb(0 0 0 / 0.5);
+  --shadow-rim:
+    0 0 0 var(--rim-width) var(--color-wood),
+    0 0 0 calc(var(--rim-width) + 1px) var(--color-wood-dark),
+    0 0 0 calc(var(--rim-width) + 2px) var(--color-wood-edge), 0 30px 80px rgb(0 0 0 / 0.8);
+
+  /* ---------- Bewegung ---------- */
+  --duration-fast: 120ms; /* Hover, Fokus */
+  --duration-base: 200ms; /* Karte heben, Zustandswechsel */
+  --duration-slow: 360ms; /* Karte in den Stich, Dialog */
+  --duration-sweep: 420ms; /* fertiger Stich wandert zum Gewinner (liest auch useTrickDisplay) */
+  --duration-deal-step: 45ms; /* Versatz je Karte beim Austeilen */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.25, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0.2); /* Wegräumen: langsam los, dann zügig */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-sweep: 0ms;
+    --duration-deal-step: 0ms;
+  }
+}

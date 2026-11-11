@@ -3,7 +3,7 @@
  * lassen sich später als zweite Datei mit denselben Schlüsseln ergänzen.
  */
 
-import type { Contract, Rank, Suit } from '@schafkopf/core';
+import type { Contract, ContractKind, Rank, Suit } from '@schafkopf/core';
 import type { HostErrorCode } from '@schafkopf/net';
 
 export const SUIT_NAME: Record<Suit, string> = {
@@ -53,3 +53,94 @@ export function money(cents: number): string {
   const sign = cents > 0 ? '+' : cents < 0 ? '−' : '';
   return `${sign}${(Math.abs(cents) / 100).toFixed(2).replace('.', ',')} €`;
 }
+
+/** Texte der Grundbausteine (src/ui/kit). */
+export const UI_TEXT = {
+  seatTurn: 'am Zug',
+  seatDealer: 'Geber',
+  seatDealerShort: 'G',
+  seatDisconnected: 'getrennt',
+};
+
+/** Name einer Spielart ohne Farbe, für den Ansage-Dialog. */
+export const KIND_NAME: Record<ContractKind, string> = {
+  sauspiel: 'Sauspiel',
+  solo: 'Solo',
+  wenz: 'Wenz',
+  farbwenz: 'Farbwenz',
+  geier: 'Geier',
+  bettel: 'Bettel',
+};
+
+/** Texte des Spieltischs (src/ui/table). */
+export const TABLE_TEXT = {
+  brand: 'Schafkopf',
+  leave: 'Verlassen',
+  lastTrick: 'Letzter Stich',
+  close: 'Schließen',
+  handNo: (n: number) => `Spiel ${n}`,
+  trickNo: (n: number, of: number) => `Stich ${n} von ${of}`,
+  bidding: 'Ansage',
+  finished: 'Spiel beendet',
+  youBid: 'Ansage – du bist dran',
+  othersBid: (name: string) => `Ansage – ${name} ist dran`,
+  plays: 'spielt',
+  seatFallback: (seat: number) => `Platz ${seat + 1}`,
+  you: 'du',
+  spectating: 'Du schaust zu',
+  yourTurnBid: 'Du sagst an',
+  yourTurnPlay: 'Du bist dran',
+  waitingFor: (name: string) => `${name} ist dran`,
+  tricks: (n: number) => (n === 1 ? '1 Stich' : `${n} Stiche`),
+  cards: (n: number) => (n === 1 ? '1 Karte' : `${n} Karten`),
+  markDeclarer: 'Spieler',
+  markPartner: 'Mitspieler',
+  pass: 'weiter',
+  thinking: '…',
+  trick: 'Stich',
+  hand: 'Deine Karten',
+  wonBy: (name: string, points: number) => `${name} sticht · ${points} Augen`,
+  // Ansage-Dialog
+  bidTitle: 'Was spielst du?',
+  bidKind: 'Spielart',
+  bidSuitCalled: 'Auf welche Sau?',
+  bidSuitTrump: 'Welche Farbe ist Trumpf?',
+  bidTout: 'Tout',
+  bidTouthint: 'alle Stiche',
+  bidPass: 'Weiter',
+  bidAnnounce: (label: string) => `${label} ansagen`,
+  bidChoose: 'Spielart wählen',
+  bidNothing: 'Mit diesem Blatt kannst du nichts ansagen.',
+  bidStatus: (said: string[], open: string[]) =>
+    [
+      ...said,
+      open.length ? `${open.join(' und ')} ${open.length > 1 ? 'kommen' : 'kommt'} noch` : '',
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  bidSaid: (name: string, what: string) => `${name}: ${what}`,
+  bidToBeat: (label: string) => `Zu überbieten: ${label}`,
+  // Ergebnis
+  passedTitle: 'Alle weiter – es wird zusammengeworfen',
+  resultTitle: (names: string, plural: boolean, won: boolean) =>
+    `${names} ${plural ? 'haben' : 'hat'} ${won ? 'gewonnen' : 'verloren'}`,
+  and: ' und ',
+  points: 'Augen',
+  pointsOf: (n: number) => `${n} von 120 Augen`,
+  extras: {
+    schneider: 'Schneider',
+    schwarz: 'Schwarz',
+    sie: 'Sie',
+    laufende: (n: number) => `${n} Laufende`,
+    tricks: (n: number) => (n === 1 ? '1 Stich' : `${n} Stiche`),
+  },
+  valuePerPlayer: 'je Gegenspieler',
+  colPlayer: 'Spieler',
+  colHand: 'Spiel',
+  colBalance: 'Stand',
+  nextHand: 'Nächstes Spiel',
+  hostDeals: 'Der Gastgeber gibt das nächste Spiel.',
+  // Ansagen für Bildschirmleser
+  announceTurn: 'Du bist dran.',
+  announceBid: 'Du bist mit der Ansage dran.',
+};

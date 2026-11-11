@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schafkopf · Entwürfe</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        background: #111;
+        color: #ddd;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 26px;
+        color: #fff;
+      }
+      .unter {
+        color: #999;
+        margin: 0 0 28px;
+        max-width: 70ch;
+      }
+      .richtung {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 24px;
+        padding: 24px 0;
+        border-top: 1px solid #2a2a2a;
+      }
+      .richtung h2 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        color: #fff;
+      }
+      .richtung p {
+        margin: 0 0 10px;
+        color: #aaa;
+      }
+      .richtung a.oeffnen {
+        display: inline-block;
+        margin-top: 4px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: #e8e2d4;
+        color: #111;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .bilder {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        overflow-x: auto;
+      }
+      .bilder img {
+        display: block;
+        height: 300px;
+        width: auto;
+        border-radius: 6px;
+        box-shadow: 0 0 0 1px #333;
+      }
+      .farben {
+        display: flex;
+        gap: 6px;
+        margin: 10px 0;
+      }
+      .farben span {
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        box-shadow: 0 0 0 1px #fff2;
+      }
+      @media (max-width: 800px) {
+        .richtung {
+          grid-template-columns: 1fr;
+        }
+        .bilder img {
+          height: 220px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Schafkopf · Drei Richtungen für den Spieltisch</h1>
+      <p class="unter">
+        Arbeitspaket D1. <strong style="color: #fff">Gewählt: B · Kartentisch</strong> (festgehalten
+        in <code>docs/DESIGN.md</code>). Alle drei sind dunkel, für Desktop zuerst gedacht und
+        nutzen dasselbe Blatt: Zahlenkarten als SVG von einem Freund von Lukas, Unter, Ober, König
+        und Sau in diesem Stil neu gezeichnet (<a href="karten.html" style="color: #9ab"
+          >alle Karten ansehen</a
+        >). Unterschiedlich ist der Tisch drumherum. Die blaue Richtung „Rauten“ ist verworfen. In
+        jedem Entwurf oben zwischen Ansage, laufendem Stich und Ergebnis sowie Handy und Desktop
+        umschalten; im Stich lässt sich die hervorgehobene Karte spielen, in der Ansage Spielart und
+        Farbe wählen.
+      </p>
+
+      <section class="richtung">
+        <div>
+          <h2>A · Stube</h2>
+          <p>
+            Warm wie eine Wirtsstube am Abend, aber ohne Deko: Nussholz, Lampenlicht über einem
+            runden Tisch, Bernstein als Akzent, Serifenschrift für Namen. Keine Seitenleiste – der
+            Tisch steht allein.
+          </p>
+          <div class="farben">
+            <span style="background: #15100c"></span><span style="background: #3b2a1e"></span
+            ><span style="background: #e8b25a"></span><span style="background: #f4eadb"></span>
+          </div>
+          <a class="oeffnen" href="stube.html">Entwurf öffnen</a>
+        </div>
+        <div class="bilder">
+          <img src="bilder/stube-stich-desktop.webp" alt="Stube, Desktop, laufender Stich" /><img
+            src="bilder/stube-ansage-handy.webp"
+            alt="Stube, Handy, Ansage"
+          />
+        </div>
+      </section>
+
+      <section class="richtung">
+        <div>
+          <h2>B · Kartentisch ✓ gewählt</h2>
+          <p>
+            Das Grün aus dem jetzigen Stand, weiterentwickelt: grüner Filz als Einlage in einem
+            dunklen Holzrahmen wie ein Kartentisch im Wirtshaus, Dialoge auf hellem Papier wie
+            bisher, Messing als Akzent. Aufbau wie A.
+          </p>
+          <div class="farben">
+            <span style="background: #0d2a18"></span><span style="background: #17603a"></span
+            ><span style="background: #4a2f1c"></span><span style="background: #e9c46a"></span
+            ><span style="background: #fbf7ec"></span><span style="background: #b45309"></span>
+          </div>
+          <a class="oeffnen" href="filz.html">Entwurf öffnen</a>
+        </div>
+        <div class="bilder">
+          <img
+            src="bilder/filz-stich-desktop.webp"
+            alt="Kartentisch, Desktop, laufender Stich"
+          /><img src="bilder/filz-ansage-handy.webp" alt="Kartentisch, Handy, Ansage" />
+        </div>
+      </section>
+
+      <section class="richtung">
+        <div>
+          <h2>C · Schiefer</h2>
+          <p>
+            Schlicht und typografisch: flaches Graphit, große Namen, Herzrot als einziges Signal.
+            Gegen das Kühle steht die Schiefertafel mit Stand und Abrechnung in Kreideschrift.
+          </p>
+          <div class="farben">
+            <span style="background: #1d1f22"></span><span style="background: #2b3035"></span
+            ><span style="background: #e5484d"></span><span style="background: #ebe7dc"></span>
+          </div>
+          <a class="oeffnen" href="schiefer.html">Entwurf öffnen</a>
+        </div>
+        <div class="bilder">
+          <img
+            src="bilder/schiefer-stich-desktop.webp"
+            alt="Schiefer, Desktop, laufender Stich"
+          /><img src="bilder/schiefer-ansage-handy.webp" alt="Schiefer, Handy, Ansage" />
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

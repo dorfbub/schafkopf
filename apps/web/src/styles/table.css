@@ -1,0 +1,1173 @@
+/*
+ * Spieltisch (D3). Aufbau: Leiste oben, darunter der Raum mit Filz, Plätzen, Stich und
+ * Dialogen, unten der eigene Platz mit der Hand. Nur Variablen aus tokens.css.
+ *
+ * Der Raum ist ein Größen-Container („tisch“): Stichkarten und Plätze richten sich nach der
+ * Fläche, die zwischen Leiste und Hand übrig bleibt, nicht nach dem ganzen Fenster. Feste
+ * Werte stehen nur in den Container- und Media-Abfragen (dort gehen keine Variablen).
+ */
+
+.tisch {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100dvh;
+  /* clip statt hidden: Die Hand ragt unten hinaus, Fokus darf den Tisch nicht verschieben. */
+  overflow: clip;
+  color: var(--color-on-felt);
+}
+
+/* ---------- Leiste ---------- */
+
+.tisch-leiste {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-on-felt-muted);
+}
+
+.tisch-leiste__links {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.tisch-leiste__marke {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display);
+  color: var(--color-on-felt);
+}
+
+.tisch-leiste__phase {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tisch-leiste__status {
+  margin: 0;
+  text-align: center;
+  color: var(--color-on-felt);
+}
+
+.tisch-leiste__wer {
+  font-weight: var(--weight-semibold);
+}
+
+.tisch-leiste__spiel {
+  color: var(--color-brass);
+  font-weight: var(--weight-semibold);
+}
+
+.tisch-leiste__knoepfe {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Schmal (Handy hochkant): Status in eine eigene Zeile, ohne Schriftzug. */
+@media (max-width: 40rem) {
+  .tisch-leiste {
+    grid-template-columns: 1fr auto;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .tisch-leiste__phase {
+    white-space: normal;
+  }
+
+  .tisch-leiste__knoepfe .btn {
+    padding: 0 var(--space-3);
+  }
+
+  .tisch-leiste__marke {
+    display: none;
+  }
+
+  .tisch-leiste__status {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    text-align: left;
+  }
+}
+
+/* Mittel (Handy quer, kleines Tablet): ohne Schriftzug, damit der Status Platz hat. */
+@media (max-width: 50rem) {
+  .tisch-leiste__marke {
+    display: none;
+  }
+}
+
+/* Niedrig (Handy quer): alles in einer knappen Zeile. */
+@media (max-height: 30rem) {
+  .tisch-leiste {
+    padding-block: var(--space-1);
+  }
+
+  .tisch-leiste__marke {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ---------- Raum und Filz ---------- */
+
+.tisch__raum {
+  position: relative;
+  container: tisch / size;
+  min-height: 0;
+}
+
+.tisch__platte {
+  position: absolute;
+  inset: 6% 9% 4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--color-felt-light) 0%, transparent 65%),
+    linear-gradient(var(--color-felt), var(--color-felt-deep));
+  box-shadow: var(--shadow-rim), var(--shadow-felt-inset);
+}
+
+@container tisch (aspect-ratio < 1) {
+  .tisch__platte {
+    inset: 4% 7% 3%;
+  }
+}
+
+/* ---------- Plätze der anderen ---------- */
+
+.tisch-platz {
+  position: absolute;
+  z-index: 2;
+  max-width: 24cqw;
+}
+
+.tisch-platz--left {
+  left: var(--space-3);
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.tisch-platz--right {
+  right: var(--space-3);
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.tisch-platz--top {
+  left: 50%;
+  top: var(--space-2);
+  translate: -50% 0;
+}
+
+/* Nur für Zuschauer: Platz 1 sitzt unten auf dem Tisch. */
+.tisch-platz--bottom {
+  left: 50%;
+  bottom: var(--space-2);
+  translate: -50% 0;
+}
+
+.tisch-platz .player-seat__info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: var(--space-2);
+}
+
+.tisch-platz .player-seat__bubble .blase--weiter {
+  font-weight: var(--weight-regular);
+  font-style: italic;
+}
+
+/* Breiter Tisch: der obere Platz liegt quer, damit der Stich darunter Platz hat. */
+@container tisch (min-width: 40rem) {
+  .tisch-platz--top {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto;
+    grid-template-areas:
+      'avatar name marks bubble cards'
+      'avatar info marks bubble cards';
+    align-items: center;
+    column-gap: var(--space-3);
+    row-gap: 0;
+    max-width: none;
+    text-align: left;
+  }
+
+  .tisch-platz--top .player-seat__avatar {
+    grid-area: avatar;
+  }
+
+  .tisch-platz--top .player-seat__name {
+    grid-area: name;
+    align-self: end;
+  }
+
+  .tisch-platz--top .player-seat__info {
+    grid-area: info;
+    align-self: start;
+    justify-content: flex-start;
+  }
+
+  .tisch-platz--top .player-seat__marks {
+    grid-area: marks;
+  }
+
+  .tisch-platz--top .player-seat__bubble {
+    grid-area: bubble;
+  }
+
+  .tisch-platz--top .player-seat__cards {
+    grid-area: cards;
+  }
+}
+
+/* Hochkant: alle drei Plätze oben in einer Reihe, der Stich darunter. */
+@container tisch (aspect-ratio < 1) {
+  .tisch-platz {
+    max-width: 31cqw;
+  }
+
+  .tisch-platz--left,
+  .tisch-platz--right {
+    top: var(--space-2);
+    translate: 0 0;
+  }
+
+  .tisch-platz--left {
+    left: var(--space-2);
+  }
+
+  .tisch-platz--right {
+    right: var(--space-2);
+  }
+
+  .tisch-platz .player-seat__cards {
+    display: none;
+  }
+}
+
+/* Niedrig (Handy quer): kleinere Bilder, keine verdeckten Karten. */
+@container tisch (max-height: 18rem) {
+  .tisch-platz {
+    --avatar-size: var(--seat-avatar-sm);
+    gap: 0;
+  }
+
+  .tisch-platz .player-seat__name {
+    font-size: var(--text-md);
+  }
+
+  .tisch-platz .player-seat__info {
+    font-size: var(--text-xs);
+  }
+
+  .tisch-platz .player-seat__cards {
+    display: none;
+  }
+
+  .tisch-platz--top {
+    top: var(--space-1);
+  }
+}
+
+/* ---------- Stich ---------- */
+
+.stich {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  z-index: 1;
+  width: 0;
+  height: 0;
+}
+
+@container tisch (aspect-ratio < 1) {
+  .stich {
+    top: 60%;
+  }
+}
+
+@container tisch (max-height: 18rem) {
+  .stich {
+    top: 58%;
+  }
+}
+
+.stich__karte {
+  --card-w: var(--trick-card-w);
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%) translate(var(--tx, 0), var(--ty, 0)) rotate(var(--rot, 0deg));
+}
+
+.stich__karte--bottom {
+  --ty: calc(var(--trick-card-w) * 0.72);
+  --rot: calc(var(--trick-tilt) * 0.5);
+}
+
+.stich__karte--left {
+  --tx: calc(var(--trick-card-w) * -0.95);
+  --ty: calc(var(--trick-card-w) * -0.04);
+  --rot: calc(var(--trick-tilt) * -2.5);
+}
+
+.stich__karte--top {
+  --ty: calc(var(--trick-card-w) * -0.75);
+  --rot: calc(var(--trick-tilt) * -0.75);
+}
+
+.stich__karte--right {
+  --tx: calc(var(--trick-card-w) * 0.95);
+  --ty: calc(var(--trick-card-w) * 0.04);
+  --rot: calc(var(--trick-tilt) * 2.25);
+}
+
+.stich__gewinner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  translate: -50% -50%;
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-on-paper);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  box-shadow: var(--shadow-raised);
+}
+
+/* ---------- Eigener Platz und Hand ---------- */
+
+.eigen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-1) var(--space-4) 0;
+}
+
+.eigen__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-on-felt-muted);
+}
+
+.eigen__avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--seat-avatar-sm);
+  height: var(--seat-avatar-sm);
+  border-radius: 50%;
+  background: var(--color-felt-raised);
+  box-shadow: 0 0 0 var(--border-medium) var(--color-felt-line);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-display);
+  color: var(--color-on-felt);
+}
+
+.eigen--dran .eigen__avatar {
+  box-shadow: var(--shadow-turn);
+}
+
+.eigen__geber {
+  position: absolute;
+  right: calc(var(--space-2) * -1);
+  bottom: calc(var(--space-1) * -1);
+  display: grid;
+  place-items: center;
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: 50%;
+  background: var(--color-paper);
+  color: var(--color-on-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.eigen__name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display);
+  color: var(--color-on-felt);
+}
+
+.eigen__stand {
+  display: inline-flex;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.eigen__dran {
+  color: var(--color-brass);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.hand {
+  --hand-avail: min(100vw - var(--space-4) * 2, var(--hand-max-width));
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: calc(var(--hand-card-h) * var(--hand-visible));
+  padding-top: var(--space-4);
+  box-sizing: content-box;
+}
+
+.hand__platz {
+  flex: none;
+  transform-origin: 50% 140%;
+  transform: rotate(calc(var(--d) * var(--hand-fan)))
+    translateY(calc(var(--d) * var(--d) * var(--hand-arc)));
+  align-self: flex-start;
+}
+
+/* Überlappung: so viel, dass alle Karten in die verfügbare Breite passen, mindestens ein wenig. */
+.hand__platz + .hand__platz {
+  margin-left: min(
+    var(--hand-card-w) * var(--hand-overlap-min) * -1,
+    (var(--hand-avail) - var(--n) * var(--hand-card-w)) / (var(--n) - 1)
+  );
+}
+
+.hand .card {
+  --card-w: var(--hand-card-w);
+}
+
+/* Niedrig (Handy quer): Infos links neben der Hand, Karten ragen weiter nach unten hinaus. */
+@media (max-height: 30rem) {
+  .eigen {
+    position: relative;
+    padding-top: 0;
+  }
+
+  .eigen:not(.eigen--ohne-hand) .eigen__info {
+    position: absolute;
+    left: var(--space-4);
+    bottom: var(--space-2);
+    z-index: 3;
+    justify-content: flex-start;
+    max-width: 11rem;
+    margin: 0;
+  }
+
+  .eigen__name {
+    font-size: var(--text-md);
+  }
+
+  .hand {
+    --hand-visible: 0.62;
+    --hand-max-width: 26rem;
+    padding-top: var(--space-3);
+  }
+}
+
+/* ---------- Dialoge auf dem Tisch ---------- */
+
+.tisch .dialog {
+  z-index: 5;
+}
+
+.tisch .dialog.ansage {
+  width: min(var(--dialog-width-wide), calc(100% - var(--space-5)));
+}
+
+.dialog .ansage__anker:focus {
+  outline: none;
+}
+
+.ansage__gruppe {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.ansage__label {
+  margin-bottom: var(--space-2);
+  padding: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-on-paper-muted);
+}
+
+.ansage__wahl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dialog__hint .ansage__status,
+.dialog__hint .ansage__hoechste {
+  display: block;
+}
+
+.ansage__nichts {
+  margin: var(--space-3) 0 0;
+}
+
+.ansage .wahl {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-paper-raised);
+  color: var(--color-on-paper);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-paper-control);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.ansage .wahl:not(:disabled):hover {
+  background: var(--color-paper-raised);
+  box-shadow: inset 0 0 0 var(--border-medium) var(--color-on-paper);
+}
+
+.ansage .wahl[aria-pressed='true'],
+.ansage .wahl[aria-pressed='true']:not(:disabled):hover {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: none;
+}
+
+.ansage .wahl:disabled {
+  opacity: 1;
+  background: var(--color-paper-line-soft);
+  color: var(--color-on-paper-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.wahl__zeichen {
+  display: inline-grid;
+  place-items: center;
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.wahl__zeichen svg {
+  width: 100%;
+  height: 100%;
+}
+
+.wahl:disabled .wahl__zeichen {
+  opacity: 0.4;
+}
+
+.wahl[aria-pressed='true'] .wahl__zeichen {
+  padding: var(--border-thin);
+  border-radius: 50%;
+  background: var(--color-paper);
+}
+
+/* Schalter (Tout) – links in der Knopfzeile */
+.schalter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  margin-right: auto;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.schalter--aus {
+  color: var(--color-on-paper-muted);
+  cursor: not-allowed;
+}
+
+.schalter__hinweis {
+  font-weight: var(--weight-regular);
+  color: var(--color-on-paper-muted);
+}
+
+.schalter__eingabe {
+  position: absolute;
+  opacity: 0;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  margin: 0;
+  cursor: inherit;
+}
+
+.schalter__bahn {
+  position: relative;
+  flex: none;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-line);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-paper-control);
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+
+.schalter__bahn::after {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: 7%;
+  height: 76%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+  transition: translate var(--duration-base) var(--ease-out);
+}
+
+.schalter__eingabe:checked + .schalter__bahn {
+  background: var(--color-accent);
+  box-shadow: none;
+}
+
+.schalter__eingabe:checked + .schalter__bahn::after {
+  translate: calc(var(--switch-w) - var(--switch-h)) 0;
+}
+
+.schalter__eingabe:focus-visible + .schalter__bahn {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+
+.schalter--aus .schalter__bahn {
+  opacity: 0.5;
+}
+
+/* Hochkant: Ansage unten auf dem Tisch, damit die Plätze oben sichtbar bleiben. */
+@container tisch (aspect-ratio < 1) {
+  .tisch .dialog--centered.ansage {
+    top: auto;
+    bottom: var(--space-2);
+    translate: -50% 0;
+    width: calc(100% - var(--space-4));
+    padding: var(--space-4);
+  }
+}
+
+/* Schmal (Handy hochkant): Dialoge knapper, damit Plätze und Hand sichtbar bleiben. */
+@container tisch (max-width: 30rem) {
+  .tisch .dialog--centered {
+    padding: var(--space-4);
+  }
+
+  .tisch .dialog .dialog__title {
+    font-size: var(--text-lg);
+  }
+
+  .tisch .dialog .dialog__hint {
+    margin-bottom: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-tight);
+  }
+
+  .ansage__gruppe {
+    margin-top: var(--space-3);
+  }
+
+  .ansage__label {
+    margin-bottom: var(--space-1);
+  }
+
+  .ansage__wahl {
+    gap: var(--space-1);
+  }
+
+  .ansage .wahl,
+  .schalter {
+    min-height: var(--control-height-sm);
+  }
+
+  .ansage .wahl {
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .tisch .dialog__actions {
+    flex-wrap: wrap;
+    margin-top: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .ansage .schalter {
+    flex-basis: 100%;
+  }
+
+  .ansage .dialog__actions .btn--primary {
+    flex: 1;
+  }
+
+  .tisch .dialog__actions .btn {
+    min-height: var(--control-height-sm);
+    padding: 0 var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .augen__zahl {
+    font-size: var(--text-2xl);
+  }
+}
+
+/* Niedrig (Handy quer): Ansage knapp, zwischen den seitlichen Plätzen. */
+@container tisch (max-height: 18rem) {
+  .tisch .dialog--centered,
+  .tisch .dialog--centered.ansage {
+    width: min(var(--dialog-width-wide), 66cqw);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .tisch .dialog .dialog__title {
+    font-size: var(--text-lg);
+  }
+
+  .tisch .dialog .dialog__hint {
+    margin-bottom: 0;
+    font-size: var(--text-xs);
+  }
+
+  .ansage__gruppe {
+    margin-top: var(--space-2);
+  }
+
+  .ansage__label {
+    position: absolute;
+    width: var(--border-thin);
+    height: var(--border-thin);
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ansage .wahl,
+  .schalter {
+    min-height: var(--control-height-sm);
+  }
+
+  .ansage .dialog__hint .ansage__status {
+    display: none;
+  }
+
+  .ansage .wahl {
+    padding: 0 var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  .tisch .dialog__actions {
+    margin-top: var(--space-2);
+  }
+
+  .tisch .dialog__actions .btn {
+    min-height: var(--control-height-sm);
+    font-size: var(--text-sm);
+  }
+}
+
+/* ---------- Ergebnis ---------- */
+
+.ergebnis__spiel {
+  order: -1;
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-on-paper-muted);
+}
+
+.ergebnis {
+  display: flex;
+  flex-direction: column;
+}
+
+.augen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.augen__zahl {
+  font-family: var(--font-display);
+  font-size: calc(var(--text-2xl) * 1.4);
+  font-weight: var(--weight-display);
+  line-height: 1;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.augen__wort {
+  color: var(--color-on-paper-muted);
+}
+
+.augen__zusatz {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.augen__balken {
+  position: relative;
+  height: var(--space-2);
+  margin: var(--space-2) 0 var(--space-3);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-line-soft);
+}
+
+.augen__balken span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+}
+
+/* Marke bei 61 Augen (gewonnen) */
+.augen__balken::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(61 / 120 * 100%);
+  width: var(--border-medium);
+  background: var(--color-paper);
+}
+
+.ergebnis__wert {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: var(--space-2) 0;
+  border-top: var(--border-thin) solid var(--color-paper-line);
+  font-weight: var(--weight-semibold);
+}
+
+.ergebnis__tabelle {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.ergebnis__tabelle th,
+.ergebnis__tabelle td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: var(--border-thin) solid var(--color-paper-line);
+  text-align: right;
+}
+
+.ergebnis__tabelle th:first-child,
+.ergebnis__tabelle td:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.ergebnis__tabelle th:last-child,
+.ergebnis__tabelle td:last-child {
+  padding-right: 0;
+}
+
+.ergebnis__tabelle thead th {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-on-paper-muted);
+}
+
+.ergebnis__tabelle tbody th {
+  font-weight: var(--weight-regular);
+}
+
+.ergebnis__tabelle .ist-du th {
+  font-weight: var(--weight-bold);
+}
+
+.ergebnis__du {
+  font-weight: var(--weight-regular);
+  color: var(--color-on-paper-muted);
+}
+
+.ergebnis__warten {
+  margin: 0;
+  align-self: center;
+  font-size: var(--text-sm);
+  color: var(--color-on-paper-muted);
+}
+
+.ergebnis .dialog__actions {
+  justify-content: space-between;
+}
+
+/* Niedrig (Handy quer): links das Ergebnis, rechts die Beträge. */
+@container tisch (max-height: 18rem) {
+  .tisch .dialog--centered.ergebnis {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    grid-template-areas:
+      'spiel tabelle'
+      'titel tabelle'
+      'augen tabelle'
+      'knoepfe knoepfe';
+    align-content: start;
+    column-gap: var(--space-5);
+    width: min(calc(var(--dialog-width) * 1.4), 86cqw);
+  }
+
+  .ergebnis .dialog__title {
+    grid-area: titel;
+  }
+
+  .ergebnis__spiel {
+    grid-area: spiel;
+  }
+
+  .ergebnis .augen {
+    grid-area: augen;
+    align-self: start;
+  }
+
+  .ergebnis__tabelle {
+    grid-area: tabelle;
+    align-self: start;
+    font-size: var(--text-sm);
+  }
+
+  .ergebnis .dialog__actions {
+    grid-area: knoepfe;
+  }
+
+  .augen__balken,
+  .ergebnis__wert {
+    display: none;
+  }
+
+  .augen__zahl {
+    font-size: var(--text-2xl);
+  }
+
+  .augen__zusatz {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}
+
+/* ---------- Letzter Stich ---------- */
+
+.letzter-stich__karten {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.letzter-stich__karte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.letzter-stich__karte .card {
+  --card-w: calc(var(--trick-card-w) * 0.7);
+}
+
+.letzter-stich .card--won {
+  box-shadow:
+    0 0 0 var(--border-thick) var(--color-accent),
+    var(--shadow-card);
+}
+
+/* ---------- Bewegung (D3, Haltepunkt 2) ----------
+ * Alle Dauern kommen aus tokens.css und sind bei „Bewegung reduzieren“ 0 ms: Dann steht
+ * alles sofort an seinem Platz, der fertige Stich bleibt trotzdem kurz liegen.
+ *
+ * Richtungen: --von-* (Karte kommt vom Platz ihres Spielers) und --zu-* (Stich wandert zum
+ * Gewinner) sind der Weg von der Tischmitte zum jeweiligen Platz.
+ */
+
+.stich__karte--bottom {
+  --von-x: 0cqw;
+  --von-y: 45cqh;
+}
+
+.stich__karte--left {
+  --von-x: -45cqw;
+  --von-y: 0cqh;
+}
+
+.stich__karte--top {
+  --von-x: 0cqw;
+  --von-y: -45cqh;
+}
+
+.stich__karte--right {
+  --von-x: 45cqw;
+  --von-y: 0cqh;
+}
+
+.stich--zu-bottom {
+  --zu-x: 0cqw;
+  --zu-y: 45cqh;
+}
+
+.stich--zu-left {
+  --zu-x: -45cqw;
+  --zu-y: 0cqh;
+}
+
+.stich--zu-top {
+  --zu-x: 0cqw;
+  --zu-y: -45cqh;
+}
+
+.stich--zu-right {
+  --zu-x: 45cqw;
+  --zu-y: 0cqh;
+}
+
+/* Hochkant sitzen alle drei anderen oben. */
+@container tisch (aspect-ratio < 1) {
+  .stich__karte--left {
+    --von-x: -32cqw;
+    --von-y: -50cqh;
+  }
+
+  .stich__karte--top {
+    --von-y: -55cqh;
+  }
+
+  .stich__karte--right {
+    --von-x: 32cqw;
+    --von-y: -50cqh;
+  }
+
+  .stich--zu-left {
+    --zu-x: -32cqw;
+    --zu-y: -50cqh;
+  }
+
+  .stich--zu-top {
+    --zu-y: -55cqh;
+  }
+
+  .stich--zu-right {
+    --zu-x: 32cqw;
+    --zu-y: -50cqh;
+  }
+}
+
+/* Karte legen: gleitet vom Platz des Spielers in den Stich. */
+@keyframes stich-rein {
+  from {
+    translate: var(--von-x) var(--von-y);
+    opacity: 0;
+  }
+}
+
+.stich__karte {
+  animation: stich-rein var(--duration-slow) var(--ease-out) both;
+}
+
+/* Die stechende Karte hebt sich, solange der Stich liegt. */
+.stich .card {
+  transition:
+    scale var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.stich .card--won {
+  scale: 1.06;
+}
+
+/* Wegräumen: der ganze Stich wandert zum Gewinner und wird dabei kleiner. */
+@keyframes stich-weg {
+  to {
+    translate: var(--zu-x) var(--zu-y);
+    scale: 0.45;
+    opacity: 0;
+  }
+}
+
+.stich--weg .stich__karte {
+  animation: stich-weg var(--duration-sweep) var(--ease-in) forwards;
+}
+
+@keyframes einblenden {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ausblenden {
+  to {
+    opacity: 0;
+  }
+}
+
+.stich__gewinner {
+  animation: einblenden var(--duration-base) var(--ease-out) both;
+}
+
+.stich--weg .stich__gewinner {
+  animation: ausblenden var(--duration-fast) linear forwards;
+}
+
+/* Austeilen: die Karten der neuen Hand kommen nacheinander vom Tisch herunter. */
+@keyframes austeilen {
+  from {
+    translate: 0 calc(var(--hand-card-h) * -0.9);
+    opacity: 0;
+  }
+}
+
+.hand__platz {
+  /* Nach dem Ausspielen rückt der Fächer weich zusammen. */
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    margin var(--duration-base) var(--ease-out);
+  animation: austeilen var(--duration-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--duration-deal-step));
+}
+
+.tisch-platz .player-seat__cards {
+  animation: einblenden var(--duration-slow) var(--ease-out) both;
+}
+
+/* Dialoge erscheinen sanft (nur Deckkraft und Größe – die Lage hängt an `translate`). */
+@keyframes dialog-rein {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+.tisch .dialog {
+  animation: dialog-rein var(--duration-slow) var(--ease-out) both;
+}
+
+/* Sprechblasen der Ansage */
+.tisch-platz .player-seat__bubble {
+  animation: dialog-rein var(--duration-base) var(--ease-out) both;
+}
