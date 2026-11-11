@@ -17,7 +17,8 @@ Pakete verschiedener Buchstaben können parallel laufen, sofern keine Abhängigk
 | ----- | ------------------------- | ---------------------------------- |
 | 1     | Mit Freunden gut spielbar | D1, D2, D3, K1, N1, N2, U2, B1, I1 |
 | 2     | Komfort und Tischregeln   | D4, K2, N3, N4, U4, U5, I2         |
-| 3     | Ausbau                    | K3, K4, K5, K6, U6, U7, B2         |
+| 3     | Ausbau                    | K3a–K3d, K4, K5, K6, U6, U7, B2    |
+| 4     | Hausregeln                | H1, H2, H3, B3                     |
 
 ## Welches Modell für welches Paket
 
@@ -25,18 +26,19 @@ Grundsatz: **Opus ist der Standard.** Fable nur dort, wo eine Entscheidung das g
 prägt und ein Fehler teuer wird. Sonnet für klar umrissene Pakete, bei denen der Weg feststeht.
 Haiku für rein mechanische Handgriffe.
 
-| Modell | Wofür                                                        | Pakete                                |
-| ------ | ------------------------------------------------------------ | ------------------------------------- |
-| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | K5 (nur Entwurf), K3 (nur Entwurf)    |
-| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K4, K6, N1, N2, N3, B1, B2 |
-| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K7, N4, U2, U4, U5, U6, U7, I2    |
-| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                |
+| Modell | Wofür                                                        | Pakete                                                      |
+| ------ | ------------------------------------------------------------ | ----------------------------------------------------------- |
+| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt)                         |
+| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, H2 |
+| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, U6, U7, I2, H1, H3        |
+| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                      |
 
 Hinweise dazu:
 
-- **K3 und K5 in zwei Schritten:** Fable entwirft nur die Erweiterung der Schnittstellen
-  (`ModeDefinition`, `RuleSet`, `TableState`) als kurze Notiz mit Typen; die Umsetzung macht Opus.
-  So fällt der teure Teil klein aus.
+- **K3, K5 und Hausregeln in zwei Schritten:** Der Entwurf der Schnittstellen liegt vor
+  ([entwurf-sonderspiele.md](entwurf-sonderspiele.md), mit Fable erstellt). Die Umsetzung machen
+  Opus (Umbau, Ramsch, Hochzeit, Hawaii-Habicht) und Sonnet (Pakete, die nur noch ein Eintrag
+  sind). So fällt der teure Teil klein aus.
 - **Gestaltung (D-Pakete):** Opus. Wenn die Entwürfe aus D1 nicht überzeugen, D1 einmal mit Fable
   wiederholen – die Richtung ist die Entscheidung mit der größten Wirkung, die Umsetzung danach nicht.
 - **Hochstufen statt vorsorglich teuer:** Scheitert ein Paket auf Sonnet (Abnahme nicht erreicht,
@@ -67,30 +69,100 @@ Laufende. Annahmen aus REGELN.md, die Geschmackssache sind, als Optionen abbilde
 - **Abhängigkeit:** N4 (Lobby-Einstellungen).
 - **Abnahme:** Jede Option hat einen Test, der ihr Verhalten zeigt; Standard bleibt wie bisher.
 
-### K3 · „Alle weiter“: Ramsch, Stock, Muss
+### K3 · „Alle weiter“: Ramsch, Stock, Muss (in K3a–K3d geschnitten)
 
-`RuleSet.allPassed` um `'ramsch' | 'stock' | 'muss'` erweitern.
+Regeln: [REGELN.md](REGELN.md), „Varianten“. Schnittstellen:
+[entwurf-sonderspiele.md](entwurf-sonderspiele.md). Die Pakete K3a–K3d, K5, H1–H3 und K4 berühren
+alle den Kern und laufen **nacheinander** in der Reihenfolge aus §11 des Entwurfs. Jedes Paket
+lässt seine Annahmen aus REGELN.md (Nr. 10–19) zuerst von Lukas bestätigen, erhöht
+`PROTOCOL_VERSION` und `HOST_SNAPSHOT_VERSION`, wenn es Sicht, Zustand oder `RuleSet` ändert, und
+streicht „(geplant)“ bzw. „noch nicht umgesetzt“ für seinen Teil in REGELN.md.
 
-- **Ramsch:** jeder für sich, meiste Augen verliert; Durchmarsch und Jungfrau als Unteroptionen.
-- **Stock:** Einzahlung in den Pott, Auszahlung an den nächsten Sauspiel-Gewinner (Tisch-Zustand).
-- **Muss:** Besitzer des Eichel-Obers muss ein Sauspiel spielen (Sonderfälle: gesperrt).
-- **Bereich:** `rules.ts`, `hand.ts` (`applyBid`), `scoring.ts`, `table.ts`, Lobby.
-- **Abnahme:** Je Variante Tests für Ablauf und Abrechnung; Zahlungssumme bleibt 0 (Stock: inkl. Pott).
+### K3a · Umbau des Kerns für Sonderspiele (ohne Verhaltensänderung)
 
-### K4 · Kontra, Re, Legen, Bockrunden
+Die sechs Erweiterungspunkte aus dem Entwurf einziehen, ohne dass sich ein Spiel anders verhält:
+`BID_ORDER` statt `rank`; `parties`/`tariff`/`biddable` statt `alone`; `trumps(contract, trick)`
+und `orderFor(contract, trick)`; `HandResult` in Stufen (`outcome`, `factors`, `payments`,
+`potDelta`); `HandCarry` und `TableState.pot` (immer 0); Registry `ALL_PASSED` mit dem einen
+Eintrag `zusammenwerfen`; `DEFAULT_RULES.contracts` ausdrücklich aufgezählt.
 
-Optionale Tischregeln, standardmäßig aus.
+- **Modell:** Opus. Danach `/code-review`.
+- **Bereich:** ganz `packages/core/src`, Anpassungen in `packages/net` (`snapshot.ts`),
+  `packages/bots`, `apps/web` (`ResultDialog`, `BidDialog`, `LobbySettings`, `RulesSummary`).
+- **Abhängigkeit:** K7 und U4 vorher zusammengeführt oder noch nicht begonnen (beide lesen
+  `HandResult`).
+- **Abnahme:** Alle bestehenden Tests grün; geändert werden dürfen in ihnen nur Feldnamen, keine
+  erwarteten Werte. Neuer Test: 500 Zufallsspiele (fester Seed-Satz) ergeben dieselben `payments`
+  wie eine vor dem Umbau erzeugte, eingecheckte Liste. `docs/ARCHITEKTUR.md` („So wird erweitert“,
+  Tabelle der Dateien) beschreibt die neuen Erweiterungspunkte.
 
-- **Bereich:** `RuleSet`, neue Aktionen in `PlayerAction`, Multiplikator in `scoring.ts`.
-- **Abnahme:** Tests für Zeitfenster (Kontra nur bis zur ersten/zweiten Karte) und Verdopplung.
+### K3b · Ramsch
 
-### K5 · Hochzeit und weitere Spielarten
+`allPassed: 'ramsch'`: Spielart `ramsch` (nicht ansagbar, jeder für sich), `ramschOutcome` mit
+Verlierer nach Augen, Durchmarsch ab 91 Augen, Jungfrau als Faktor; `RuleSet.ramsch`,
+`tariff.ramsch`; Wahl in der Lobby; Ergebnis-Dialog für Ramsch; Bots spielen regelgerecht
+(Augen vermeiden genügt).
 
-Hochzeit (ein Trumpf, Angebot an Mitspieler) braucht einen zusätzlichen Ablaufschritt vor dem
-Spiel. Dafür `ModeDefinition` um einen optionalen Vorbereitungs-Hook erweitern, statt Sonderfälle
-in `hand.ts` zu verteilen.
+- **Modell:** Opus (erstes Spiel ohne Ansager – trifft Sicht, Bots und Oberfläche).
+- **Abhängigkeit:** K3a. Annahmen 10 und 11 bestätigt.
+- **Abnahme:** Tests für: Verlierer zahlt an drei; jeder Gleichstands-Fall aus Annahme 10; eine und
+  zwei Jungfrauen; Durchmarsch mit genau 91 und 90 Augen; beide Unteroptionen aus. Zufallsspiel-Test
+  über Host mit vier Bots, in dem jedes Spiel „alle weiter“ beginnt. Summe der Zahlungen 0.
 
-- **Abnahme:** Hochzeit vollständig spielbar; bestehende Spielarten unverändert.
+### K3c · Stock
+
+`allPassed: 'stock'`: Einzahlung über `potDelta`, `TableState.pot`, Auszahlung an die Spielerpartei
+des nächsten gewonnenen Spiels gleich welcher Art; `tariff.stock`; `TableView.pot`, Pott-Anzeige am
+Tisch und im Ergebnis; Lobby.
+
+- **Modell:** Sonnet.
+- **Abhängigkeit:** K3a. Annahmen 12 und 13 bestätigt. K7: Spielprotokoll schreibt `HandCarry` mit.
+- **Abnahme:** Tests für: Einzahlung; Pott wächst bei zweimal „alle weiter“; Auszahlung bei
+  gewonnenem Sauspiel (geteilt) und Solo; Pott bleibt bei verlorenem Spiel; nach jedem Schritt
+  `Summe(balances) + pot = 0`; Speicherstand mit Pott wird wiederhergestellt. Rückzahlung am Ende
+  des Abends gehört zu U4 und ist dort vermerkt.
+
+### K3d · Muss
+
+`allPassed: 'muss'`: Besitzer des Eichel-Obers nennt ein Sauspiel (`auction.forced`), gelockerte
+Ruf-Bedingung nur wenn gesperrt, Zusammenwerfen bei drei eigenen Säuen; Hinweis im Ansage-Dialog;
+Bot nennt ein erlaubtes Sauspiel.
+
+- **Modell:** Sonnet.
+- **Abhängigkeit:** K3a. Annahme 14 bestätigt.
+- **Abnahme:** Tests für: normales Muss; gesperrt → Ruf ohne Farbkarte erlaubt, sonst nicht; drei
+  Säue → zusammenwerfen; Rufsau-Regeln gelten für den Mitspieler unverändert.
+
+### K4 · Kontra und Re
+
+Optionale Tischregel `RuleSet.kontra`, Standard aus. Kontra durch einen Gegenspieler, solange die
+erste Karte nicht liegt; darauf Re durch die Spielerpartei. Umsetzung als Aktion `double` und als
+`Factor` in der Abrechnung (Entwurf §4 und §6). Legen und Bockrunden spielt Lukas' Runde nicht;
+sie sind nicht Teil dieses Pakets – der Entwurf hält nur den Platz frei (`HandCarry.factor`).
+
+- **Modell:** Opus.
+- **Bereich:** `RuleSet`, `PlayerAction`, `HandState.doubling`, `scoring.ts`, Sicht, `host.ts`
+  (`isWellFormed`), Knopf am Tisch, Bots (sagen vorerst nie Kontra).
+- **Abhängigkeit:** K3a. Annahme 18 bestätigt.
+- **Abnahme:** Tests für: Kontra nur durch Gegenspieler und nur vor der ersten Karte; Re nur nach
+  Kontra und nur durch die Spielerpartei; Verdopplung und Vervierfachung des Spielwerts, auch bei
+  Tout; kein Kontra im Ramsch; Pott wird nicht verdoppelt.
+
+### K5 · Hochzeit (Vorspiel-Hook)
+
+Phase `prelude` und `PreludeDefinition` nach Entwurf §4; Spielart `hochzeit` mit `weddingPrelude(1)`
+(Bedingung genau ein Trumpf, Angebot reihum, verdeckter Tausch, Partner bekannt, Abrechnung wie
+Sauspiel); Wiederaufnahme der Ansage über `auction.yielded`, wenn keiner annimmt; Vorspiel-Dialog
+am Tisch; Bots lehnen ab bzw. geben die niedrigsten Karten zurück.
+
+- **Modell:** Opus.
+- **Abhängigkeit:** K3a; sinnvoll nach K3b–K3d (dieselben Stellen in `applyBid`). Annahmen 15 und
+  16 bestätigt.
+- **Abnahme:** Hochzeit vollständig spielbar (Kern, Host mit Bots, Oberfläche); bestehende
+  Spielarten unverändert. Tests für: nur mit genau einem Trumpf ansagbar; Rang über Sauspiel, unter
+  Bettel; Erster nimmt an; Rückgabe muss Nicht-Trumpf sein, wenn vorhanden; die Sichten der beiden
+  Unbeteiligten verraten die getauschten Karten nicht; keiner nimmt an → verdrängter Sauspieler
+  spielt; keiner nimmt an und niemand hat aufgegeben → Regel für „alle weiter“.
 
 ### K6 · Kurzes Blatt und Dreier-Modus
 
@@ -105,6 +177,51 @@ ungetestet). Zu klären: welche Spielarten zu dritt, Sie mit kurzer Karte, Tisch
 Jedes Spiel als Seed + Aktionsliste festhalten; daraus Wiederholung und „letzte Spiele“-Liste.
 
 - **Abnahme:** `replay(protokoll)` ergibt denselben Endzustand; Test dafür.
+
+---
+
+## H – Hausregeln (`packages/core`, Lobby, Tisch)
+
+Spielarten aus Lukas' Runde; Regeln in [REGELN.md](REGELN.md), „Hausregeln“. Alle sind einzeln in
+`RuleSet.contracts` einschaltbar und standardmäßig aus. Es gilt der Vorspann von K3 (nacheinander,
+Annahmen bestätigen, Versionen erhöhen). Weitere Hausregeln beschreibt Lukas zuerst in REGELN.md;
+passen sie in die sechs Erweiterungspunkte des Entwurfs, ist jede ein Paket nach dem Muster von H1.
+
+### H1 · Eisenbahner
+
+Eintrag `eisenbahner` in `MODES` (Trümpfe: vier Zehner), Platz in `BID_ORDER` zwischen Bettel und
+Geier, Laufende-Schwelle 2 in `RuleSet.laufende`, Bereich „Hausregeln“ in der Lobby, Texte.
+
+- **Modell:** Sonnet.
+- **Abhängigkeit:** K3a. Annahme 19 bestätigt.
+- **Abnahme:** Außer dem Eintrag, der Schwelle und Texten ändert sich im Kern nichts (zeigt, dass
+  K3a trägt). Tests für: Zehner stechen in der Reihenfolge Eichel, Gras, Herz, Schellen und sind
+  eigene Farbe beim Bedienen; Rang gegenüber Bettel und Geier im Zweikampf; Tout; Laufende ab 2;
+  standardmäßig nicht ansagbar.
+
+### H2 · Hawaii-Habicht
+
+Eintrag `hawaii` mit `suitCount: 2`, `Contract.suit2`, Trumpfwechsel nach dem vierten Stich über
+`trumps(contract, trick)`, Laufende nur über die Könige; zweiter Farbschritt im Ansage-Dialog;
+Anzeige der gültigen Trumpffarbe und ihres Wechsels am Tisch; Hand-Sortierung folgt der gültigen
+Farbe; Bots zählen Trümpfe je Stich richtig.
+
+- **Modell:** Opus (Trumpfwechsel trifft jede Stelle, die eine Kartenordnung behält).
+- **Abhängigkeit:** K3a. Annahme 19 bestätigt.
+- **Abnahme:** Tests für: beide Farben müssen verschieden sein; Bedienpflicht und Stichgewinner in
+  Stich 4 nach der ersten, in Stich 5 nach der zweiten Farbe; Könige durchgehend höchste Trümpfe;
+  Laufende zählen höchstens vier; Rang zwischen Geier und Farbwenz; Tout. Zufallsspiel-Test über
+  Host mit Bots.
+
+### H3 · Arabische Hochzeit
+
+Eintrag `arabischeHochzeit` mit `weddingPrelude(2)`: Bedingung genau zwei Trümpfe, Tausch von zwei
+Karten, Rang zwischen Sauspiel und Hochzeit.
+
+- **Modell:** Sonnet.
+- **Abhängigkeit:** K5. Annahme 17 bestätigt.
+- **Abnahme:** Kein neuer Ablaufcode außer dem Parameter 2. Tests für: nur mit genau zwei Trümpfen;
+  zwei Karten hin und zwei zurück; Hochzeit überbietet arabische Hochzeit; keiner nimmt an.
 
 ---
 
@@ -271,6 +388,17 @@ Heuristik-Bot: sagt nach Blattstärke an (Trumpfzahl, Laufende, freie Farben), s
 ### B2 · Spielstärken
 
 Mehrere Stufen wählbar; optional Suchverfahren (Monte-Carlo über mögliche Kartenverteilungen).
+
+### B3 · Bots für Sonderspiele und Hausregeln
+
+Der Heuristik-Bot kennt die Tischregeln und die neuen Spielarten: sagt Eisenbahner,
+Hawaii-Habicht und (arabische) Hochzeit bei passendem Blatt an, nimmt Hochzeiten sinnvoll an,
+spielt Ramsch mit Blick auf Jungfrau und Durchmarsch, sagt Kontra bei starkem Blatt.
+
+- **Modell:** Opus.
+- **Abhängigkeit:** die jeweiligen K- und H-Pakete (dort spielt der Bot nur regelgerecht mit).
+- **Abnahme:** Je Variante ein Test mit festem Seed-Satz gegen `createRandomBot` mit Schwelle, wie
+  in B1; Bot sagt nie eine abgeschaltete Spielart an.
 
 ---
 

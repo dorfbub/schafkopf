@@ -10,7 +10,7 @@ Wer eine Regel ändert, ändert zuerst dieses Dokument, dann Test und Code.
 | Spieler                      | 4                                                                |
 | Blatt                        | Lange Karte, 32 Karten, 8 je Spieler                             |
 | Spielarten                   | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und Sie |
-| Alle „weiter“                | Zusammenwerfen. Langfristig beim Eröffnen des Tisches wählbar    |
+| Alle „weiter“                | Zusammenwerfen. Ramsch, Stock, Muss geplant (siehe „Varianten“)  |
 | Kontra/Re, Legen, Bockrunden | Nicht gespielt                                                   |
 | Abrechnung                   | Grundtarif, Schneider, Schwarz, Laufende                         |
 
@@ -107,6 +107,97 @@ Aufschlag 10 Cent.
 - **Zahlung**: Im Sauspiel zahlt jeder Verlierer den Spielwert an einen Gewinner. Im Einzelspiel
   zahlt bzw. bekommt der Spieler den Spielwert von jedem der drei Gegner.
 
+## Varianten (geplant)
+
+Von Lukas im November 2026 festgelegt, **noch nicht umgesetzt**. Schnittstellen dazu:
+[entwurf-sonderspiele.md](entwurf-sonderspiele.md); Pakete K3a–K3d, K4, K5 in
+[ARBEITSPAKETE.md](ARBEITSPAKETE.md). Alle Varianten sind Tischregeln, die der Gastgeber vor dem
+ersten Spiel wählt; Standard ist „aus“ bzw. Zusammenwerfen. Punkte, die nicht abgefragt wurden,
+stehen unter „Annahmen“ (ab Nr. 10).
+
+### Alle „weiter“
+
+Der Gastgeber wählt genau eine der vier Möglichkeiten: Zusammenwerfen (Standard), Ramsch, Stock
+oder Muss.
+
+**Ramsch.** Es wird gespielt, jeder für sich. Trümpfe und Stichregeln wie im Sauspiel, ohne Rufsau.
+
+- Wer am Ende die **meisten Augen** hat, verliert und zahlt den Ramsch-Tarif (Standard: wie
+  Sauspiel, 10 Cent) an jeden der drei anderen.
+- **Jungfrau:** Jeder Spieler ohne Stich verdoppelt, was der Verlierer zahlt (zwei Jungfrauen:
+  vierfach). Abschaltbar.
+- **Durchmarsch:** Wer **91 oder mehr Augen** hat, gewinnt stattdessen und bekommt den Ramsch-Tarif
+  von jedem. Abschaltbar.
+- Kein Schneider, kein Schwarz, keine Laufenden.
+
+**Stock.** Es wird nicht gespielt. Jeder zahlt den Stock-Einsatz (Standard: wie Sauspiel, 10 Cent)
+in den Pott; dann gibt der Nächste.
+
+- Den Pott bekommt die Spielerpartei des **nächsten gewonnenen Spiels gleich welcher Art**
+  (Sauspiel und Hochzeit: je zur Hälfte), zusätzlich zur normalen Abrechnung.
+- Verliert die Spielerpartei, bleibt der Pott stehen. Sagen wieder alle „weiter“, wächst er.
+
+**Muss.** Der Besitzer des Eichel-Obers muss ein Sauspiel spielen und nennt die Ruffarbe.
+
+- Kann er nach den normalen Regeln nichts rufen („gesperrt“), darf er auch eine Sau rufen, von
+  deren Farbe er keine Karte hat – nur nicht Herz und keine Sau, die er selbst hält.
+- Hält er alle drei Farb-Säue selbst, wird zusammengeworfen.
+- Gespielt und abgerechnet wird wie ein gewöhnliches Sauspiel.
+
+### Hochzeit
+
+- **Wer:** Wer genau **einen Trumpf** hat (Trümpfe wie im Sauspiel), darf eine Hochzeit ansagen.
+- **Rang:** über dem Sauspiel, unter dem Bettel. Angesagt wird sie in der normalen Ansage („Ich
+  würde“, im Zweikampf „Hochzeit“). Kein Tout.
+- **Ablauf nach der Ansage:** Reihum ab dem Spieler links vom Hochzeiter sagt jeder „nehme an“ oder
+  „nein“. Der Erste, der annimmt, bekommt den Trumpf verdeckt und gibt dafür verdeckt eine Karte
+  zurück, die kein Trumpf ist. Beide spielen zusammen gegen die anderen zwei; das wissen alle.
+- **Spiel und Abrechnung:** wie Sauspiel (Trümpfe, Sauspiel-Tarif, Schneider, Schwarz, Laufende),
+  ohne Rufsau-Regeln.
+- **Nimmt keiner an,** gilt der Hochzeiter als „weiter“. Wer vorher im Zweikampf gegen ihn
+  aufgegeben hat (z. B. ein Sauspieler), darf jetzt doch spielen. Gibt es niemanden, gilt die
+  Regel für alle „weiter“.
+
+### Kontra und Re
+
+- **Kontra:** Jeder Gegenspieler darf Kontra sagen, solange die erste Karte des Spiels noch nicht
+  liegt. Der Spielwert verdoppelt sich.
+- **Re:** Die Spielerpartei darf darauf mit Re antworten; der Spielwert verdoppelt sich noch einmal.
+- Legen und Bockrunden spielt Lukas' Runde nicht; sie bleiben mögliche spätere Tischregeln.
+
+## Hausregeln (geplant)
+
+Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben, **noch nicht umgesetzt**
+(Pakete H1–H3). Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
+
+| Spielart           | Trümpfe (hoch → niedrig)                                      | Farbkarten (hoch → niedrig) | Allein | Tout | Laufende ab    |
+| ------------------ | ------------------------------------------------------------- | --------------------------- | ------ | ---- | -------------- |
+| Eisenbahner        | 4 Zehner                                                      | A K O U 9 8 7               | ja     | ja   | 2              |
+| Hawaii-Habicht     | 4 Könige, dann die jeweils gültige Trumpffarbe A 10 O U 9 8 7 | A 10 O U 9 8 7              | ja     | ja   | 2 (nur Könige) |
+| Arabische Hochzeit | wie Sauspiel                                                  | A 10 K 9 8 7                | nein   | nein | 3              |
+
+Zehner und Könige stechen untereinander wie Ober und Unter: Eichel, Gras, Herz, Schellen.
+
+**Eisenbahner.** Wie ein Wenz, nur sind die vier Zehner die Trümpfe statt der Unter.
+Einzelspiel-Tarif, Schneider, Schwarz, Laufende und Tout wie beim Wenz.
+
+**Hawaii-Habicht.** Wie ein Farbwenz, nur mit den vier Königen statt der Unter – und mit zwei
+Trumpffarben: Der Spieler nennt beim Ansagen eine Trumpffarbe für die **Stiche 1–4** und eine
+**andere** für die **Stiche 5–8**. Die Könige sind in allen acht Stichen die höchsten Trümpfe; nach
+dem vierten Stich wird die erste Farbe wieder gewöhnliche Farbe und die zweite Trumpf.
+Einzelspiel-Tarif, Schneider, Schwarz und Tout wie beim Farbwenz. Laufende zählen nur über die
+vier Könige, ab zwei.
+
+**Arabische Hochzeit.** Wie die Hochzeit, nur mit genau **zwei Trümpfen**: Beide gehen verdeckt an
+den, der annimmt; er gibt zwei Karten zurück, die keine Trümpfe sind. Sie steht im Rang unter der
+Hochzeit.
+
+**Rangfolge mit allen Varianten und Hausregeln:**
+Sauspiel < Arabische Hochzeit < Hochzeit < Bettel < Eisenbahner < Geier < Hawaii-Habicht <
+Farbwenz < Wenz < Solo. Jede Tout-Ansage schlägt jede Ansage ohne Tout.
+
+Weitere Hausregeln der Runde („u. a.“ im Backlog) sind noch nicht beschrieben.
+
 ## Einstellbare Tischregeln
 
 Der Gastgeber stellt in der Lobby ein, womit der Tisch spielt (`RuleSet`); nach Spielbeginn ist
@@ -129,7 +220,8 @@ Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abg
 (Laufende zählen dann). Ist `davonlaufen` aus, darf die Ruffarbe nur mit der Sau angespielt werden.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Keine Optionen sind Ramsch, Stock, Muss, Kontra/Re, Legen und Bockrunden (K3/K4) sowie die
+Noch keine Optionen sind Ramsch, Stock, Muss, Kontra/Re und die Hausregeln (siehe „Varianten“ und
+„Hausregeln“; Pakete K3a–K5, H1–H3). Fest bleiben die
 Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
 
 ## Annahmen – bitte prüfen
@@ -149,3 +241,31 @@ etwas anders; Abweichungen bitte hier korrigieren.
 7. **Sie** wird automatisch erkannt und abgerechnet, muss nicht angesagt werden (abschaltbar).
 8. **Davonlaufen** ab vier Karten der Ruffarbe einschließlich der Sau (abschaltbar).
 9. **Herauskommen**: Auch im Solo kommt der Spieler links vom Geber heraus.
+
+### Annahmen zu Varianten und Hausregeln
+
+Beim Erfragen der Varianten (November 2026) offen geblieben und nach gängiger Spielweise bzw. in
+Analogie festgelegt. Vor der Umsetzung des jeweiligen Pakets von Lukas bestätigen lassen.
+
+10. **Ramsch, Gleichstand:** Haben zwei Spieler gleich viele Augen, verliert, wer mehr Stiche hat;
+    dann, wer mehr Trümpfe in seinen Stichen hat; dann, wer den höchsten Trumpf in seinen Stichen
+    hat.
+11. **Ramsch, Durchmarsch und Jungfrau:** Beim Durchmarsch zählen Jungfrauen nicht. Im Ramsch gibt
+    es kein Kontra.
+12. **Stock, Einsatz:** eigener Tarifwert, Standard gleich dem Sauspiel-Tarif. Kontra/Re
+    verdoppeln den Pott nicht.
+13. **Stock am Ende des Abends:** Ein stehengebliebener Pott wird in der Endabrechnung zu gleichen
+    Teilen zurückgezahlt.
+14. **Muss:** keine Sonderabrechnung (kein „gewonnen mit 60“, kein doppelter Tarif). Wer den
+    Eichel-Ober hat, wird dadurch bekannt.
+15. **Hochzeit, Tausch:** Der Annehmende wählt die Karte, die er zurückgibt, selbst; hat er nur
+    Trümpfe, darf er einen Trumpf zurückgeben. Laufende zählen nach dem Tausch.
+16. **Hochzeit, keiner nimmt an:** Dürfen danach mehrere doch spielen, machen sie es im Zweikampf
+    unter sich aus, wie in der normalen Ansage.
+17. **Arabische Hochzeit, Rang:** über dem Sauspiel (Lukas: „unter der Hochzeit“).
+18. **Kontra/Re:** Re ist nur möglich, solange die erste Karte noch nicht liegt. Kontra darf jeder
+    Gegenspieler sagen, Re jeder aus der Spielerpartei (der Mitspieler im Sauspiel verrät sich
+    damit). Tout und Sie werden mitverdoppelt.
+19. **Eisenbahner und Hawaii-Habicht:** Einzelspiel-Tarif; Tout rechnet wie bei den anderen
+    Einzelspielen. Im Hawaii-Habicht gilt die Bedienpflicht je Stich nach der gerade gültigen
+    Trumpffarbe.
