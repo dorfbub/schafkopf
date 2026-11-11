@@ -25,8 +25,13 @@
         margin: 0 0 4px;
         font-size: 24px;
       }
+      h2 {
+        font-size: 16px;
+        margin: 28px 0 8px;
+        font-weight: 600;
+      }
       p {
-        margin: 0 0 20px;
+        margin: 0 0 16px;
         color: #cfe0cf;
         max-width: 75ch;
       }
@@ -35,23 +40,64 @@
       }
       .reihe {
         display: flex;
-        gap: 10px;
-        margin-bottom: 14px;
         flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 12px;
+        align-items: flex-end;
       }
-      .reihe img {
-        width: 132px;
-        height: auto;
+      /* wie .card/.face-img in der App: Vorlage hat 5 mm Rand bei 125 × 205 mm */
+      .karte {
+        position: relative;
         display: block;
-        filter: drop-shadow(0 3px 6px #0006);
+        flex: none;
+        overflow: hidden;
+        width: var(--w);
+        aspect-ratio: 115 / 195;
+        border-radius: calc(var(--w) * 0.1);
+        background: #fff;
+        box-shadow:
+          inset 0 0 0 1px #a8a29e,
+          0 2px 5px #0006;
       }
-      .klein img {
-        width: 44px;
+      .karte img {
+        position: absolute;
+        width: calc(var(--w) * 125 / 115);
+        left: calc(var(--w) * -5 / 115);
+        top: calc(var(--w) * -5 / 115);
       }
-      h2 {
-        font-size: 15px;
-        margin: 24px 0 8px;
-        font-weight: 600;
+      .normal {
+        --w: 104px;
+      }
+      .klein {
+        --w: 44px;
+      }
+      .reihe.klein {
+        gap: 4px;
+      }
+      .mini {
+        --w: 20px;
+      }
+      .hand {
+        display: flex;
+        margin-bottom: 12px;
+      }
+      .hand .karte {
+        --w: 56px;
+      }
+      .hand .karte + .karte {
+        margin-left: -22px;
+      }
+      .hand.gross .karte {
+        --w: 104px;
+      }
+      .hand.gross .karte + .karte {
+        margin-left: -58px;
+      }
+      .verdeckt {
+        display: flex;
+      }
+      .verdeckt .karte + .karte {
+        margin-left: -11px;
       }
     </style>
   </head>
@@ -59,26 +105,50 @@
     <main>
       <h1>Das Blatt</h1>
       <p>
-        Zahlenkarten (7–10): SVG von einem Freund von Lukas. Unter, Ober, König und Sau: neu
-        gezeichnet im selben Stil, doppelbildig; beim Ober sitzt das Farbzeichen oben, beim Unter
-        unten an der Mittellinie. Erzeugt mit <code>karten/erzeuge-figuren.mjs</code>. Erster
-        Entwurf – die Figuren lassen sich noch beliebig ändern.
+        Bayerisches Blatt aus U2. Zahlenkarten (7–10): Bildchen von Fabian Bally (CC0). Bildkarten,
+        Rahmen, Eckzeichen und Rücken: gezeichnet mit
+        <code>apps/web/scripts/karten/erzeuge-karten.mjs</code>, abgelegt in
+        <code>apps/web/src/assets/karten/</code>. Ober als Edelmann in der Schaube mit Barett und
+        Schwert, Unter als Landsknecht mit Hellebarde (Farbzeichen unten), König im Hermelin, Sau
+        mit Ranken und Schriftband (Schellen-Sau mit kleiner Sau).
         <a href="index.html">Zurück zur Übersicht</a>
       </p>
-      <div id="blatt"></div>
-      <h2>Bei 44 px Breite (kleinste Größe am Handy)</h2>
+      <h2>Normale Größe (104 px, Hand am Desktop)</h2>
+      <div id="normal"></div>
+      <h2>44 px (kleinste Stichkarte am Handy)</h2>
       <div id="klein"></div>
+      <h2>Hand, überlappend (Handy 56 px und Desktop 104 px)</h2>
+      <div id="haende"></div>
+      <h2>Rücken (104 px, 44 px, verdeckt am Platz 20 px)</h2>
+      <div class="reihe" id="ruecken"></div>
     </main>
     <script>
+      const PFAD = '../../apps/web/src/assets/karten/';
       const FARBEN = ['eichel', 'gras', 'herz', 'schellen'];
       const RAENGE = ['A', 'K', 'O', 'U', '10', '9', '8', '7'];
-      const reihe = (f) =>
-        '<div class="reihe">' +
-        RAENGE.map((r) => `<img src="karten/${f}-${r}.svg" alt="${f} ${r}">`).join('') +
-        '</div>';
-      document.getElementById('blatt').innerHTML = FARBEN.map(reihe).join('');
-      document.getElementById('klein').innerHTML =
-        '<div class="klein">' + FARBEN.map(reihe).join('') + '</div>';
+      const k = (n, cls = '') =>
+        `<span class="karte ${cls}"><img src="${PFAD}${n}.svg" alt="${n}"></span>`;
+      const reihe = (f, cls) =>
+        `<div class="reihe ${cls}">` + RAENGE.map((r) => k(`${f}-${r}`, cls)).join('') + '</div>';
+      document.getElementById('normal').innerHTML = FARBEN.map((f) => reihe(f, 'normal')).join('');
+      document.getElementById('klein').innerHTML = FARBEN.map((f) => reihe(f, 'klein')).join('');
+      const hand = [
+        'eichel-O',
+        'gras-U',
+        'herz-U',
+        'herz-A',
+        'herz-10',
+        'schellen-K',
+        'gras-9',
+        'eichel-7',
+      ];
+      document.getElementById('haende').innerHTML =
+        `<div class="hand">${hand.map((n) => k(n)).join('')}</div>` +
+        `<div class="hand gross">${hand.map((n) => k(n)).join('')}</div>`;
+      document.getElementById('ruecken').innerHTML =
+        k('ruecken', 'normal') +
+        k('ruecken', 'klein') +
+        `<span class="verdeckt">${[1, 2, 3, 4, 5].map(() => k('ruecken', 'mini')).join('')}</span>`;
     </script>
   </body>
 </html>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 125 205" width="125mm" height="205mm">
+<defs><clipPath id="karte"><rect x="5" y="5" width="115" height="195" rx="15.5"/></clipPath><pattern id="rauten" width="9" height="13.5" patternUnits="userSpaceOnUse" patternTransform="translate(62.5 102.5)"><rect width="9" height="13.5" fill="#ffffff"/><path d="M4.5 0L9 6.75L4.5 13.5L0 6.75Z" fill="#1f5fa8"/></pattern></defs>
+<g clip-path="url(#karte)"><rect x="0" y="0" width="125" height="205" fill="#ffffff"/><rect x="10" y="10" width="105" height="185" rx="11" fill="url(#rauten)" stroke="#173f73" stroke-width="0.8"/><rect x="11.6" y="11.6" width="101.8" height="181.8" rx="9.6" fill="none" stroke="#173f73" stroke-width="0.3"/></g>
+<rect x="5" y="5" width="115" height="195" rx="15.5" fill="none" stroke="#1a1a1a" stroke-width="0.1"/>
+</svg>

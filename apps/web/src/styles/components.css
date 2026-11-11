@@ -352,22 +352,10 @@
     var(--shadow-raised);
 }
 
+/* Rücken als SVG (bayerischTheme.back()); die Farbe steht nur da, bis das Bild geladen ist. */
 .card--back {
-  background:
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 calc(var(--card-w) * 0.05),
-      var(--color-card-back-line) calc(var(--card-w) * 0.05) calc(var(--card-w) * 0.065)
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent 0 calc(var(--card-w) * 0.05),
-      var(--color-card-back-line) calc(var(--card-w) * 0.05) calc(var(--card-w) * 0.065)
-    ),
-    var(--color-card-back);
-  box-shadow:
-    inset 0 0 0 calc(var(--card-w) * 0.04) var(--color-card-back-rim),
-    var(--shadow-card);
+  background: var(--color-card-back);
+  box-shadow: var(--shadow-card);
 }
 
 /* Kartenbild aus SVG-Vorlage (bayerischTheme): Vorlage hat 5 mm Rand bei 125 × 205 mm */

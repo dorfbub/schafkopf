@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schafkopf · U2 Auswahl</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        background: #17603a;
+        color: #f5f0e4;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 24px;
+      }
+      h2 {
+        margin: 32px 0 8px;
+        font-size: 19px;
+      }
+      p {
+        margin: 0 0 16px;
+        color: #cfe0cf;
+        max-width: 70ch;
+      }
+      .reihe {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+      }
+      figcaption {
+        margin-top: 6px;
+        font-weight: 600;
+      }
+      figcaption small {
+        display: block;
+        font-weight: 400;
+        color: #cfe0cf;
+      }
+      .karte {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        border-radius: calc(var(--w) * 0.1);
+        width: var(--w);
+        aspect-ratio: 115 / 195;
+        box-shadow: 0 2px 6px #0006;
+        background: #fff;
+      }
+      .karte img {
+        position: absolute;
+        width: calc(var(--w) * 125 / 115);
+        left: calc(var(--w) * -5 / 115);
+        top: calc(var(--w) * -5 / 115);
+      }
+      .gross {
+        --w: 230px;
+      }
+      .klein {
+        --w: 44px;
+      }
+      .mini {
+        --w: 20px;
+      }
+      .hand {
+        display: flex;
+        margin-top: 12px;
+      }
+      .hand .karte {
+        --w: 64px;
+      }
+      .hand .karte + .karte {
+        margin-left: -38px;
+      }
+      .kleine-reihe {
+        display: flex;
+        gap: 6px;
+        align-items: flex-end;
+        margin-top: 10px;
+      }
+      .mini + .mini {
+        margin-left: -11px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>U2 · Haltepunkt (a): Bildkarte und Rücken</h1>
+      <p>
+        Drei Richtungen für die Bildkarten am Beispiel Herz-Ober, alle selbst gezeichnet. Darunter
+        jeweils die Karte bei 44&nbsp;px und in einer überlappenden Hand. Eckzeichen sind bei allen
+        gleich (Fraunces, etwa 1,6-mal so groß wie bisher).
+      </p>
+      <div class="reihe" id="ober"></div>
+
+      <h2>Kartenrücken</h2>
+      <p>
+        Drei Vorschläge mit bayerischem Motiv, groß, bei 44&nbsp;px und als verdeckte Karten am
+        Platz (20&nbsp;px).
+      </p>
+      <div class="reihe" id="ruecken"></div>
+    </main>
+    <script>
+      const ober = [
+        [
+          'herz-O-A',
+          'A · Landsknecht',
+          'Schlitzwams, Puffärmel, Barett mit Federn, Umhang, Katzbalger',
+        ],
+        ['herz-O-B', 'B · Edelmann', 'Schaube mit Pelzkragen, Brokatwams, Goldkette, hoher Hut'],
+        ['herz-O-C', 'C · Landsknecht mit Ranken', 'wie A, dazu Rankenwerk im Hintergrund'],
+      ];
+      const ruecken = [
+        ['ruecken-1', '1 · Rauten', 'weiß-blaue Rauten über die ganze Fläche'],
+        ['ruecken-2', '2 · Wappen', 'Nachtblau mit feinem Gitter, Rautenschild im Ranken-Oval'],
+        [
+          'ruecken-3',
+          '3 · Rauten mit Bordüre',
+          'Rautenfeld in goldener Rankenbordüre auf Nachtblau',
+        ],
+      ];
+      const k = (n, cls) => `<span class="karte ${cls}"><img src="u2/${n}.svg" alt=""></span>`;
+      document.getElementById('ober').innerHTML = ober
+        .map(
+          ([n, t, s]) => `<figure>${k(n, 'gross')}<figcaption>${t}<small>${s}</small></figcaption>
+          <div class="kleine-reihe">${k(n, 'klein')}</div>
+          <div class="hand">${k(n, '')}${k(n, '')}${k(n, '')}${k(n, '')}</div></figure>`,
+        )
+        .join('');
+      document.getElementById('ruecken').innerHTML = ruecken
+        .map(
+          ([n, t, s]) => `<figure>${k(n, 'gross')}<figcaption>${t}<small>${s}</small></figcaption>
+          <div class="kleine-reihe">${k(n, 'klein')}<span style="width:12px"></span>${k(n, 'mini')}${k(n, 'mini')}${k(n, 'mini')}${k(n, 'mini')}</div></figure>`,
+        )
+        .join('');
+    </script>
+  </body>
+</html>

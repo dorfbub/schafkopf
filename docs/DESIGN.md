@@ -2,8 +2,9 @@
 
 Festlegungen zur Gestaltung der Oberfläche. **Lukas entscheidet über die Gestaltung**; was hier
 steht, hat er freigegeben. Die Entwürfe liegen als klickbares HTML unter `docs/entwuerfe/`
-(Übersicht: `docs/entwuerfe/index.html`; zum Ansehen `python3 -m http.server 5190 --directory
-docs/entwuerfe` oder in Claude Code die Vorschau „entwuerfe“).
+(Übersicht: `docs/entwuerfe/index.html`; zum Ansehen `python3 -m http.server 5190` im Projektordner
+und dann `http://localhost:5190/docs/entwuerfe/` öffnen, oder in Claude Code die Vorschau
+„entwuerfe“; die Entwürfe laden die Karten aus `apps/web/src/assets/karten/`).
 
 ## Richtung: „Kartentisch“ (D1, freigegeben am 11.11.2026)
 
@@ -33,19 +34,19 @@ Entwurf: `docs/entwuerfe/filz.html`
 
 ### Farben (erste Festlegung; gültige Werte unter „Gestaltungssystem (D2)“)
 
-| Rolle                       | Wert                                       | Verwendung                                            |
-| --------------------------- | ------------------------------------------ | ----------------------------------------------------- |
-| Grund                       | `#0d2a18`                                  | Hintergrund um den Tisch                              |
-| Filz                        | `#17603a`                                  | Tischplatte (Verlauf nach `#0f4428`, Licht `#2a7d4e`) |
-| Holzrand                    | `#4a2f1c`                                  | Rahmen um den Filz                                    |
-| Schrift auf Grün            | `#f5f0e4`                                  | Namen, Leiste                                         |
-| Schrift auf Grün, leise     | `#b9cdb9`                                  | Stiche, Stand, Nebeninfos                             |
-| Messing                     | `#e9c46a`                                  | Wer dran ist, spielbare Karte, „Spieler“-Marke        |
-| Papier                      | `#fbf7ec`                                  | Dialoge, Sprechblasen                                 |
-| Schrift auf Papier          | `#1f1a14` / leise `#6b6355`                | Text in Dialogen                                      |
-| Akzent (Handlung)           | `#b45309`                                  | Hauptknopf, gewählte Spielart, Augenzahl              |
-| Minus auf Papier / auf Grün | `#b42318` / `#ffb4a6`                      | negative Beträge                                      |
-| Kartenrücken                | `#1f4f8a` mit weißem Rand und Rautengitter | verdeckte Karten                                      |
+| Rolle                       | Wert                                     | Verwendung                                            |
+| --------------------------- | ---------------------------------------- | ----------------------------------------------------- |
+| Grund                       | `#0d2a18`                                | Hintergrund um den Tisch                              |
+| Filz                        | `#17603a`                                | Tischplatte (Verlauf nach `#0f4428`, Licht `#2a7d4e`) |
+| Holzrand                    | `#4a2f1c`                                | Rahmen um den Filz                                    |
+| Schrift auf Grün            | `#f5f0e4`                                | Namen, Leiste                                         |
+| Schrift auf Grün, leise     | `#b9cdb9`                                | Stiche, Stand, Nebeninfos                             |
+| Messing                     | `#e9c46a`                                | Wer dran ist, spielbare Karte, „Spieler“-Marke        |
+| Papier                      | `#fbf7ec`                                | Dialoge, Sprechblasen                                 |
+| Schrift auf Papier          | `#1f1a14` / leise `#6b6355`              | Text in Dialogen                                      |
+| Akzent (Handlung)           | `#b45309`                                | Hauptknopf, gewählte Spielart, Augenzahl              |
+| Minus auf Papier / auf Grün | `#b42318` / `#ffb4a6`                    | negative Beträge                                      |
+| Kartenrücken                | SVG, Nachtblau `#14305a` mit Rauten (U2) | verdeckte Karten                                      |
 
 Die Kontrastprüfung in D2 hat einige Werte angepasst, siehe unten.
 
@@ -56,14 +57,43 @@ Die Kontrastprüfung in D2 hat einige Werte angepasst, siehe unten.
 - Beide stehen unter der SIL Open Font License. In der App werden sie **selbst ausgeliefert**,
   nicht von Google Fonts geladen (kein Fremdserver, auch offline nutzbar); umgesetzt in D2.
 
-### Karten
+### Karten (U2, freigegeben am 11.11.2026)
 
-Das Blatt ist das bayerische Bild im Stil des Schmid-Blatts „Tarock Schafkopf“: doppelbildig,
-Eckzeichen an allen vier Ecken. Zahlenkarten stammen von Fabian Bally, einem Freund von Lukas
-(Herkunft und Lizenz – CC0 seit 11.11.2026 – in `docs/entwuerfe/karten/LIZENZ.md`). Unter, Ober, König und Sau
-sind in diesem Stil neu gezeichnet (`docs/entwuerfe/karten/erzeuge-figuren.mjs`, Übersicht
-`docs/entwuerfe/karten.html`). Lukas: „geht in die richtige Richtung, aber mehr Ornamente und wie
-Schmid“ – das ist Aufgabe von U2.
+Das Blatt ist das bayerische Bild: doppelbildig, Eckzeichen an allen vier Ecken. Übersicht aller
+Karten bei normaler Größe und 44 px: `docs/entwuerfe/karten.html`; die Auswahl aus Haltepunkt (a):
+`docs/entwuerfe/u2-auswahl.html`.
+
+![Alle 32 Karten und der Rücken](entwuerfe/u2/haltepunkt-b.png)
+
+- **Zahlenkarten:** Die Bildchen stammen von Fabian Bally, einem Freund von Lukas (CC0 seit
+  11.11.2026, Herkunft in `apps/web/scripts/karten/vorlagen/LIZENZ.md`). Rahmen und Eckzeichen sind
+  neu.
+- **Bildkarten** im Geist des Schmid-Blatts, selbst gezeichnet. Lukas wollte „mehr Ornamente und wie
+  Schmid“ und meinte damit Kleidung und Falten, Figur und Gesicht sowie Zierrat und Muster (nicht
+  die Farben). Aus drei Varianten am Herz-Ober hat er gewählt: „B (Edelmann), aber mit Hut und
+  Schwert von A (Landsknecht)“.
+  - **Ober:** Edelmann in der Schaube mit Pelzkragen, Brokatwams und Goldkette, Barett mit drei
+    Federn, Katzbalger an der Hüfte; hält das Farbzeichen hoch.
+  - **Unter:** Landsknecht mit Schlitzwams, Puffärmeln, Halskrause und Hellebarde, flaches Barett mit
+    einer Feder; hält das Farbzeichen unten an der Mittellinie – so unterscheidet man ihn vom Ober.
+  - **König:** Hermelin-Pelerine, Mantel, Brokat-Tunika, Krone und Zepter, weißer Vollbart;
+    Farbzeichen oben rechts.
+  - **Sau:** großes Farbzeichen im Kranz aus Ranken mit Blüten, darüber ein Schriftband; auf der
+    Schellen-Sau eine kleine Sau.
+  - Kleidungsfarben wechseln je Farbe (`KLEID_*` in `figuren.mjs`); rechts liegt wie bei den
+    Bildchen eine Schraffur als Schatten.
+- **Eckzeichen:** Buchstabe bzw. Zahl in Fraunces (als Pfade, damit sie nicht von der Systemschrift
+  abhängen), Versalhöhe 14 % der Kartenbreite statt bisher etwa 8 %; darunter dasselbe Farbzeichen
+  wie auf den Zahlenkarten (Lukas: die Zeichen sollen überall dieselben sein). Auch im Ansage-Dialog
+  stehen seit U2 diese Zeichen.
+- **Rücken:** Rautenfeld in einer goldenen Rankenbordüre auf Nachtblau, in der Mitte ein
+  Rautenschild im Ranken-Oval (Lukas: Vorschlag 3 mit dem Emblem aus Vorschlag 2).
+
+**Erzeugen:** `node apps/web/scripts/karten/erzeuge-karten.mjs` schreibt die 32 Karten, den Rücken
+und die vier Farbzeichen nach `apps/web/src/assets/karten/` und verkleinert sie mit SVGO.
+Gleiche Bildchen stehen in jeder Datei nur einmal (`<use>`). Größe der Karten-SVGs im Build: vorher
+1,73 MB (gzip 140 KB, 32 Dateien), nachher 355 KB (gzip 86 KB, 37 Dateien); `dist/` schrumpft von
+2,74 MB auf 1,37 MB.
 
 **Urheberrecht (Stand der Recherche, keine Rechtsberatung):** Das bayerische Bild als Muster ist
 alt und frei. Die konkreten Zeichnungen der heutigen F.X.-Schmid-Karten (Marke heute bei
@@ -76,11 +106,10 @@ aber keine Schmid-Scans abpausen. Als Vorlage taugen gemeinfreie Drucke des Mün
 
 ### Offene Punkte für die nächsten Pakete
 
-- **Eckzeichen zu klein:** In den Vorlagen sind Zahl und Farbzeichen in der Ecke etwa 9 % der
-  Kartenbreite; in der überlappenden Hand und bei 44 px kaum lesbar. U2 vergrößert sie.
+- ~~**Eckzeichen zu klein**~~ – in U2 vergrößert.
 - ~~**Handy, Ansage:** Der Dialog überdeckt die seitlichen Plätze~~ – in D3 gelöst (Dialog unten,
   Plätze oben).
-- **Kartenrücken:** Platzhalter; endgültig mit U2.
+- ~~**Kartenrücken:** Platzhalter~~ – in U2 endgültig gestaltet.
 - **Animationen** (Lukas, D2): Karte legen, Stich zum Gewinner wegräumen und Austeilen sind seit
   D3 umgesetzt (siehe „Spieltisch“).
 
@@ -136,7 +165,7 @@ Hover des Hauptknopfs dunkler statt heller (`#9a4708`), neu ein Rand für Eingab
 | `--color-on-paper` / `-muted`                     | `#1f1a14` / `#6b6355`             | Schrift auf Papier                               |
 | `--color-negative-on-paper`                       | `#b42318`                         | Minus auf Papier, Fehler                         |
 | `--color-accent` / `-hover` / `--color-on-accent` | `#b45309` / `#9a4708` / `#fff`    | Hauptknopf, Auswahl                              |
-| `--color-card-face` / `-edge` / `-back`           | `#fff` / `#a8a29e` / `#1f4f8a`    | Karte                                            |
+| `--color-card-face` / `-edge` / `-back`           | `#fff` / `#a8a29e` / `#14305a`    | Karte (Rücken-Farbe nur bis das SVG geladen ist) |
 
 **Messing als Schrift** nur groß/fett auf Filz (≥ 3 : 1) oder auf dem dunklen Grund; kleine
 Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
@@ -168,9 +197,8 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 
 Karten laufen über die Schnittstelle `CardTheme`. **Einziges Kartenbild ist das bayerische Blatt**
 (`bayerischTheme` in `ui/cardTheme.tsx`), auch in der App selbst; das frühere schlichte Text-Kartenbild
-ist gestrichen, weil es nur verwirrt hat (Lukas, D2). Die SVGs liegen bis U2 weiter in
-`docs/entwuerfe/karten/` und werden von dort eingebunden. Sie landen damit im Build; die Zahlenkarten hat
-Fabian Bally unter CC0 freigegeben (siehe `karten/LIZENZ.md`).
+ist gestrichen, weil es nur verwirrt hat (Lukas, D2). Vorderseiten, Rücken und Farbzeichen sind SVGs
+aus `apps/web/src/assets/karten/` (seit U2, siehe „Karten“).
 
 ### Kontraste (WCAG AA)
 
