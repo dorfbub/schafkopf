@@ -119,6 +119,11 @@ export class ClientSession {
     this.act({ type: 'play', card });
   }
 
+  /** Kontra bzw. Re sagen (K4); der Host prüft, ob es gerade erlaubt ist. */
+  double(): void {
+    this.act({ type: 'double' });
+  }
+
   /** Freien Platz wählen oder wechseln; `null` = nur zuschauen. Nur in der Lobby. */
   takeSeat(seat: Seat | null): void {
     this.update({ lastError: null });

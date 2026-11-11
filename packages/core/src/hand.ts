@@ -43,7 +43,11 @@ export type BidCall =
   | { type: 'yield' } // Zweikampf: „gut“ bzw. aufgeben
   | { type: 'declare'; contract: Contract }; // Stufe 3: das genaue Spiel
 
-export type PlayerAction = { type: 'bid'; call: BidCall } | { type: 'play'; card: Card };
+export type PlayerAction =
+  | { type: 'bid'; call: BidCall }
+  | { type: 'play'; card: Card }
+  /** Kontra bzw. Re (K4) – außerhalb der Reihe, solange die erste Karte nicht liegt. */
+  | { type: 'double' };
 
 export type Action = PlayerAction & { seat: Seat };
 
@@ -94,6 +98,12 @@ export interface HandCarry {
   factor: number;
 }
 
+/** Kontra und Re (K4): wer es gesagt hat, sonst `null`. Öffentlich, denn es wird laut gesagt. */
+export interface Doubling {
+  kontra: Seat | null;
+  re: Seat | null;
+}
+
 /** Übertrag ohne Pott und ohne Faktor. */
 export const NO_CARRY: HandCarry = { pot: 0, factor: 1 };
 
@@ -118,10 +128,13 @@ export interface HandState {
   currentTrick: Trick;
   /** Übertrag vom Tisch (Pott, Faktor). */
   carry: HandCarry;
+  /** Kontra und Re (K4). */
+  doubling: Doubling;
   result: HandResult | null;
 }
 
-export type RuleError = 'wrong_phase' | 'not_your_turn' | 'illegal_bid' | 'illegal_card';
+export type RuleError =
+  'wrong_phase' | 'not_your_turn' | 'illegal_bid' | 'illegal_card' | 'illegal_double';
 
 export type ActionResult = { ok: true; state: HandState } | { ok: false; error: RuleError };
 
@@ -160,6 +173,7 @@ export function dealHand(
     tricks: [],
     currentTrick: { leader: first, cards: [] },
     carry: { pot: carry.pot, factor: carry.factor },
+    doubling: { kontra: null, re: null },
     result: null,
   };
 }
@@ -292,6 +306,20 @@ export function legalCards(state: HandState, seat: Seat): Card[] {
   );
 }
 
+/**
+ * Darf `seat` jetzt Kontra bzw. Re sagen? An keinen Zug gebunden, aber nur, solange die erste
+ * Karte nicht liegt (REGELN.md, „Kontra und Re“, Annahmen 18, 20–22): Kontra jeder Gegenspieler,
+ * Re nach einem Kontra jeder aus der Spielerpartei. Ohne Spielerpartei (Ramsch) kein Kontra.
+ */
+export function canDouble(state: HandState, seat: Seat): boolean {
+  if (!state.rules.kontra || state.phase !== 'playing' || state.declarer === null) return false;
+  if (state.tricks.length > 0 || state.currentTrick.cards.length > 0) return false;
+  const inParty = seat === state.declarer || seat === state.partner;
+  const { kontra, re } = state.doubling;
+  if (kontra === null) return !inParty;
+  return re === null && inParty;
+}
+
 /** Nächster Zweikampf oder, wenn keiner mehr fordert, Stufe 3. Ändert `next`. */
 function nextDuel(next: HandState): void {
   const auction = next.auction;
@@ -418,7 +446,19 @@ function applyPlay(state: HandState, seat: Seat, played: Card): ActionResult {
   return { ok: true, state: next };
 }
 
+function applyDouble(state: HandState, seat: Seat): ActionResult {
+  if (!canDouble(state, seat)) return { ok: false, error: 'illegal_double' };
+  const next = structuredClone(state);
+  if (next.doubling.kontra === null) next.doubling.kontra = seat;
+  else next.doubling.re = seat;
+  return { ok: true, state: next };
+}
+
 export function applyAction(state: HandState, action: Action): ActionResult {
+  if (action.type === 'double') {
+    if (state.phase !== 'playing') return { ok: false, error: 'wrong_phase' };
+    return applyDouble(state, action.seat);
+  }
   const expected = action.type === 'bid' ? 'bidding' : 'playing';
   if (state.phase !== expected) return { ok: false, error: 'wrong_phase' };
   if (state.turn !== action.seat) return { ok: false, error: 'not_your_turn' };

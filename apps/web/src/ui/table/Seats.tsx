@@ -60,6 +60,30 @@ export function PartyMarks({ hand, seat }: { hand: HandView; seat: Seat }) {
   return null;
 }
 
+/** Marke „Kontra“ bzw. „Re“ (K4) – am Platz, in der Leiste und im Ergebnis. */
+export function DoublingTag({ re = false, className }: { re?: boolean; className?: string }) {
+  return (
+    <span className={`marke marke--kontra${className ? ` ${className}` : ''}`}>
+      {re ? TABLE_TEXT.markRe : TABLE_TEXT.markKontra}
+    </span>
+  );
+}
+
+/** Marken „Kontra“ und „Re“ an dem Platz, der es gesagt hat. */
+export function DoublingMarks({ hand, seat }: { hand: HandView; seat: Seat }) {
+  return (
+    <>
+      {hand.doubling.kontra === seat && <DoublingTag />}
+      {hand.doubling.re === seat && <DoublingTag re />}
+    </>
+  );
+}
+
+/** Hat der Sitz Kontra oder Re gesagt? */
+export function hasDoubled(hand: HandView, seat: Seat): boolean {
+  return hand.doubling.kontra === seat || hand.doubling.re === seat;
+}
+
 /** Ist der Sitz als Spieler oder Mitspieler bekannt? */
 export function inParty(hand: HandView, seat: Seat): boolean {
   return hand.declarer === seat || hand.partner === seat;
@@ -125,7 +149,14 @@ export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
                 </>
               )
             }
-            marks={inParty(hand, seat) && <PartyMarks hand={hand} seat={seat} />}
+            marks={
+              (inParty(hand, seat) || hasDoubled(hand, seat)) && (
+                <>
+                  <PartyMarks hand={hand} seat={seat} />
+                  <DoublingMarks hand={hand} seat={seat} />
+                </>
+              )
+            }
             bubble={
               bid && <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>
             }

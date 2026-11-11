@@ -250,7 +250,8 @@ export function signalingOptions(): TrysteroOptions {
 
 /**
  * Einstellungen nur für die Ende-zu-Ende-Tests (I2): ein Transport ohne Relays
- * (`?transport=broadcast`) und verkürzte Zeiten (`?botDelay=`, `?standIn=`, in ms).
+ * (`?transport=broadcast`) und verkürzte Zeiten (`?botDelay=`, `?standIn=`, `?kontraWindow=`,
+ * in ms).
  * Gibt es nur in einem Build mit `VITE_E2E=1`; sonst entfernt der Build den Zweig samt Transport.
  */
 const E2E = import.meta.env.VITE_E2E === '1';
@@ -265,7 +266,13 @@ function e2eNumber(key: string): number | undefined {
 
 function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
   return {
-    ...(E2E ? { botDelayMs: e2eNumber('botDelay'), standInDelayMs: e2eNumber('standIn') } : {}),
+    ...(E2E
+      ? {
+          botDelayMs: e2eNumber('botDelay'),
+          standInDelayMs: e2eNumber('standIn'),
+          kontraWindowMs: e2eNumber('kontraWindow'),
+        }
+      : {}),
     createBot: (seat) => createHeuristicBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
   };
 }

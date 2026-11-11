@@ -219,6 +219,8 @@ describe('Regeln prüfen', () => {
     ['Stock-Einsatz krumm', (r) => (r.tariff.stock = 0.5)],
     ['Durchmarsch kein Wahrheitswert', (r) => (r.ramsch.durchmarsch = 'ja')],
     ['Ramsch-Optionen fehlen', (r) => (r.ramsch = undefined as never)],
+    ['Kontra fehlt', (r) => delete r.kontra],
+    ['Kontra kein Wahrheitswert', (r) => (r.kontra = 'ja')],
   ])('lehnt ab: %s', (_name, mutate) => {
     const raw = ok();
     mutate(raw);

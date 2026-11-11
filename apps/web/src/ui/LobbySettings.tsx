@@ -17,7 +17,7 @@ interface Props {
 }
 
 function options(view: TableView): RuleOptions {
-  const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen } =
+  const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     view.rules;
   return {
     contracts,
@@ -28,6 +28,7 @@ function options(view: TableView): RuleOptions {
     laufende: { ...laufende },
     sie,
     davonlaufen,
+    kontra,
   };
 }
 
@@ -88,6 +89,14 @@ export function LobbySettings({ view, host }: Props) {
             onChange={(e) => change({ davonlaufen: e.target.checked })}
           />
           {T.davonlaufen}
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={current.kontra}
+            onChange={(e) => change({ kontra: e.target.checked })}
+          />
+          {T.kontra}
         </label>
       </div>
 

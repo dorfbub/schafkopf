@@ -5,14 +5,15 @@ Wer eine Regel ändert, ändert zuerst dieses Dokument, dann Test und Code.
 
 ## Festgelegt
 
-| Thema                        | Entscheidung                                                     |
-| ---------------------------- | ---------------------------------------------------------------- |
-| Spieler                      | 4                                                                |
-| Blatt                        | Lange Karte, 32 Karten, 8 je Spieler                             |
-| Spielarten                   | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und Sie |
-| Alle „weiter“                | Tischregel: Zusammenwerfen (Standard), Ramsch, Stock oder Muss   |
-| Kontra/Re, Legen, Bockrunden | Nicht gespielt                                                   |
-| Abrechnung                   | Grundtarif, Schneider, Schwarz, Laufende                         |
+| Thema             | Entscheidung                                                     |
+| ----------------- | ---------------------------------------------------------------- |
+| Spieler           | 4                                                                |
+| Blatt             | Lange Karte, 32 Karten, 8 je Spieler                             |
+| Spielarten        | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und Sie |
+| Alle „weiter“     | Tischregel: Zusammenwerfen (Standard), Ramsch, Stock oder Muss   |
+| Kontra/Re         | Tischregel, Standard aus (siehe „Kontra und Re“)                 |
+| Legen, Bockrunden | Nicht gespielt                                                   |
+| Abrechnung        | Grundtarif, Schneider, Schwarz, Laufende                         |
 
 ## Karten
 
@@ -110,7 +111,7 @@ Aufschlag 10 Cent.
 ## Varianten
 
 Von Lukas im November 2026 festgelegt. **Umgesetzt** sind die Regeln für alle „weiter“
-(Ramsch, Stock, Muss); Hochzeit und Kontra/Re sind **noch nicht umgesetzt**. Schnittstellen dazu:
+(Ramsch, Stock, Muss) und Kontra/Re (K4); Hochzeit ist **noch nicht umgesetzt**. Schnittstellen dazu:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md); Pakete K3a–K3d, K4, K5 in
 [ARBEITSPAKETE.md](ARBEITSPAKETE.md). Alle Varianten sind Tischregeln, die der Gastgeber vor dem
 ersten Spiel wählt; Standard ist „aus“ bzw. Zusammenwerfen. Ergänzende Festlegungen
@@ -169,6 +170,10 @@ in den Pott; dann gibt der Nächste.
 - **Kontra:** Jeder Gegenspieler darf Kontra sagen, solange die erste Karte des Spiels noch nicht
   liegt. Der Spielwert verdoppelt sich.
 - **Re:** Die Spielerpartei darf darauf mit Re antworten; der Spielwert verdoppelt sich noch einmal.
+- **Umgesetzt** (K4) als Tischregel `kontra`, Standard aus. Kontra und Re werden außerhalb der
+  Reihe gesagt, jeweils höchstens einmal je Spiel; danach liegt das Fenster mit der ersten Karte
+  zu. Der Faktor (×2 bzw. ×4) gilt für den ganzen Spielwert einschließlich Tout und Sie, nicht für
+  den Pott (Annahmen 12, 18, 20–23).
 - Legen und Bockrunden spielt Lukas' Runde nicht; sie bleiben mögliche spätere Tischregeln.
 
 ## Hausregeln (geplant)
@@ -225,6 +230,7 @@ Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
 | `tariff.stock`        | Stock-Einsatz (Cent), zahlt jeder in den Pott        | 10                | ganzzahlig ≥ 0                              |
 | `ramsch.durchmarsch`  | Durchmarsch ab 91 Augen gewinnt                      | an                | an/aus                                      |
 | `ramsch.jungfrau`     | Jeder Spieler ohne Stich verdoppelt                  | an                | an/aus                                      |
+| `kontra`              | Kontra und Re erlaubt                                | aus               | an/aus                                      |
 
 Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz → 3, 3, 2, 2, 3.
 Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abgerechnet
@@ -233,8 +239,8 @@ Die Unteroptionen für Ramsch gelten nur bei `allPassed: 'ramsch'`, der Stock-Ei
 `'stock'`; sie bleiben aber gespeichert.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Noch keine Optionen sind Kontra/Re, Hochzeit und die Hausregeln (siehe „Varianten“ und
-„Hausregeln“; Pakete K4, K5, H1–H3). Fest bleiben die
+Noch keine Optionen sind Hochzeit und die Hausregeln (siehe „Varianten“ und
+„Hausregeln“; Pakete K5, H1–H3). Fest bleiben die
 Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
 
 ## Annahmen – bitte prüfen
@@ -295,3 +301,17 @@ gewählt. **Noch nicht von Lukas bestätigt.**
     Pott, erhält jeder den gleichen ganzen Cent-Betrag; ein Rest bleibt im Pott stehen. (Mit vier
     Spielern ist der Pott immer ein Vielfaches von vier Einsätzen und teilt sich glatt; die Regel
     greift erst, wenn sich Spielerzahl oder Einsatz einmal ändern können.)
+
+### Annahmen zu Kontra und Re (K4)
+
+Bei der Umsetzung von K4 offen geblieben und ohne Rückfrage festgelegt. **Bitte prüfen.**
+
+22. **Außerhalb der Reihe:** Kontra und Re sind an keinen Zug gebunden. Jeder Berechtigte darf sie
+    sagen, solange die erste Karte nicht liegt – auch der Herauskommende, bevor er ausspielt.
+    Kontra und Re gibt es je Spiel höchstens einmal; es zählt, wer zuerst sagt.
+23. **Mitspieler im Sauspiel:** Sagt er Re, ist er ab da für alle als Mitspieler erkennbar
+    (Annahme 18). Ein Kontra verrät nichts, denn jeder Gegenspieler darf es sagen.
+24. **Kein Kontra ohne Spielerpartei:** Bei Zusammenwerfen (kein Spiel) und im Ramsch gibt es kein
+    Kontra (Annahme 11). Im Bettel darf Kontra gegeben werden wie in jedem anderen Spiel.
+25. **Zusammen mit Bock:** Sollten Bockrunden je kommen, multiplizieren sich die Faktoren
+    (Kontra im Bock ×4, mit Re ×8).

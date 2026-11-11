@@ -60,6 +60,8 @@ export interface RuleSet {
   sie: boolean;
   /** Davonlaufen mit vier Karten der Ruffarbe erlaubt. */
   davonlaufen: boolean;
+  /** Kontra und Re erlaubt (K4). */
+  kontra: boolean;
 }
 
 export const DEFAULT_RULES: RuleSet = {
@@ -75,12 +77,21 @@ export const DEFAULT_RULES: RuleSet = {
   laufende: { sauspiel: 3, solo: 3, wenz: 2, geier: 2, farbwenz: 3 },
   sie: true,
   davonlaufen: true,
+  kontra: false,
 };
 
 /** Was der Gastgeber ändern darf: alles außer Spielerzahl und Blatt. */
 export type RuleOptions = Pick<
   RuleSet,
-  'contracts' | 'allowTout' | 'allPassed' | 'tariff' | 'ramsch' | 'laufende' | 'sie' | 'davonlaufen'
+  | 'contracts'
+  | 'allowTout'
+  | 'allPassed'
+  | 'tariff'
+  | 'ramsch'
+  | 'laufende'
+  | 'sie'
+  | 'davonlaufen'
+  | 'kontra'
 >;
 
 function isObj(v: unknown): v is Record<string, unknown> {
@@ -97,12 +108,13 @@ function isInt(v: unknown, min: number, max: number): v is number {
  */
 export function parseRuleOptions(raw: unknown): RuleOptions | null {
   if (!isObj(raw)) return null;
-  const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen } = raw;
+  const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
+    raw;
   if (!Array.isArray(contracts) || !contracts.every((k) => BID_ORDER.includes(k))) return null;
   const kinds = new Set(contracts as ContractKind[]);
   if (!kinds.has('sauspiel')) return null;
   if (typeof allowTout !== 'boolean' || typeof sie !== 'boolean') return null;
-  if (typeof davonlaufen !== 'boolean') return null;
+  if (typeof davonlaufen !== 'boolean' || typeof kontra !== 'boolean') return null;
   if (!ALL_PASSED_RULES.includes(allPassed as AllPassedRule)) return null;
   if (!isObj(tariff) || !isObj(laufende) || !isObj(ramsch)) return null;
   const MAX_TARIFF = 100_000;
@@ -131,6 +143,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
     laufende: run,
     sie,
     davonlaufen,
+    kontra,
   };
 }
 

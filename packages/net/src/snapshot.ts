@@ -36,7 +36,8 @@ import {
 /** 7: Ramsch (K3b): `RuleSet.allPassed` einstellbar, `tariff.ramsch`, `ramsch`. */
 /** 8: Stock (K3c): `tariff.stock`; `TableState.pot` kann jetzt gefüllt sein. */
 /** 9: Muss (K3d): `Auction.forced` in `HandState`. */
-export const HOST_SNAPSHOT_VERSION = 9;
+/** 10: Kontra und Re (K4): `RuleSet.kontra`, `HandState.doubling`. */
+export const HOST_SNAPSHOT_VERSION = 10;
 
 export interface HostSnapshot {
   v: number;
@@ -131,6 +132,7 @@ function check(raw: unknown): HostSnapshot | null {
     if (!isCardRows(hand.hands, players) || !isCardRows(hand.initialHands, players)) return null;
     if (!Array.isArray(hand.bids) || !Array.isArray(hand.tricks)) return null;
     if (!isCarry(hand.carry)) return null;
+    if (!isDoubling(hand.doubling, last)) return null;
   }
 
   if (
@@ -210,6 +212,14 @@ function checkLogs(
   } catch {
     return false;
   }
+}
+
+/** Kontra und Re: je ein Sitz oder `null`; Re nur nach Kontra. */
+function isDoubling(value: unknown, last: number): boolean {
+  if (!isObj(value)) return false;
+  const { kontra, re } = value;
+  const seatOrNull = (s: unknown) => s === null || isInt(s, 0, last);
+  return seatOrNull(kontra) && seatOrNull(re) && (re === null || kontra !== null);
 }
 
 /** Übertrag vom Tisch: Pott ≥ 0, Faktor ≥ 1. */

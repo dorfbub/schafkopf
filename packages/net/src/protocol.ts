@@ -14,7 +14,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 /** 7: Ramsch (K3b): Spielart `ramsch` ohne Ansager, `RamschDetails`, `RuleSet.allPassed`/`ramsch`. */
 /** 8: Stock (K3c): `tariff.stock`, `allPassed: 'stock'`, Pott in `TableView.pot` gefüllt. */
 /** 9: Muss (K3d): `Auction.forced` in der Sicht, `allPassed: 'muss'`. */
-export const PROTOCOL_VERSION = 9;
+/** 10: Kontra und Re (K4): Aktion `double`, `HandView.doubling`/`canDouble`, `RuleSet.kontra`. */
+export const PROTOCOL_VERSION = 10;
 
 export type ClientMessage =
   | {
@@ -38,6 +39,7 @@ export type HostErrorCode =
   | 'not_your_turn'
   | 'illegal_bid'
   | 'illegal_card'
+  | 'illegal_double'
   | 'no_hand'
   | 'seat_taken';
 

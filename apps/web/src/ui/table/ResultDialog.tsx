@@ -1,6 +1,7 @@
 import type { HandView, TableView } from '@schafkopf/core';
 import { TABLE_TEXT, contractLabel, money, plainMoney } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
+import { DoublingTag } from './Seats';
 import type { SeatInfo } from './layout';
 import { PotNote } from './PotNote';
 import { RamschResult } from './RamschResult';
@@ -104,6 +105,14 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
     details.laufende > 0 && TABLE_TEXT.extras.laufende(details.laufende),
   ].filter(Boolean);
   const share = Math.round((details.partyPoints / 120) * 100);
+  // Kontra/Re (K4): wer es gesagt hat und der Faktor auf den Spielwert.
+  const doubling = hand.doubling;
+  const said = [
+    doubling.kontra !== null &&
+      TABLE_TEXT.doublingSaid(seats.nameOf(doubling.kontra), TABLE_TEXT.kontra),
+    doubling.re !== null && TABLE_TEXT.doublingSaid(seats.nameOf(doubling.re), TABLE_TEXT.re),
+  ].filter((x): x is string => Boolean(x));
+  const factor = result.factors.reduce((f, x) => f * x.factor, 1);
 
   return (
     <Dialog
@@ -127,9 +136,18 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
       >
         <span style={{ width: `${share}%` }} />
       </div>
+      {said.length > 0 && (
+        <p className="ergebnis__kontra">
+          <DoublingTag re={doubling.re !== null} /> {TABLE_TEXT.factorLine(said, factor)}
+        </p>
+      )}
       <p className="ergebnis__wert">
         <span>{TABLE_TEXT.valuePerPlayer}</span>
-        <span className="num">{plainMoney(value)}</span>
+        <span className="num">
+          {factor === 1
+            ? plainMoney(value)
+            : TABLE_TEXT.valueTimes(plainMoney(value), factor, plainMoney(value * factor))}
+        </span>
       </p>
       <PotNote view={view} result={result} />
       {table}

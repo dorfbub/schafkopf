@@ -13,6 +13,7 @@ import {
   type Seat,
   type TableState,
   applyTableAction,
+  canDouble,
   createTable,
   handViewFor,
   isCard,
@@ -52,7 +53,14 @@ export interface HostOptions {
   standInDelayMs?: number;
   /** Uhr für die Restzeit bis zur Vertretung; in Tests ersetzbar. Standard: `Date.now`. */
   now?: () => number;
+  /**
+   * Kontra-Fenster (K4) in Millisekunden: So lange wartet ein Bot mindestens mit der ersten
+   * Karte, solange ein Mensch noch Kontra oder Re sagen darf. Standard 3 s.
+   */
+  kontraWindowMs?: number;
 }
+
+export const DEFAULT_KONTRA_WINDOW_MS = 3_000;
 
 export const DEFAULT_STAND_IN_DELAY_MS = 30_000;
 
@@ -98,7 +106,9 @@ export class HostSession {
   private absenceToken = 0;
   private readonly transports: HostTransport[] = [];
   private readonly listeners = new Set<() => void>();
-  private botPending = false;
+  /** Geplanter Bot-Zug: Kennung und Kontra/Re beim Planen (ändert es sich, wird neu geplant). */
+  private botPending: { token: number; kontra: Seat | null; re: Seat | null } | null = null;
+  private botToken = 0;
   private closed = false;
   private discoverable = true;
   /** Wer ausdrücklich zuschauen will: bekommt beim Beitritt keinen Platz zugeteilt. */
@@ -112,6 +122,7 @@ export class HostSession {
   private readonly schedule: (fn: () => void, ms: number) => void;
   private readonly standInDelayMs: number;
   private readonly now: () => number;
+  private readonly kontraWindowMs: number;
   readonly roomId: string | null;
 
   constructor(options: HostOptions) {
@@ -124,6 +135,7 @@ export class HostSession {
     this.schedule = options.schedule ?? ((fn, ms) => void setTimeout(fn, ms));
     this.standInDelayMs = options.standInDelayMs ?? DEFAULT_STAND_IN_DELAY_MS;
     this.now = options.now ?? Date.now;
+    this.kontraWindowMs = options.kontraWindowMs ?? DEFAULT_KONTRA_WINDOW_MS;
   }
 
   /**
@@ -574,16 +586,34 @@ export class HostSession {
   }
 
   private driveBots(): void {
-    if (this.botPending || this.closed) return;
+    if (this.closed) return;
     const hand = this.table.hand;
+    if (this.botPending) {
+      // Kontra oder Re während der Wartezeit: neu planen – ohne Fenster oder mit frischem für Re.
+      // Der alte Zeitgeber verfällt (Kennung passt nicht mehr).
+      const same =
+        !hand ||
+        (hand.doubling.kontra === this.botPending.kontra &&
+          hand.doubling.re === this.botPending.re);
+      if (same) return;
+      this.botPending = null;
+    }
     if (!hand || hand.phase === 'finished') return;
     const seat = hand.turn;
     const bot = this.botFor(seat);
     if (!bot) return;
 
-    this.botPending = true;
+    // Darf ein Mensch noch Kontra oder Re sagen, bekommt er Zeit dafür, bevor die erste Karte
+    // fällt (Kontra-Fenster).
+    const { kontra, re } = hand.doubling;
+    const delay = this.humanMayDouble()
+      ? Math.max(this.botDelayMs, this.kontraWindowMs)
+      : this.botDelayMs;
+    const token = ++this.botToken;
+    this.botPending = { token, kontra, re };
     this.schedule(() => {
-      this.botPending = false;
+      if (this.botPending?.token !== token) return; // überholt durch eine neue Planung
+      this.botPending = null;
       const current = this.table.hand;
       if (
         this.closed ||
@@ -609,7 +639,16 @@ export class HostSession {
             : { type: 'play', card: view.legalCards[0]! };
         this.apply(seat, fallback);
       }
-    }, this.botDelayMs);
+    }, delay);
+  }
+
+  /** Darf ein Mensch (kein Bot, keine Vertretung) im laufenden Spiel gerade Kontra oder Re sagen? */
+  private humanMayDouble(): boolean {
+    const hand = this.table.hand;
+    if (!hand) return false;
+    return this.table.seats.some(
+      (player, seat) => player?.kind === 'human' && !this.botFor(seat) && canDouble(hand, seat),
+    );
   }
 }
 
@@ -617,6 +656,7 @@ function isWellFormed(action: unknown): action is PlayerAction {
   if (typeof action !== 'object' || action === null) return false;
   const a = action as { type?: unknown; card?: unknown; call?: unknown };
   if (a.type === 'play') return isCard(a.card);
+  if (a.type === 'double') return true;
   if (a.type === 'bid') return isWellFormedCall(a.call);
   return false;
 }

@@ -54,6 +54,7 @@ export const ERROR_TEXT: Record<HostErrorCode, string> = {
   not_your_turn: 'Du bist nicht an der Reihe.',
   illegal_bid: 'Diese Ansage ist nicht erlaubt.',
   illegal_card: 'Diese Karte darfst du nicht spielen.',
+  illegal_double: 'Kontra bzw. Re geht jetzt nicht mehr.',
   no_hand: 'Es läuft gerade kein Spiel.',
   seat_taken: 'Dieser Platz ist schon besetzt.',
 };
@@ -297,6 +298,17 @@ export const TABLE_TEXT = {
     `Ein Bot spielt dann dauerhaft auf diesem Platz weiter, samt Kontostand. Kommt ${name} zurück, bleibt nur das Zuschauen.`,
   absentRemoveConfirm: 'Vom Platz nehmen',
   absentRemoveCancel: 'Abbrechen',
+  // Kontra und Re (K4)
+  kontra: 'Kontra',
+  re: 'Re',
+  kontraLabel: 'Kontra geben – der Spielwert verdoppelt sich',
+  reLabel: 'Re geben – der Spielwert verdoppelt sich noch einmal',
+  kontraHint: 'bis zur ersten Karte',
+  markKontra: 'Kontra',
+  markRe: 'Re',
+  doublingSaid: (name: string, what: string) => `${name} sagt ${what}`,
+  factorLine: (said: string[], factor: number) => `${said.join(' · ')} – Spielwert ×${factor}`,
+  valueTimes: (value: string, factor: number, total: string) => `${value} × ${factor} = ${total}`,
 };
 
 /** Lobby (Paket N4, gestaltet in D4). */
@@ -349,6 +361,7 @@ export const RULES_TEXT = {
   tout: 'Tout erlaubt',
   sie: 'Sie (alle Ober und Unter) wird bezahlt',
   davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',
+  kontra: 'Kontra und Re',
   tariff: 'Tarif (Cent)',
   tariffSauspiel: 'Sauspiel',
   tariffSolo: 'Einzelspiel',

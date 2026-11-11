@@ -851,6 +851,17 @@
   background: var(--color-paper);
 }
 
+.ergebnis__kontra {
+  margin: 0;
+  padding: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.ergebnis__kontra .marke {
+  box-shadow: none;
+}
+
 .ergebnis__wert {
   display: flex;
   justify-content: space-between;
@@ -925,6 +936,7 @@
       'spiel tabelle'
       'titel tabelle'
       'augen tabelle'
+      'kontra tabelle'
       'knoepfe knoepfe';
     align-content: start;
     column-gap: var(--space-5);
@@ -942,6 +954,10 @@
   .ergebnis .augen {
     grid-area: augen;
     align-self: start;
+  }
+
+  .ergebnis__kontra {
+    grid-area: kontra;
   }
 
   .ergebnis__tabelle {
@@ -1175,4 +1191,26 @@
 .ansage__text {
   margin: var(--space-3) 0 0;
   max-width: 34rem;
+}
+
+/* ---------- Kontra und Re (K4) ---------- */
+
+.eigen__kontra {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.eigen__kontra-hinweis {
+  font-size: var(--text-xs);
+  color: var(--color-on-felt-muted);
+}
+
+.tisch-leiste__kontra {
+  margin-left: var(--space-2);
+  vertical-align: 0.1em;
+}
+
+.tisch-leiste__kontra + .tisch-leiste__kontra {
+  margin-left: var(--space-1);
 }

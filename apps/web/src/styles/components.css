@@ -192,6 +192,14 @@
   color: var(--color-on-paper);
 }
 
+/* Kontra und Re (K4): Akzentfarbe wie der Hauptknopf, mit hellem Rand, damit das Schild auf
+   dem Filz deutlich heraussticht. */
+.marke--kontra {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 0 0 1px var(--color-on-felt);
+}
+
 /* ---------- Spielerplatz ---------- */
 
 .player-seat {

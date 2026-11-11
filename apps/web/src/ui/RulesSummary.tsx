@@ -35,6 +35,8 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
       <dd>{yesNo(rules.sie)}</dd>
       <dt>{T.davonlaufen}</dt>
       <dd>{yesNo(rules.davonlaufen)}</dd>
+      <dt>{T.kontra}</dt>
+      <dd>{yesNo(rules.kontra)}</dd>
     </dl>
   );
 }

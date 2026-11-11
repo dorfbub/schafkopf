@@ -2,6 +2,7 @@ import type { HandView, TableView } from '@schafkopf/core';
 import { RULES_TEXT, TABLE_TEXT, contractLabel, plainMoney } from '../../i18n/de';
 import { Button } from '../kit';
 import type { SeatInfo } from './layout';
+import { DoublingTag } from './Seats';
 
 interface Props {
   view: TableView;
@@ -42,6 +43,8 @@ export function TableBar({
       <>
         <span className="tisch-leiste__wer">{seats.nameOf(hand.declarer)}</span> {TABLE_TEXT.plays}{' '}
         <b className="tisch-leiste__spiel">{contractLabel(hand.contract)}</b>
+        {hand.doubling.kontra !== null && <DoublingTag className="tisch-leiste__kontra" />}
+        {hand.doubling.re !== null && <DoublingTag re className="tisch-leiste__kontra" />}
       </>
     );
   } else if (hand.contract) {

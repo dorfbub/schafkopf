@@ -105,7 +105,9 @@ export function applyTableAction(table: TableState, action: Action): TableResult
   const logged: Action =
     action.type === 'bid'
       ? { type: 'bid', seat: action.seat, call: hand.bids.at(-1)!.call }
-      : { type: 'play', seat: action.seat, card: action.card };
+      : action.type === 'play'
+        ? { type: 'play', seat: action.seat, card: action.card }
+        : { type: 'double', seat: action.seat };
   const log: HandLog = { ...last, actions: [...last.actions, logged] };
   const summary = summarize(log, hand);
   const next: TableState = {

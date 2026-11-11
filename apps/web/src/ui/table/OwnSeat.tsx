@@ -1,16 +1,18 @@
 import { type Card, type HandView, type TableView, tricksPlayed } from '@schafkopf/core';
-import type { CSSProperties, KeyboardEvent } from 'react';
+import { type CSSProperties, type KeyboardEvent, useEffect, useState } from 'react';
 import { TABLE_TEXT, UI_TEXT } from '../../i18n/de';
-import { CardView } from '../kit';
+import { Button, CardView } from '../kit';
 import type { SeatInfo } from './layout';
 import { sortHand } from './layout';
-import { PartyMarks, SeatStats, inParty } from './Seats';
+import { DoublingMarks, PartyMarks, SeatStats, hasDoubled, inParty } from './Seats';
 
 interface Props {
   view: TableView;
   hand: HandView;
   seats: SeatInfo;
   onPlay: (card: Card) => void;
+  /** Kontra bzw. Re sagen (K4). */
+  onDouble: () => void;
 }
 
 /** Pfeiltasten wandern durch die spielbaren Karten der Hand. */
@@ -25,8 +27,40 @@ function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
   e.preventDefault();
 }
 
+/**
+ * Knopf „Kontra“ bzw. „Re“ (K4) – nur, solange der Kern es erlaubt. Nach dem Klick verschwindet
+ * er mit der nächsten Sicht von selbst; bis dahin ist er kurz gesperrt, damit kein Doppelklick
+ * ankommt.
+ */
+function DoubleButton({ hand, onDouble }: { hand: HandView; onDouble: () => void }) {
+  const re = hand.doubling.kontra !== null;
+  const [sent, setSent] = useState(false);
+  // Kommt keine Antwort an (Verbindung hakt, Host lehnt ab), wird der Knopf wieder frei.
+  useEffect(() => {
+    if (!sent) return;
+    const id = setTimeout(() => setSent(false), 2000);
+    return () => clearTimeout(id);
+  }, [sent]);
+  return (
+    <span className="eigen__kontra">
+      <Button
+        size="small"
+        disabled={sent}
+        aria-label={re ? TABLE_TEXT.reLabel : TABLE_TEXT.kontraLabel}
+        onClick={() => {
+          setSent(true);
+          onDouble();
+        }}
+      >
+        {re ? TABLE_TEXT.re : TABLE_TEXT.kontra}
+      </Button>
+      <span className="eigen__kontra-hinweis">{TABLE_TEXT.kontraHint}</span>
+    </span>
+  );
+}
+
 /** Eigener Platz unten: Name, Stand, Hinweis „Du bist dran“ und die Hand als Fächer. */
-export function OwnSeat({ view, hand, seats, onPlay }: Props) {
+export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
   if (view.you === null) {
     return (
       <footer className="eigen">
@@ -58,7 +92,15 @@ export function OwnSeat({ view, hand, seats, onPlay }: Props) {
           <SeatStats view={view} hand={hand} seat={me} />
         </span>
         {inParty(hand, me) && <PartyMarks hand={hand} seat={me} />}
+        {hasDoubled(hand, me) && <DoublingMarks hand={hand} seat={me} />}
         {turnText && <strong className="eigen__dran">{turnText}</strong>}
+        {hand.canDouble && (
+          <DoubleButton
+            key={`${view.handNo}-${hand.doubling.kontra}`}
+            hand={hand}
+            onDouble={onDouble}
+          />
+        )}
       </div>
       {n > 0 && (
         <div

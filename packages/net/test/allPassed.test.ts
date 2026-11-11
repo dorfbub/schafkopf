@@ -25,7 +25,9 @@ function passingBot(seed: number, illegal: string[], always = true): Bot {
       const ok =
         action.type === 'play'
           ? view.legalCards.includes(action.card)
-          : view.legalCalls.some((c) => JSON.stringify(c) === JSON.stringify(action.call));
+          : action.type === 'bid'
+            ? view.legalCalls.some((c) => JSON.stringify(c) === JSON.stringify(action.call))
+            : view.canDouble;
       if (!ok) illegal.push(JSON.stringify(action));
       return action;
     },

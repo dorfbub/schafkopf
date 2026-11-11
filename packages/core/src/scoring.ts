@@ -4,7 +4,8 @@
  *
  *  1. `Outcome` – wer hat gewonnen, was ist das Spiel wert (ohne Faktoren). Hängt als
  *     einzige Stufe an der Spielart: `MODES[kind].outcome` oder `partyOutcome`.
- *  2. `Factor`s – Verdopplungen (Jungfrau im Ramsch; später Kontra/Re, Bock).
+ *  2. `Factor`s – Verdopplungen: Jungfrau im Ramsch, Kontra/Re (K4), Bock vom Tisch (noch nicht
+ *     gespielt).
  *  3. Zahlungen und Pott – für alle Spielarten dieselbe Formel.
  *
  * Tarif (siehe RuleSet.tariff): Grundtarif + Schneider + Schwarz + Laufende.
@@ -215,8 +216,8 @@ export function outcomeOf(state: HandState): Outcome {
 }
 
 /**
- * Stufe 2: Faktoren. Jede Jungfrau im Ramsch verdoppelt; dazu der Übertrag vom Tisch
- * (Bock, K4; sonst 1).
+ * Stufe 2: Faktoren. Jede Jungfrau im Ramsch verdoppelt, Kontra und Re je ×2 (K4), dazu der
+ * Übertrag vom Tisch (Bock, sonst 1). Sie wirken auf den Spielwert, nicht auf den Pott (Annahme 12).
  */
 export function factorsFor(state: HandState, outcome: Outcome): Factor[] {
   const factors: Factor[] = [];
@@ -225,6 +226,8 @@ export function factorsFor(state: HandState, outcome: Outcome): Factor[] {
       ...outcome.details.jungfrauen.map(() => ({ reason: 'jungfrau' as const, factor: 2 })),
     );
   }
+  if (state.doubling.kontra !== null) factors.push({ reason: 'kontra', factor: 2 });
+  if (state.doubling.re !== null) factors.push({ reason: 're', factor: 2 });
   if (state.carry.factor !== 1) factors.push({ reason: 'bock', factor: state.carry.factor });
   return factors;
 }
