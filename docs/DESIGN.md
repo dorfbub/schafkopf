@@ -60,7 +60,7 @@ Die Kontrastprüfung in D2 hat einige Werte angepasst, siehe unten.
 
 Das Blatt ist das bayerische Bild im Stil des Schmid-Blatts „Tarock Schafkopf“: doppelbildig,
 Eckzeichen an allen vier Ecken. Zahlenkarten stammen von Fabian Bally, einem Freund von Lukas
-(Herkunft und offene Lizenzfrage in `docs/entwuerfe/karten/LIZENZ.md`). Unter, Ober, König und Sau
+(Herkunft und Lizenz – CC0 seit 11.11.2026 – in `docs/entwuerfe/karten/LIZENZ.md`). Unter, Ober, König und Sau
 sind in diesem Stil neu gezeichnet (`docs/entwuerfe/karten/erzeuge-figuren.mjs`, Übersicht
 `docs/entwuerfe/karten.html`). Lukas: „geht in die richtige Richtung, aber mehr Ornamente und wie
 Schmid“ – das ist Aufgabe von U2.
@@ -169,8 +169,8 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 Karten laufen über die Schnittstelle `CardTheme`. **Einziges Kartenbild ist das bayerische Blatt**
 (`bayerischTheme` in `ui/cardTheme.tsx`), auch in der App selbst; das frühere schlichte Text-Kartenbild
 ist gestrichen, weil es nur verwirrt hat (Lukas, D2). Die SVGs liegen bis U2 weiter in
-`docs/entwuerfe/karten/` und werden von dort eingebunden. Sie landen damit im Build – vor einer
-Veröffentlichung muss die Lizenz der Zahlenkarten geklärt sein (siehe `karten/LIZENZ.md`).
+`docs/entwuerfe/karten/` und werden von dort eingebunden. Sie landen damit im Build; die Zahlenkarten hat
+Fabian Bally unter CC0 freigegeben (siehe `karten/LIZENZ.md`).
 
 ### Kontraste (WCAG AA)
 
