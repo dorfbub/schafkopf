@@ -7,3 +7,6 @@ coverage/
 *.log
 .env
 .env.*
+
+# Lokale Worktrees der Claude-Sitzungen
+.claude/worktrees/

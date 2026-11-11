@@ -43,6 +43,13 @@ export interface HostTransport {
   listen(): void;
   send(peerId: string, message: HostMessage): void;
   close(): void;
+  /**
+   * Optional: Ob neue Gegenstellen den Host noch finden müssen. Der Host meldet
+   * `false`, sobald alle Plätze verbunden sind, und `true`, sobald ein Platz frei
+   * wird oder ein Spieler die Verbindung verliert. WebRTC-Transporte lassen dann
+   * die Vermittlung über öffentliche Relays ruhen.
+   */
+  setDiscoverable?(discoverable: boolean): void;
 }
 
 /** Transport aus Sicht eines Mitspielers: genau eine Gegenstelle, der Host. */

@@ -1,6 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { type Connection, joinTable, openTable, saveName } from './connection';
 import { ERROR_TEXT } from './i18n/de';
+import { ConnectBanner, ConnectSearch } from './ui/ConnectStatus';
 import { Lobby } from './ui/Lobby';
 import { StartScreen } from './ui/StartScreen';
 import { Table } from './ui/Table';
@@ -37,27 +38,18 @@ function Game({ connection, onLeave }: { connection: Connection; onLeave: () => 
 
   if (!view) {
     return (
-      <main className="screen">
-        <h1>Schafkopf</h1>
-        <p>Verbinde mit Tisch {roomId} …</p>
-        <p className="hint">
-          Der Tisch wird direkt beim Gastgeber gesucht. Das kann ein paar Sekunden dauern; der
-          Gastgeber muss die Seite geöffnet haben.
-        </p>
-        <button type="button" onClick={onLeave}>
-          Abbrechen
-        </button>
-      </main>
+      <ConnectSearch
+        status={status}
+        roomId={roomId}
+        onRetry={() => client.retry()}
+        onCancel={onLeave}
+      />
     );
   }
 
   return (
     <>
-      {status === 'disconnected' && (
-        <p className="banner banner--warn">
-          Verbindung zum Gastgeber verloren. Warte auf Rückkehr …
-        </p>
-      )}
+      <ConnectBanner status={status} onRetry={() => client.retry()} />
       {lastError && <p className="banner">{ERROR_TEXT[lastError]}</p>}
       {view.hand ? (
         <Table view={view} client={client} host={host} onLeave={onLeave} />

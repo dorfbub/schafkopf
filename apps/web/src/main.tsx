@@ -7,7 +7,10 @@ import './styles/components.css';
 import './styles/table.css';
 import './styles.css';
 
-const root = createRoot(document.getElementById('root')!);
+const element = document.getElementById('root')!;
+
+// Messwerkzeug für den Verbindungsaufbau, nur im Entwicklungsserver (siehe dev/messung.ts).
+const messung = import.meta.env.DEV ? new URLSearchParams(location.search).get('messung') : null;
 
 // Nur im Entwicklungsserver: Musterseite der Bausteine (http://localhost:5180/#muster) und
 // Tischprobe mit festen Spielständen (#tisch?szene=ansage|warten|stich|ergebnis|zuschauer).
@@ -22,7 +25,10 @@ if (import.meta.env.DEV) {
   });
 }
 
-if (import.meta.env.DEV && devPage(location.hash) === 'muster') {
+if (messung) {
+  void import('./dev/messung').then((m) => m.run(messung, element));
+} else if (import.meta.env.DEV && devPage(location.hash) === 'muster') {
+  const root = createRoot(element);
   void import('./muster/Muster').then(({ Muster }) =>
     root.render(
       <StrictMode>
@@ -31,6 +37,7 @@ if (import.meta.env.DEV && devPage(location.hash) === 'muster') {
     ),
   );
 } else if (import.meta.env.DEV && devPage(location.hash)) {
+  const root = createRoot(element);
   void import('./muster/Tischprobe').then(({ Tischprobe }) =>
     root.render(
       <StrictMode>
@@ -39,7 +46,7 @@ if (import.meta.env.DEV && devPage(location.hash) === 'muster') {
     ),
   );
 } else {
-  root.render(
+  createRoot(element).render(
     <StrictMode>
       <App />
     </StrictMode>,

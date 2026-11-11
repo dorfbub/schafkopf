@@ -130,6 +130,8 @@ lassen, sobald alle Plätze verbunden sind, und erst bei Verbindungsverlust wied
 - TURN-Fallback dokumentieren und konfigurierbar machen (`TrysteroOptions.turnConfig`).
 - **Abnahme:** Messwerte (Zeit bis verbunden, 10 Versuche je Strategie) in der PR-Beschreibung;
   manuelle Probe über zwei verschiedene Netze (z. B. WLAN und Mobilfunk).
+- **Stand:** umgesetzt (Relay-Liste, Pausieren, Statusanzeige, `VITE_TURN_CONFIG`); Messwerte in
+  `docs/ARCHITEKTUR.md`. Offen: Probe über zwei verschiedene Netze.
 
 ### N2 · Tisch übersteht Neuladen des Gastgebers
 

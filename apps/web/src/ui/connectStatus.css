@@ -1,0 +1,46 @@
+/* Verbindungsstatus für Gäste (N1). Bewusst schlicht – die Gestaltung kommt mit D4. */
+
+.connect__state {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.connect__state--failed {
+  color: var(--accent);
+}
+
+.connect__spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: connect-spin 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect__spinner {
+    animation-duration: 3s;
+  }
+}
+
+@keyframes connect-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.connect__banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+}
+
+.connect__banner button {
+  padding: 0.25em 0.9em;
+}

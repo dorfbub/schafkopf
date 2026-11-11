@@ -48,6 +48,20 @@ export const ERROR_TEXT: Record<HostErrorCode, string> = {
   no_hand: 'Es läuft gerade kein Spiel.',
 };
 
+/** Verbindungsstatus für Gäste (Paket N1). */
+export const CONNECT_TEXT = {
+  searching: (room: string) => `Suche Tisch ${room} …`,
+  searchingHint:
+    'Der Tisch wird direkt beim Gastgeber gesucht. Das dauert meist nur ein paar Sekunden; der Gastgeber muss die Seite geöffnet haben.',
+  failed: 'Tisch nicht gefunden',
+  failedHint:
+    'Ist der Tisch-Code richtig und hat der Gastgeber die Seite noch offen? In manchen Firmen- oder Hotelnetzen klappen direkte Verbindungen nicht.',
+  retry: 'Erneut versuchen',
+  cancel: 'Abbrechen',
+  lost: 'Verbindung zum Gastgeber verloren. Suche Tisch …',
+  lostFailed: 'Gastgeber nicht mehr erreichbar.',
+};
+
 /** Cent-Betrag als Euro, mit Vorzeichen: 150 → "+1,50 €". */
 export function money(cents: number): string {
   const sign = cents > 0 ? '+' : cents < 0 ? '−' : '';

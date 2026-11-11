@@ -59,6 +59,7 @@ export class HostSession {
   private readonly listeners = new Set<() => void>();
   private botPending = false;
   private closed = false;
+  private discoverable = true;
 
   private readonly createBot: (seat: Seat) => Bot;
   private readonly botNames: string[];
@@ -92,6 +93,17 @@ export class HostSession {
       this.handleMessage(key(peerId), (m) => transport.send(peerId, m), message);
     transport.onLeave = (peerId) => this.handleLeave(key(peerId));
     transport.listen();
+    if (!this.discoverable) transport.setDiscoverable?.(false);
+  }
+
+  /**
+   * Muss noch jemand den Tisch finden können? Vor dem ersten Spiel, solange ein
+   * Platz frei ist; danach nur, wenn ein Mensch die Verbindung verloren hat.
+   */
+  isDiscoverable(): boolean {
+    const { seats, hand } = this.table;
+    if (!hand) return seats.some((s) => s === null);
+    return seats.some((s) => s?.kind === 'human' && !s.connected);
   }
 
   /** Startet das erste Spiel; freie Plätze werden mit Bots besetzt. */
@@ -223,7 +235,15 @@ export class HostSession {
       peer.send({ t: 'state', view: tableViewFor(this.table, peer.seat) });
     }
     for (const listener of this.listeners) listener();
+    this.updateDiscovery();
     this.driveBots();
+  }
+
+  private updateDiscovery(): void {
+    const discoverable = this.isDiscoverable();
+    if (discoverable === this.discoverable) return;
+    this.discoverable = discoverable;
+    for (const transport of this.transports) transport.setDiscoverable?.(discoverable);
   }
 
   private driveBots(): void {
