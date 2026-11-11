@@ -1,9 +1,7 @@
 import { type Card } from '@schafkopf/core';
 import { type ReactNode, useEffect, useState } from 'react';
-import { type CardTheme, textTheme } from '../ui/cardTheme';
 import { Button, CardBack, CardView, Dialog, PlayerSeat, Tafel, TextField } from '../ui/kit';
 import { CONTRAST_PAIRS, contrast } from '../styles/contrast';
-import { entwurfTheme } from './entwurfTheme';
 import './muster.css';
 
 /*
@@ -42,17 +40,7 @@ const COLOR_GROUPS: [string, string[]][] = [
       '--color-negative-on-paper',
     ],
   ],
-  [
-    'Karten',
-    [
-      '--color-card-face',
-      '--color-card-back',
-      '--color-suit-eichel',
-      '--color-suit-gras',
-      '--color-suit-herz',
-      '--color-suit-schellen',
-    ],
-  ],
+  ['Karten', ['--color-card-face', '--color-card-back']],
 ];
 
 const TEXT_SIZES = ['--text-2xl', '--text-xl', '--text-lg', '--text-md', '--text-sm', '--text-xs'];
@@ -99,8 +87,7 @@ export function Muster() {
       <Tafeln />
       <Dialogs />
       <Seats />
-      <Cards theme={textTheme} />
-      <Cards theme={entwurfTheme} />
+      <Cards />
     </main>
   );
 }
@@ -391,38 +378,38 @@ function Seats() {
   );
 }
 
-function Cards({ theme }: { theme: CardTheme }) {
+function Cards() {
   const noop = () => undefined;
   return (
-    <Section title={`Karte · ${theme.label}`}>
+    <Section title="Karte">
       <div className="muster__felt muster__cards">
         <figure>
-          <CardView card="HO" theme={theme} />
+          <CardView card="HO" />
           <figcaption>offen</figcaption>
         </figure>
         <figure>
-          <CardBack theme={theme} />
+          <CardBack />
           <figcaption>verdeckt</figcaption>
         </figure>
         <figure>
-          <CardView card="EA" theme={theme} onPlay={noop} />
+          <CardView card="EA" onPlay={noop} />
           <figcaption>spielbar</figcaption>
         </figure>
         <figure>
-          <CardView card="S9" theme={theme} state="locked" />
+          <CardView card="S9" state="locked" />
           <figcaption>gesperrt</figcaption>
         </figure>
         <figure>
-          <CardView card="G10" theme={theme} state="won" />
+          <CardView card="G10" state="won" />
           <figcaption>sticht</figcaption>
         </figure>
       </div>
       <div className="muster__felt muster__hand">
         {HAND.map((c) =>
           PLAYABLE.has(c) ? (
-            <CardView key={c} card={c} theme={theme} onPlay={noop} />
+            <CardView key={c} card={c} onPlay={noop} />
           ) : (
-            <CardView key={c} card={c} theme={theme} state="locked" />
+            <CardView key={c} card={c} state="locked" />
           ),
         )}
       </div>

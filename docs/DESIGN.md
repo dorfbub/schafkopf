@@ -80,6 +80,9 @@ aber keine Schmid-Scans abpausen. Als Vorlage taugen gemeinfreie Drucke des Mün
   Kartenbreite; in der überlappenden Hand und bei 44 px kaum lesbar. U2 vergrößert sie.
 - **Handy, Ansage:** Der Dialog überdeckt die seitlichen Plätze; in D3 kompakter machen.
 - **Kartenrücken:** Platzhalter; endgültig mit U2.
+- **Animationen** (Lukas, D2): Karten austeilen, Karte legen, Stich zum Gewinner wegräumen usw.
+  Eigenes Arbeitspaket; die Bewegungsvariablen (`--duration-*`, `--ease-*`, abgeschaltet bei
+  „Bewegung reduzieren“) stehen seit D2 bereit.
 
 ## Gestaltungssystem (D2)
 
@@ -116,25 +119,24 @@ Gegenüber D1 geändert, damit alle Schriften WCAG AA erreichen: Lampenlicht `#2
 (dezenter), leise Schrift auf Grün `#b9cdb9` → `#d0dfd0`, Minus auf Grün `#ffb4a6` → `#ffc8bd`,
 Hover des Hauptknopfs dunkler statt heller (`#9a4708`), neu ein Rand für Eingabefelder.
 
-| Variable                                                | Wert                                          | Verwendung                                       |
-| ------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------ |
-| `--color-ground`                                        | `#0d2a18`                                     | Hintergrund um den Tisch, Leisten                |
-| `--color-felt` / `-deep` / `-light`                     | `#17603a` / `#0f4428` / `#1b663f`             | Filz, Verlauf zum Rand, Lampenlicht in der Mitte |
-| `--color-felt-raised`                                   | `#12391f`                                     | Flächen auf dem Filz (Platz, dunkle Tafel)       |
-| `--color-felt-line`                                     | `#3d7a52`                                     | Linien und Ränder auf Grün                       |
-| `--color-wood` / `-dark`                                | `#4a2f1c` / `#2a1a0e`                         | Holzrand                                         |
-| `--color-on-felt`                                       | `#f5f0e4`                                     | Schrift auf Grün                                 |
-| `--color-on-felt-muted`                                 | `#d0dfd0`                                     | leise Schrift auf Grün                           |
-| `--color-negative-on-felt`                              | `#ffc8bd`                                     | Minus auf Grün                                   |
-| `--color-brass` / `--color-on-brass`                    | `#e9c46a` / `#2a1a08`                         | am Zug, spielbar, Marken; Schrift darauf         |
-| `--color-paper` / `-raised`                             | `#fbf7ec` / `#ffffff`                         | Dialoge, Tafeln; Eingabefelder                   |
-| `--color-paper-line` / `-line-soft`                     | `#d9d0bd` / `#e9e1cf`                         | Trennlinien auf Papier; gesperrte Felder         |
-| `--color-paper-control`                                 | `#8a7d66`                                     | Rand von Eingabefeldern und sekundären Knöpfen   |
-| `--color-on-paper` / `-muted`                           | `#1f1a14` / `#6b6355`                         | Schrift auf Papier                               |
-| `--color-negative-on-paper`                             | `#b42318`                                     | Minus auf Papier, Fehler                         |
-| `--color-accent` / `-hover` / `--color-on-accent`       | `#b45309` / `#9a4708` / `#fff`                | Hauptknopf, Auswahl                              |
-| `--color-card-face` / `-edge` / `-back`                 | `#fff` / `#a8a29e` / `#1f4f8a`                | Karte                                            |
-| `--color-suit-eichel` / `-gras` / `-herz` / `-schellen` | `#78350f` / `#166534` / `#b91c1c` / `#a16207` | Farbzeichen im schlichten Kartenbild             |
+| Variable                                          | Wert                              | Verwendung                                       |
+| ------------------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| `--color-ground`                                  | `#0d2a18`                         | Hintergrund um den Tisch, Leisten                |
+| `--color-felt` / `-deep` / `-light`               | `#17603a` / `#0f4428` / `#1b663f` | Filz, Verlauf zum Rand, Lampenlicht in der Mitte |
+| `--color-felt-raised`                             | `#12391f`                         | Flächen auf dem Filz (Platz, dunkle Tafel)       |
+| `--color-felt-line`                               | `#3d7a52`                         | Linien und Ränder auf Grün                       |
+| `--color-wood` / `-dark`                          | `#4a2f1c` / `#2a1a0e`             | Holzrand                                         |
+| `--color-on-felt`                                 | `#f5f0e4`                         | Schrift auf Grün                                 |
+| `--color-on-felt-muted`                           | `#d0dfd0`                         | leise Schrift auf Grün                           |
+| `--color-negative-on-felt`                        | `#ffc8bd`                         | Minus auf Grün                                   |
+| `--color-brass` / `--color-on-brass`              | `#e9c46a` / `#2a1a08`             | am Zug, spielbar, Marken; Schrift darauf         |
+| `--color-paper` / `-raised`                       | `#fbf7ec` / `#ffffff`             | Dialoge, Tafeln; Eingabefelder                   |
+| `--color-paper-line` / `-line-soft`               | `#d9d0bd` / `#e9e1cf`             | Trennlinien auf Papier; gesperrte Felder         |
+| `--color-paper-control`                           | `#8a7d66`                         | Rand von Eingabefeldern und sekundären Knöpfen   |
+| `--color-on-paper` / `-muted`                     | `#1f1a14` / `#6b6355`             | Schrift auf Papier                               |
+| `--color-negative-on-paper`                       | `#b42318`                         | Minus auf Papier, Fehler                         |
+| `--color-accent` / `-hover` / `--color-on-accent` | `#b45309` / `#9a4708` / `#fff`    | Hauptknopf, Auswahl                              |
+| `--color-card-face` / `-edge` / `-back`           | `#fff` / `#a8a29e` / `#1f4f8a`    | Karte                                            |
 
 **Messing als Schrift** nur groß/fett auf Filz (≥ 3 : 1) oder auf dem dunklen Grund; kleine
 Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
@@ -164,30 +166,31 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 | Karte        | `<CardView>`, `<CardBack>` / `.card` | offen, verdeckt, spielbar (Messingrand, hebt sich), gesperrt (abgedunkelt), sticht (heller Rand)                          |
 | Marke        | `.marke`, `--brass`, `--paper`       | kleines Schild: „am Zug“, „Spieler“, „Mitspieler“, „getrennt“                                                             |
 
-Karten laufen über die Schnittstelle `CardTheme`. Die Musterseite zeigt das schlichte Kartenbild
-und die bayerischen SVG-Entwürfe aus D1 (`muster/entwurfTheme.tsx`); Letztere werden nur im
-Entwicklungsserver geladen und landen nicht im Build, bis U2 und die Lizenzfrage erledigt sind.
+Karten laufen über die Schnittstelle `CardTheme`. **Einziges Kartenbild ist das bayerische Blatt**
+(`bayerischTheme` in `ui/cardTheme.tsx`), auch in der App selbst; das frühere schlichte Text-Kartenbild
+ist gestrichen, weil es nur verwirrt hat (Lukas, D2). Die SVGs liegen bis U2 weiter in
+`docs/entwuerfe/karten/` und werden von dort eingebunden. Sie landen damit im Build – vor einer
+Veröffentlichung muss die Lizenz der Zahlenkarten geklärt sein (siehe `karten/LIZENZ.md`).
 
 ### Kontraste (WCAG AA)
 
 Automatisch geprüft in `apps/web/src/styles/contrast.test.ts` (Teil von `npm run check`) und auf
 der Musterseite angezeigt. Schrift auf Grün wird gegen die hellste Stelle des Filzes geprüft.
 
-| Paar                                                  | Wert                  | nötig   |
-| ----------------------------------------------------- | --------------------- | ------- |
-| Schrift auf Grund / auf Filz                          | 13,6 / 6,1            | 4,5     |
-| Leise auf Filz / auf Platz                            | 5,0 / 9,3             | 4,5     |
-| Minus auf Filz                                        | 4,7                   | 4,5     |
-| Messing auf Filz (groß) / auf Grund                   | 4,2 / 9,2             | 3 / 4,5 |
-| Schrift auf Messing                                   | 10,1                  | 4,5     |
-| Schrift / leise auf Papier                            | 16,1 / 5,5            | 4,5     |
-| Leise auf gesperrtem Feld                             | 4,6                   | 4,5     |
-| Minus auf Papier                                      | 6,1                   | 4,5     |
-| Akzent auf Papier                                     | 4,7                   | 4,5     |
-| Hauptknopf / Hover                                    | 5,0 / 6,4             | 4,5     |
-| Rand Eingabefeld                                      | 3,8                   | 3       |
-| Fokusring auf Papier / auf Filz                       | 4,7 / 4,5             | 3       |
-| Farbzeichen Eichel / Gras / Herz / Schellen auf Karte | 9,1 / 7,1 / 6,5 / 4,9 | 4,5     |
+| Paar                                | Wert       | nötig   |
+| ----------------------------------- | ---------- | ------- |
+| Schrift auf Grund / auf Filz        | 13,6 / 6,1 | 4,5     |
+| Leise auf Filz / auf Platz          | 5,0 / 9,3  | 4,5     |
+| Minus auf Filz                      | 4,7        | 4,5     |
+| Messing auf Filz (groß) / auf Grund | 4,2 / 9,2  | 3 / 4,5 |
+| Schrift auf Messing                 | 10,1       | 4,5     |
+| Schrift / leise auf Papier          | 16,1 / 5,5 | 4,5     |
+| Leise auf gesperrtem Feld           | 4,6        | 4,5     |
+| Minus auf Papier                    | 6,1        | 4,5     |
+| Akzent auf Papier                   | 4,7        | 4,5     |
+| Hauptknopf / Hover                  | 5,0 / 6,4  | 4,5     |
+| Rand Eingabefeld                    | 3,8        | 3       |
+| Fokusring auf Papier / auf Filz     | 4,7 / 4,5  | 3       |
 
 Ausnahme: deaktivierte Knöpfe (45 % Deckkraft) – WCAG nimmt inaktive Bedienelemente aus.
 

@@ -65,8 +65,4 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   },
   { fg: '--color-accent', bg: '--color-paper', use: 'Fokusring auf Papier', min: 3 },
   { fg: '--color-brass', bg: '--color-felt', use: 'Fokusring auf Filz', min: 3 },
-  { fg: '--color-suit-eichel', bg: '--color-card-face', use: 'Eichel auf Karte', min: 4.5 },
-  { fg: '--color-suit-gras', bg: '--color-card-face', use: 'Gras auf Karte', min: 4.5 },
-  { fg: '--color-suit-herz', bg: '--color-card-face', use: 'Herz auf Karte', min: 4.5 },
-  { fg: '--color-suit-schellen', bg: '--color-card-face', use: 'Schellen auf Karte', min: 4.5 },
 ];

@@ -370,51 +370,7 @@
     var(--shadow-card);
 }
 
-/* Kartenbild „Schlicht“ (textTheme) */
-
-.face {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100%;
-  padding: 8%;
-  font-family: var(--font-display);
-  font-weight: var(--weight-display);
-  font-size: calc(var(--card-w) * 0.26);
-  line-height: 1;
-}
-
-.face__rank {
-  text-align: left;
-}
-
-.face__rank--bottom {
-  text-align: right;
-  rotate: 180deg;
-}
-
-.face__suit {
-  align-self: center;
-  text-align: center;
-  font-size: calc(var(--card-w) * 0.46);
-}
-
-.face--eichel {
-  color: var(--color-suit-eichel);
-}
-
-.face--gras {
-  color: var(--color-suit-gras);
-}
-
-.face--herz {
-  color: var(--color-suit-herz);
-}
-
-.face--schellen {
-  color: var(--color-suit-schellen);
-}
-
-/* Kartenbild aus SVG-Vorlage: Vorlage hat 5 mm Rand bei 125 × 205 mm */
+/* Kartenbild aus SVG-Vorlage (bayerischTheme): Vorlage hat 5 mm Rand bei 125 × 205 mm */
 
 .face-img {
   position: absolute;

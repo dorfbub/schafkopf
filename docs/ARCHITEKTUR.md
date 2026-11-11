@@ -93,7 +93,9 @@ React + Vite, keine weitere Zustandsbibliothek.
 
 - `connection.ts` – Tisch eröffnen/beitreten, Einladungslink, gemerkter Name.
 - `ui/StartScreen`, `ui/Lobby`, `ui/Table` – die drei Ansichten.
-- `ui/cardTheme.tsx` – `CardTheme`: Schnittstelle für Kartenbilder.
+- `ui/cardTheme.tsx` – `CardTheme`: Schnittstelle für Kartenbilder; einziges Bild ist `bayerischTheme`.
+- `ui/kit/` – Grundbausteine (Schaltfläche, Eingabefeld, Tafel, Dialog, Spielerplatz, Karte);
+  Stile und Variablen in `styles/`, Musterseite unter `#muster` (nur Entwicklungsserver).
 - `i18n/de.ts` – alle Texte.
 
 ## So wird erweitert

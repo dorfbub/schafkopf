@@ -1,10 +1,10 @@
-import { type Card, type Suit, rankOf, suitOf } from '@schafkopf/core';
+import { type Card, rankOf, suitOf } from '@schafkopf/core';
 import type { ReactNode } from 'react';
 
 /**
  * Ein Kartenbild ("Theme"). Die Oberfläche kennt nur diese Schnittstelle –
- * ein weiteres Kartenset (z. B. gezeichnetes bayerisches Blatt als SVG oder
- * französisches Blatt) ist nur ein weiteres Objekt dieser Form.
+ * ein weiteres Kartenset (z. B. französisches Blatt) ist nur ein weiteres Objekt
+ * dieser Form.
  */
 export interface CardTheme {
   id: string;
@@ -13,28 +13,29 @@ export interface CardTheme {
   back(): ReactNode;
 }
 
-const SUIT_SYMBOL: Record<Suit, string> = {
-  eichel: '🌰',
-  gras: '🍃',
-  herz: '♥',
-  schellen: '🔔',
-};
+/*
+ * Bayerisches Blatt aus den D1-Entwürfen. Die SVGs liegen bis U2 in docs/entwuerfe/karten
+ * (dort erzeugt `erzeuge-figuren.mjs` die Bildkarten); Herkunft und offene Lizenzfrage der
+ * Zahlenkarten: docs/entwuerfe/karten/LIZENZ.md – vor einer Veröffentlichung klären.
+ * Der Kartenrücken ist reines CSS (`.card--back`).
+ */
+const urls = import.meta.glob<string>('../../../../docs/entwuerfe/karten/*.svg', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
 
-/** Platzhalter-Kartenbild aus Text und Symbolen, bis es gezeichnete Karten gibt. */
-export const textTheme: CardTheme = {
-  id: 'text',
-  label: 'Schlicht',
+function urlFor(card: Card): string {
+  return urls[`../../../../docs/entwuerfe/karten/${suitOf(card)}-${rankOf(card)}.svg`] ?? '';
+}
+
+export const bayerischTheme: CardTheme = {
+  id: 'bayerisch',
+  label: 'Bayerisch',
   face(card) {
-    const suit = suitOf(card);
-    return (
-      <span className={`face face--${suit}`}>
-        <span className="face__rank">{rankOf(card)}</span>
-        <span className="face__suit">{SUIT_SYMBOL[suit]}</span>
-        <span className="face__rank face__rank--bottom">{rankOf(card)}</span>
-      </span>
-    );
+    return <img className="face-img" src={urlFor(card)} alt="" draggable={false} />;
   },
   back() {
-    return <span className="face face--back" />;
+    return null;
   },
 };
