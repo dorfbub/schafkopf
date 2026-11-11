@@ -5,8 +5,19 @@
  */
 
 import { createRandomBot } from '@schafkopf/bots';
-import { ClientSession, HostSession, createLoopbackPair } from '@schafkopf/net';
-import { createTrysteroClient, createTrysteroHost } from '@schafkopf/net/trystero';
+import {
+  ClientSession,
+  HostSession,
+  createLoopbackPair,
+  isSignalingStrategy,
+  parseRelayUrls,
+  parseTurnConfig,
+} from '@schafkopf/net';
+import {
+  type TrysteroOptions,
+  createTrysteroClient,
+  createTrysteroHost,
+} from '@schafkopf/net/trystero';
 
 export interface Connection {
   client: ClientSession;
@@ -64,6 +75,29 @@ export function saveName(name: string): void {
   }
 }
 
+/**
+ * Vermittlungsweg, Relays und TURN aus den Umgebungsvariablen beim Bauen
+ * (`VITE_SIGNALING`, `VITE_SIGNALING_URLS`, `VITE_TURN_CONFIG`). Im
+ * Entwicklungsmodus lässt sich der Weg zum Vergleichen per `?weg=torrent`
+ * umschalten; Host und Gast brauchen dann beide denselben Parameter.
+ */
+export function signalingOptions(): TrysteroOptions {
+  const env = import.meta.env;
+  const override = env.DEV ? new URLSearchParams(window.location.search).get('weg') : null;
+  const options: TrysteroOptions = {};
+  if (isSignalingStrategy(override)) {
+    options.strategy = override;
+  } else {
+    if (isSignalingStrategy(env.VITE_SIGNALING)) options.strategy = env.VITE_SIGNALING;
+    const urls = parseRelayUrls(env.VITE_SIGNALING_URLS);
+    if (urls) options.relayUrls = urls;
+  }
+  const turn = parseTurnConfig(env.VITE_TURN_CONFIG);
+  if (turn) options.turnConfig = turn;
+  if (env.DEV) options.log = (message) => console.info(`[Verbindung] ${message}`);
+  return options;
+}
+
 export function openTable(name: string, online: boolean): Connection {
   const host = new HostSession({
     createBot: (seat) => createRandomBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
@@ -71,7 +105,7 @@ export function openTable(name: string, online: boolean): Connection {
   const pair = createLoopbackPair();
   host.addTransport(pair.host);
   const roomId = online ? randomRoomId() : null;
-  if (roomId) host.addTransport(createTrysteroHost(roomId));
+  if (roomId) host.addTransport(createTrysteroHost(roomId, signalingOptions()));
   const client = new ClientSession(pair.client, { name, clientId: clientId() });
   return {
     client,
@@ -85,7 +119,10 @@ export function openTable(name: string, online: boolean): Connection {
 }
 
 export function joinTable(name: string, roomId: string): Connection {
-  const client = new ClientSession(createTrysteroClient(roomId), { name, clientId: clientId() });
+  const client = new ClientSession(createTrysteroClient(roomId, signalingOptions()), {
+    name,
+    clientId: clientId(),
+  });
   return { client, host: null, roomId, close: () => client.close() };
 }
 
@@ -106,5 +143,7 @@ export function normalizeRoom(input: string): string {
 }
 
 export function inviteLink(roomId: string): string {
-  return `${window.location.origin}${window.location.pathname}${HASH_PREFIX}${roomId}`;
+  // Die Suche (`?weg=…` im Entwicklungsmodus) mitnehmen, damit Gäste denselben Weg nutzen.
+  const { origin, pathname, search } = window.location;
+  return `${origin}${pathname}${search}${HASH_PREFIX}${roomId}`;
 }

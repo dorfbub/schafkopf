@@ -58,8 +58,11 @@ Eine ESLint-Regel verbietet im Kern `window`, `document`, `setTimeout`, `Math.ra
   `subscribe`/`getSnapshot` passen auf Reacts `useSyncExternalStore`.
 - `loopback.ts` – Transport im selben Prozess. Der Gastgeber spielt selbst über Loopback mit –
   dadurch gibt es in der Oberfläche keinen Sonderweg für den Host. Tests brauchen kein WebRTC.
+- `signaling.ts` – Vermittlungswege und geprüfte Relay-Listen, Lesen von Relay-/TURN-Einstellungen,
+  `DiscoveryGate` (lässt die Vermittlung ruhen, wenn niemand mehr dazukommen muss). Ohne Netz
+  testbar.
 - `trysteroTransport.ts` – WebRTC über [Trystero](https://github.com/dmotz/trystero). Separat
-  exportiert als `@schafkopf/net/trystero`.
+  exportiert als `@schafkopf/net/trystero`; der gewählte Weg wird erst beim Verbinden nachgeladen.
 
 ```
 Gastgeber-Browser                                   Gast-Browser
@@ -73,8 +76,48 @@ Gastgeber-Browser                                   Gast-Browser
 ```
 
 **Verbindungsaufbau.** WebRTC braucht eine Vermittlung, damit sich zwei Browser finden. Trystero
-nutzt dafür öffentliche Nostr-Relays; darüber laufen nur verschlüsselte Verbindungsdaten, keine
+nutzt dafür öffentliche Relays; darüber laufen nur verschlüsselte Verbindungsdaten, keine
 Spieldaten. Der Tisch-Code im Einladungslink ist der Raumname.
+
+- **Weg:** Standard ist Nostr mit einer eigenen, geprüften Relay-Liste (`DEFAULT_RELAYS` in
+  `signaling.ts`). Trysteros Standardliste enthielt tote und drosselnde Relays. Alternativen:
+  BitTorrent-Tracker (`torrent`) und MQTT-Broker (`mqtt`). Messwerte: Abschnitt „Messungen“ unten.
+- **Wenig Nachrichten:** Öffentliche Relays drosseln schon bei rund zehn Nachrichten in wenigen
+  Sekunden („rate-limited: slow down“). Deshalb schickt Nostr ICE-Kandidaten gebündelt mit dem SDP
+  (`trickleIce: false`, eine Nachricht statt fünf je Signal), und die Vermittlung ruht, sobald sie
+  nicht gebraucht wird: beim Host, wenn alle Plätze verbunden sind (vor dem Spiel: kein Platz frei;
+  im Spiel: kein Mensch getrennt – `HostSession.isDiscoverable`), beim Gast, sobald der Host ihn
+  begrüßt hat. Dann werden die Relay-Verbindungen geschlossen (`pauseRelayReconnection`); fällt
+  jemand aus, nimmt der Host sie sofort wieder auf. MQTT kennt kein Pausieren.
+- **Status beim Gast:** „Suche Tisch“ → „verbunden“; ohne Begrüßung nach 45 s „Tisch nicht
+  gefunden“ mit „Erneut versuchen“ (`ClientSession.retry`). Gleiches nach einem Verbindungsverlust.
+- **Einstellungen beim Bauen** (Vite-Umgebungsvariablen, z. B. in `apps/web/.env.local`, die nicht
+  eingecheckt wird, oder als Secret im Build):
+
+  | Variable              | Bedeutung                                              |
+  | --------------------- | ------------------------------------------------------ |
+  | `VITE_SIGNALING`      | `nostr` (Standard), `torrent` oder `mqtt`              |
+  | `VITE_SIGNALING_URLS` | eigene Relay-Liste, durch Komma getrennt, nur `wss://` |
+  | `VITE_TURN_CONFIG`    | TURN-Server als JSON (siehe unten)                     |
+
+  Host und Gäste müssen denselben Weg und dieselben Relays nutzen – also dieselbe Ausgabe der Seite.
+  Im Entwicklungsserver schaltet `?weg=torrent` den Weg um (der Einladungslink nimmt ihn mit).
+
+- **TURN-Fallback:** Hinter sehr strengen Routern (symmetrisches NAT, Firmen-/Hotelnetze) kommt
+  keine direkte Verbindung zustande; dann leitet ein TURN-Server die (verschlüsselten) Daten weiter.
+  Es gibt bewusst keinen Standard-TURN-Server – das wäre ein gemieteter Dienst. Wer einen hat
+  (eigener coturn, Cloudflare, Metered …), setzt beim Bauen:
+
+  ```
+  VITE_TURN_CONFIG='[{"urls":"turn:turn.example.org:3478","username":"…","credential":"…"}]'
+  ```
+
+  Achtung: Alles mit `VITE_` landet im ausgelieferten JavaScript und ist für jeden lesbar. Nur
+  Zugangsdaten verwenden, die dafür gedacht sind (zeitlich begrenzt oder auf die Seite beschränkt),
+  und nie ins Repo einchecken.
+
+- **Messen:** `apps/web/src/dev/messung.ts` (nur im Entwicklungsserver) spielt Verbindungsversuche
+  zwischen zwei Tabs automatisch durch; Anleitung im Dateikopf.
 
 **Vertrauensmodell.** Der Host kennt alle Karten und könnte schummeln. Für Freundesrunden ist das
 bewusst akzeptiert. Gäste können nicht schummeln: Der Host prüft jede Aktion.
@@ -112,7 +155,40 @@ React + Vite, keine weitere Zustandsbibliothek.
 
 - Lädt der Gastgeber die Seite neu, ist der Tisch weg (Zustand nur im Speicher).
 - Hinter sehr strengen Routern kommt ohne TURN-Server keine Verbindung zustande
-  (`TrysteroOptions.turnConfig` ist vorbereitet).
-- Der Verbindungsaufbau über die öffentlichen Relays kann einige Sekunden bis über eine Minute
-  dauern.
+  (`VITE_TURN_CONFIG`, siehe „Verbindungsaufbau“).
+- Die Vermittlung hängt an öffentlichen Relays, die kommen und gehen. Die Liste in `signaling.ts`
+  gelegentlich prüfen (Messwerkzeug) und notfalls per `VITE_SIGNALING_URLS` übersteuern.
+- Ruht die Vermittlung, kann niemand neu dazukommen (z. B. als Zuschauer) – erst wenn ein Platz frei
+  wird oder jemand die Verbindung verliert.
 - Fällt ein Mitspieler aus, wartet der Tisch auf ihn.
+
+## Messungen zum Verbindungsaufbau (N1, November 2026)
+
+Zwei Tabs im selben Browser auf einem Rechner (Arch Linux, Chrome im Claude-Desktop), Messwerkzeug
+`apps/web/src/dev/messung.ts`, Host jeweils 5 s „warm“. Gemessen: Klick auf Beitreten bis zur
+Begrüßung durch den Host. Beide Tabs liefen als Hintergrundseiten (Zeitgeber gedrosselt); über zwei
+verschiedene Netze ist der Aufbau langsamer (STUN, ggf. TURN) – diese Probe steht noch aus.
+
+| Weg                            | Versuche | verbunden | Median | Maximum |
+| ------------------------------ | -------- | --------- | ------ | ------- |
+| Nostr, eigene Relay-Liste      | 10       | 10        | 360 ms | 1109 ms |
+| BitTorrent-Tracker (2 Tracker) | 10       | 10        | 298 ms | 1042 ms |
+| MQTT (2 Broker)                | 10       | 10        | 323 ms | 979 ms  |
+
+Alle drei sind gleich zuverlässig und gleich schnell (Unterschiede im Rauschen). Standard bleibt
+Nostr: viele unabhängige Relays (Ausfälle einzelner verkraftbar), pausierbar; bei BitTorrent gibt
+es nur zwei brauchbare öffentliche Tracker, MQTT lässt sich nicht pausieren und lädt ~330 kB mehr.
+
+Nachrichten des Hosts an die Relays (Host + ein Gast, Spiel nach ~15–20 s gestartet):
+
+|                             | vorher (Trystero-Standard)                                                      | nachher                                          |
+| --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Relays                      | 5 aus der App-ID abgeleitet, davon 2 tot                                        | 4 geprüfte                                       |
+| Aufbau, 1. Minute, je Relay | 1 REQ + 11 EVENT                                                                | 1 REQ + 5–7 EVENT                                |
+| danach, je Relay und Minute | ≈ 1 EVENT, dazu endlose Wiederverbindungsversuche zu den toten Relays (≈ 3/min) | 0 – Verbindungen geschlossen 5 s nach Spielstart |
+| Drosselungsmeldungen        | nach 9 s von `relay.layer.systems` und `nostr.stakey.net`                       | keine                                            |
+
+Ursache der Drosselung: Trickle-ICE schickt Angebot und Kandidaten als fünf Nachrichten in derselben
+Millisekunde, dazu kündigt Trystero sich in den ersten 7 s fünfmal an. Diese Relays begrenzen vermutlich pro
+IP-Adresse – Host und Gäste im selben WLAN zählen zusammen. Bei vier Spielern verbindet Trystero
+außerdem alle Gäste untereinander (Vollvermaschung), was die Zahl der Signale verdoppelt.

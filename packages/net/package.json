@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@schafkopf/core": "*",
-    "trystero": "^0.26.0"
+    "@trystero-p2p/mqtt": "^0.26.0",
+    "@trystero-p2p/nostr": "^0.26.0",
+    "@trystero-p2p/torrent": "^0.26.0"
   }
 }
