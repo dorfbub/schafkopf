@@ -6,6 +6,10 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
+Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „Wer spielt was“,
+„Letzten Stich besser zeigen“, „Spielverlauf nach dem Spiel“ – beschrieben in
+[DESIGN.md](DESIGN.md), Abschnitt „Spieltisch“.
+
 | Thema                       | Größe                     | Klären                               |
 | --------------------------- | ------------------------- | ------------------------------------ |
 | Mehrere Kartensets          | mittel                    | Welche Sets zuerst; Lizenzen         |
@@ -13,7 +17,6 @@ Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 | Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
 | Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
 | Mischen wie am echten Tisch | klein                     | –                                    |
-| Spielverlauf nach dem Spiel | mittel                    | –                                    |
 
 ---
 
@@ -91,17 +94,3 @@ Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
 Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche teilweise zusammenbleiben. Das
 ist bewusst nicht zufällig und wäre eine eigene Tischregel (`RuleSet`). Das faire, zufällige
 Mischen ist beschrieben in `docs/ARCHITEKTUR.md`, „Mischen“.
-
-## Spielverlauf nach dem Spiel
-
-Lukas: Am Ende eines Spiels sehen, wie gespielt wurde – wer in welchem Stich welche Karte gelegt
-hat und welche Karte den Stich gemacht hat.
-
-- **Daten sind da:** Das Spielprotokoll (K7, `packages/core/src/log.ts`) hält jedes Spiel fest und
-  kann es mit `replay` nachspielen. Nach Spielende dürfen alle Karten gezeigt werden.
-- **Fehlt:** Die Sicht der Mitspieler enthält bisher nur eine Zusammenfassung je Spiel. Nach
-  Spielende müsste der Host die Stiche (Ausspieler, Karten, Gewinner) mitschicken – nie während
-  des Spiels.
-- **Anzeige:** im Ergebnis-Dialog aufklappbar „So wurde gespielt“: acht Zeilen, je Stich die vier
-  Karten in Spielreihenfolge, die stechende Karte hervorgehoben. Gehört zu U4 (Abrechnung und
-  Verlauf) oder als eigenes Paket direkt danach; nach K3a, weil K3a das Ergebnis umbaut.

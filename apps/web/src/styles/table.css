@@ -928,6 +928,119 @@
   justify-content: space-between;
 }
 
+/* Mit aufgeklapptem Verlauf scrollt der Dialog; die Knöpfe bleiben unten stehen. */
+.ergebnis:has(.verlauf[open]) .dialog__actions {
+  position: sticky;
+  /* reicht bis über den Innenabstand des Dialogs, damit darunter nichts durchscheint */
+  bottom: calc(var(--space-5) * -1);
+  z-index: 1;
+  margin-bottom: calc(var(--space-5) * -1);
+  padding: var(--space-3) 0 var(--space-5);
+  border-top: var(--border-thin) solid var(--color-paper-line);
+  background: var(--color-paper);
+}
+
+/* Spielverlauf „So wurde gespielt“ */
+.verlauf {
+  margin-top: var(--space-3);
+  border-top: var(--border-thin) solid var(--color-paper-line);
+}
+
+.verlauf__knopf {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.verlauf__knopf::-webkit-details-marker {
+  display: none;
+}
+
+/* Winkel als Rahmenecke, dreht sich beim Aufklappen. */
+.verlauf__knopf::before {
+  content: '';
+  width: var(--space-2);
+  height: var(--space-2);
+  border-right: var(--border-medium) solid currentColor;
+  border-bottom: var(--border-medium) solid currentColor;
+  rotate: -45deg;
+  transition: rotate var(--duration-base) var(--ease-out);
+}
+
+.verlauf[open] .verlauf__knopf::before {
+  rotate: 45deg;
+}
+
+.verlauf__stiche {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.verlauf__stich {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: var(--border-thin) solid var(--color-paper-line-soft);
+}
+
+.verlauf__nr {
+  min-width: 1.5em;
+  color: var(--color-on-paper-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.verlauf__karten {
+  display: flex;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.verlauf__karte {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.verlauf__karte .card {
+  --card-w: var(--history-card-w);
+}
+
+.verlauf .card--won {
+  box-shadow:
+    0 0 0 var(--border-thick) var(--color-accent),
+    var(--shadow-card);
+}
+
+.verlauf__name {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-on-paper-muted);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verlauf__augen {
+  min-width: 2ch;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-display);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Niedrig (Handy quer): links das Ergebnis, rechts die Beträge. */
 @container tisch (max-height: 18rem) {
   .tisch .dialog--centered.ergebnis {
@@ -937,6 +1050,7 @@
       'spiel tabelle'
       'titel tabelle'
       'augen tabelle'
+      'verlauf verlauf'
       'knoepfe knoepfe';
     align-content: start;
     column-gap: var(--space-5);
@@ -964,6 +1078,10 @@
 
   .ergebnis .dialog__actions {
     grid-area: knoepfe;
+  }
+
+  .ergebnis .verlauf {
+    grid-area: verlauf;
   }
 
   .augen__balken,

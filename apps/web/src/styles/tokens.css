@@ -133,6 +133,7 @@
   /* Stich: richtet sich nach der Tischfläche (Container-Einheiten). */
   --trick-card-w: clamp(40px, 17cqmin, 104px);
   --trick-tilt: 4deg;
+  --history-card-w: clamp(36px, 10cqmin, 52px); /* Karten im Spielverlauf (Ergebnis) */
   --seat-avatar-sm: 2.25rem; /* eigener Platz, enge Plätze */
   --switch-w: 3.25rem;
   --switch-h: 1.75rem;

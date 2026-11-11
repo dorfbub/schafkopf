@@ -235,14 +235,14 @@ Der Tisch nach der Richtung „Kartentisch“, gebaut mit den Bausteinen und Var
 
 ### Dateien
 
-| Datei                                      | Inhalt                                                                                      |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `apps/web/src/ui/Table.tsx`                | verbindet den Tisch mit `ClientSession`/`HostSession`                                       |
-| `apps/web/src/ui/table/TableBoard.tsx`     | der Tisch; arbeitet nur auf `TableView`, Aktionen über Rückrufe                             |
-| `apps/web/src/ui/table/*`                  | `TableBar`, `Seats`, `TrickArea`, `OwnSeat`, `BidDialog`, `ResultDialog`, `LastTrickDialog` |
-| `apps/web/src/ui/table/useTrickDisplay.ts` | hält den fertigen Stich fest und steuert das Wegräumen                                      |
-| `apps/web/src/styles/table.css`            | Layout, Größenstufen und Bewegung des Tischs                                                |
-| `apps/web/src/muster/Tischprobe.tsx`       | Tischprobe mit festen Spielständen, nur im Entwicklungsserver (siehe unten)                 |
+| Datei                                      | Inhalt                                                                                                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/src/ui/Table.tsx`                | verbindet den Tisch mit `ClientSession`/`HostSession`                                                                                                       |
+| `apps/web/src/ui/table/TableBoard.tsx`     | der Tisch; arbeitet nur auf `TableView`, Aktionen über Rückrufe                                                                                             |
+| `apps/web/src/ui/table/*`                  | `TableBar`, `Seats`, `TrickArea`, `OwnSeat`, `BidDialog`, `ResultDialog`, `LastTrickDialog`; seit dem Spielabend `GameSign`, `LastTrickPile`, `GameHistory` |
+| `apps/web/src/ui/table/useTrickDisplay.ts` | hält den fertigen Stich fest und steuert das Wegräumen                                                                                                      |
+| `apps/web/src/styles/table.css`            | Layout, Größenstufen und Bewegung des Tischs                                                                                                                |
+| `apps/web/src/muster/Tischprobe.tsx`       | Tischprobe mit festen Spielständen, nur im Entwicklungsserver (siehe unten)                                                                                 |
 
 **Tischprobe:** `http://localhost:5180/#tisch?szene=…` mit `ansage` („Ich würde“/„weiter“),
 `zweikampf` (du forderst), `halten` (du wirst gefordert), `nennen` (Spiel nennen), `warten`,
@@ -258,6 +258,14 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 - **Plätze der anderen** (`PlayerSeat`): am Zug = Messingschein + Marke „am Zug“, Geber = „G“ am
   Bild, Spielschild bzw. Marke „Mitspieler“ (siehe unten), sobald bekannt; Stiche und Kontostand (Minus in
   Minusfarbe); in der Ansage das Gesagte als Sprechblase („weiter“ kursiv).
+- **Punkte vom Spielabend** (umgesetzt am 11.11.2026, Bilder aus der Tischprobe):
+
+  | Schild und Stapel, Desktop                                                        | hochkant                                                                               | quer                                                                                  |
+  | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+  | ![Schild und Stapel, Desktop](bilder/tisch/spielabend-schild-stapel-desktop.webp) | ![Schild und Stapel, hochkant](bilder/tisch/spielabend-schild-stapel-hochkant.webp)    | ![Schild und Stapel, quer](bilder/tisch/spielabend-schild-stapel-quer.webp)           |
+  | ![Solo Tout, Desktop](bilder/tisch/spielabend-schild-tout-desktop.webp)           | ![Eigenes Schild (Wenz), hochkant](bilder/tisch/spielabend-schild-eigen-hochkant.webp) | ![Letzter Stich offen, hochkant](bilder/tisch/spielabend-letzter-stich-hochkant.webp) |
+  | ![Verlauf, Desktop](bilder/tisch/spielabend-verlauf-desktop.webp)                 | ![Verlauf, hochkant](bilder/tisch/spielabend-verlauf-hochkant.webp)                    | ![Verlauf, quer](bilder/tisch/spielabend-verlauf-quer.webp)                           |
+
 - **Wer spielt was** (Punkt vom Spielabend, umgesetzt nach D3; Lukas soll noch bestätigen):
   - Am Platz des Spielers steht statt der Marke „Spieler“ das **Spielschild** (`GameSign.tsx`):
     Papier mit Schatten, Fraunces, darin das Zeichen und der kurze Name der Spielart – im
@@ -293,8 +301,16 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
 - **Ergebnis-Dialog:** Spielart, „Xaver und Lukas haben gewonnen“, Augen groß mit Balken (Marke
   bei 61), Stiche/Schneider/Schwarz/Sie/Laufende als Stichworte, Betrag je Gegenspieler, Tabelle
-  Spiel/Stand. Die Aufschlüsselung und der Verlauf folgen mit U4. Erscheint erst, wenn der letzte
-  Stich weggeräumt ist.
+  Spiel/Stand. Die Aufschlüsselung folgt mit U4. Erscheint erst, wenn der letzte Stich weggeräumt
+  ist.
+- **So wurde gespielt** (Punkt vom Spielabend; Lukas soll noch bestätigen): unten im
+  Ergebnis-Dialog aufklappbar (`<details>`, Winkel in Akzentfarbe, per Tastatur bedienbar;
+  `GameHistory.tsx`). Je Stich eine Zeile: Nummer, die vier Karten in Spielreihenfolge mit dem
+  Namen darunter (`--history-card-w`), die stechende mit Akzentrand wie im Dialog „Letzter
+  Stich“, rechts die Augen in Fraunces. Beim Aufklappen rückt der Verlauf nach oben (ohne Gleiten
+  bei „Bewegung reduzieren“); der Dialog scrollt, die Knöpfe bleiben unten stehen (`sticky`).
+  Quer steht er über die ganze Breite unter Ergebnis und Tabelle; dort ist nur etwa ein Stich auf
+  einmal zu sehen.
 - **Letzter Stich** (Punkt vom Spielabend: der Knopf oben rechts wurde übersehen; Lukas soll noch
   bestätigen): liegt als kleiner **Stapel unten rechts auf dem Filz** (`LastTrickPile.tsx`), sobald
   der erste Stich fertig ist – die vier Karten leicht gefächert (`--trick-card-w` × 0,55), die

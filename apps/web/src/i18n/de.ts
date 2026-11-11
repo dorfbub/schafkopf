@@ -244,6 +244,9 @@ export const TABLE_TEXT = {
   colHand: 'Spiel',
   colBalance: 'Stand',
   nextHand: 'Nächstes Spiel',
+  historyTitle: 'So wurde gespielt',
+  historyTrick: (n: number, leader: string, winner: string, points: number) =>
+    `Stich ${n}: ${leader} spielt aus, ${winner} sticht, ${points} Augen`,
   hostDeals: 'Der Gastgeber gibt das nächste Spiel.',
   // Ansagen für Bildschirmleser
   announceTurn: 'Du bist dran.',

@@ -29,6 +29,12 @@ test('Ein ganzes Spiel: beide sehen dasselbe Ergebnis und dieselben Kontostände
   expect(guest).toEqual(host);
   // Vier Plätze plus Kopfzeile; die Kontostände summieren sich zu null.
   expect(host.rows).toHaveLength(5);
+
+  // Der Gast sieht nach dem Spiel, wie gespielt wurde: acht Stiche mit je vier Karten.
+  await table.guest.getByText('So wurde gespielt').click();
+  const tricks = table.guest.getByRole('listitem', { name: /^Stich \d: .* sticht, \d+ Augen$/ });
+  await expect(tricks).toHaveCount(8);
+  await expect(tricks.first().getByRole('img')).toHaveCount(4);
 });
 
 test('Der Gastgeber lädt mitten im Spiel neu und es geht weiter', async ({ context }) => {

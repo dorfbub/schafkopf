@@ -249,6 +249,11 @@ Bot-Vertretung (N3) – und vergleichen.
 - **Beim Host:** Protokolle enthalten über den Seed alle Karten und verlassen den Host nie.
   `TableView.history` trägt nur die Zusammenfassungen _fertiger_ Spiele – ohne Karten, für alle
   Plätze gleich. Daraus baut U4 die Verlaufstabelle.
+- **Spielverlauf eines Spiels:** `HandView.tricks` trägt nach Spielende alle Stiche (Ausspieler,
+  Karten in Reihenfolge, Gewinner, Augen) an alle Plätze und Zuschauer, während des Spiels ist es
+  `null` (Protokoll 7). Die gespielten Karten waren ohnehin offen; ältere Stiche als der letzte
+  stehen trotzdem erst nach dem Spiel in der Sicht (Tests in `core/test/log.test.ts` und
+  `net/test/log.test.ts`). Der Ergebnis-Dialog zeigt sie unter „So wurde gespielt“.
 - **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5 (seit K3a 6: `pot`, `carry`, `HandResult` in
   Stufen). `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
   ≈ 106 KiB JSON (Protokolle + Verlauf; je Protokoll stecken die Regeln mit ~½ KiB mit drin),
