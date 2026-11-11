@@ -5,3 +5,6 @@ package-lock.json
 apps/web/src/assets/karten/*.svg
 apps/web/scripts/karten/vorlagen/*.svg
 apps/web/scripts/karten/glyphen.json
+dist-e2e
+playwright-report
+test-results

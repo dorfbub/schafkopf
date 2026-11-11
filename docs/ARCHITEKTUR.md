@@ -66,6 +66,10 @@ Eine ESLint-Regel verbietet im Kern `window`, `document`, `setTimeout`, `Math.ra
   testbar.
 - `trysteroTransport.ts` – WebRTC über [Trystero](https://github.com/dmotz/trystero). Separat
   exportiert als `@schafkopf/net/trystero`; der gewählte Weg wird erst beim Verbinden nachgeladen.
+- `broadcastTransport.ts` – `BroadcastChannel` zwischen Tabs desselben Browsers, ohne Relays; das
+  Weggehen eines Tabs erkennt er über Web Locks. Nur für die Ende-zu-Ende-Tests (`npm run e2e`,
+  Ordner `e2e/`): Der Schalter `?transport=broadcast` (dazu `?botDelay=` und `?standIn=` in ms)
+  existiert nur in einem Build mit `VITE_E2E=1`; im ausgelieferten Bündel ist er entfernt.
 
 ```
 Gastgeber-Browser                                   Gast-Browser
