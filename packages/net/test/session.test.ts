@@ -66,7 +66,7 @@ describe('Host und Mitspieler', () => {
       const hand = anna.getSnapshot().view!.hand!;
       if (hand.phase === 'finished') break;
       if (hand.turn !== 0) throw new Error('Bots haben nicht gezogen');
-      if (hand.phase === 'bidding') anna.bid(null);
+      if (hand.phase === 'bidding') anna.bid(hand.legalCalls[0]!);
       else anna.play(hand.legalCards[0]!);
     }
     const view = anna.getSnapshot().view!;
@@ -83,7 +83,7 @@ describe('Host und Mitspieler', () => {
     const bene = join(host, 'Bene');
     host.start();
     // Geber ist Sitz 0, also sagt Sitz 1 (Bene) zuerst an.
-    anna.bid(null);
+    anna.bid({ type: 'pass' });
     expect(anna.getSnapshot().lastError).toBe('not_your_turn');
     bene.play('EA');
     expect(bene.getSnapshot().lastError).toBe('wrong_phase');

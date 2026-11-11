@@ -1,13 +1,24 @@
 /**
  * Ein einzelnes Spiel (eine "Hand"): Geben → Ansagen → Stiche → Abrechnung.
  *
+ * Die Ansage ist zweistufig (siehe docs/REGELN.md, „Ansage“): erst reihum „Ich würde“ /
+ * „weiter“, dann Zweikämpfe um die Spielart, zuletzt nennt der Sieger sein genaues Spiel.
+ *
  * Der Zustand ist ein reines Datenobjekt, `applyAction` eine reine Funktion:
  * (Zustand, Aktion) → neuer Zustand oder Regelfehler. Kein I/O, kein Zufall,
  * keine Zeit – damit läuft der Kern identisch im Browser, in Tests und in Bots.
  */
 
 import { type Card, SUITS, card, createDeck, sumPoints } from './cards';
-import { type Contract, CONTRACT_KINDS, MODES, bidValue, orderFor, sameContract } from './modes';
+import {
+  type Contract,
+  type ContractKind,
+  CONTRACT_KINDS,
+  MODES,
+  bidValue,
+  orderFor,
+  sameContract,
+} from './modes';
 import { createRng, shuffle } from './rng';
 import type { RuleSet } from './rules';
 import { type HandResult, scoreHand } from './scoring';
@@ -16,15 +27,44 @@ import { followable, trickWinnerIndex } from './trick';
 /** Sitzplatz 0..players-1; gespielt wird reihum aufsteigend. */
 export type Seat = number;
 
-export type PlayerAction =
-  | { type: 'bid'; contract: Contract | null } // null = "weiter"
-  | { type: 'play'; card: Card };
+/** Spielart ohne Farbe – das, was im Zweikampf genannt wird. */
+export interface BidLevel {
+  kind: ContractKind;
+  tout?: boolean;
+}
+
+/** Ein Ruf in der Ansage. */
+export type BidCall =
+  | { type: 'pass' } // Stufe 1: „weiter“
+  | { type: 'interest' } // Stufe 1: „Ich würde“
+  | { type: 'name'; level: BidLevel } // Zweikampf: Forderer nennt eine Spielart
+  | { type: 'hold' } // Zweikampf: Haltender sagt „ich auch“
+  | { type: 'yield' } // Zweikampf: „gut“ bzw. aufgeben
+  | { type: 'declare'; contract: Contract }; // Stufe 3: das genaue Spiel
+
+export type PlayerAction = { type: 'bid'; call: BidCall } | { type: 'play'; card: Card };
 
 export type Action = PlayerAction & { seat: Seat };
 
 export interface Bid {
   seat: Seat;
-  contract: Contract | null;
+  call: BidCall;
+}
+
+/** Stufe der Ansage: „Ich würde“/„weiter“, Zweikampf, Spiel nennen. */
+export type AuctionStage = 'interest' | 'duel' | 'declare';
+
+/** Stand der Ansage; öffentlich, denn alles wird laut gesagt. */
+export interface Auction {
+  stage: AuctionStage;
+  /** Wer gerade hält (im Zweikampf) bzw. sein Spiel nennt (Stufe 3). */
+  holder: Seat | null;
+  /** Wer gerade fordert (nur im Zweikampf). */
+  challenger: Seat | null;
+  /** Interessenten, die noch fordern werden – in Sitzreihenfolge. */
+  waiting: Seat[];
+  /** Zuletzt im Zweikampf genannte Spielart; das Spiel muss mindestens so hoch sein. */
+  level: BidLevel | null;
 }
 
 export interface Trick {
@@ -49,7 +89,9 @@ export interface HandState {
   hands: Card[][];
   /** Hände direkt nach dem Geben – für Laufende, Sie und Nachvollziehbarkeit. */
   initialHands: Card[][];
+  /** Alle Rufe der Ansage in zeitlicher Folge. */
   bids: Bid[];
+  auction: Auction;
   contract: Contract | null;
   declarer: Seat | null;
   /** Mitspieler im Sauspiel (Besitzer der Rufsau); sonst null. */
@@ -79,6 +121,7 @@ export function dealHand(rules: RuleSet, dealer: Seat, seed: number): HandState 
     hands,
     initialHands: hands.map((h) => [...h]),
     bids: [],
+    auction: { stage: 'interest', holder: null, challenger: null, waiting: [], level: null },
     contract: null,
     declarer: null,
     partner: null,
@@ -104,28 +147,88 @@ export function allContracts(rules: RuleSet): Contract[] {
   return out;
 }
 
-function highestBid(bids: readonly Bid[]): (Bid & { contract: Contract }) | null {
-  let best: (Bid & { contract: Contract }) | null = null;
-  for (const bid of bids) {
-    if (bid.contract && (!best || bidValue(bid.contract) > bidValue(best.contract))) {
-      best = { seat: bid.seat, contract: bid.contract };
-    }
+/** Alle Spielarten (mit/ohne Tout), die die Tischregeln zulassen – aufsteigend nach Rang. */
+export function allLevels(rules: RuleSet): BidLevel[] {
+  const out: BidLevel[] = [];
+  for (const contract of allContracts(rules)) {
+    const level: BidLevel = contract.tout
+      ? { kind: contract.kind, tout: true }
+      : { kind: contract.kind };
+    if (!out.some((l) => bidValue(l) === bidValue(level))) out.push(level);
   }
-  return best;
+  return out.sort((a, b) => bidValue(a) - bidValue(b));
 }
 
-/** Ansagen, die `seat` jetzt machen darf (leer, wenn nicht an der Reihe). */
-export function legalContracts(state: HandState, seat: Seat): Contract[] {
-  if (state.phase !== 'bidding' || state.turn !== seat) return [];
+/** Spiele, die `seat` mit seinem Blatt spielen dürfte, ab dem Rang `minValue`. */
+function playable(state: HandState, seat: Seat, minValue: number): Contract[] {
   const hand = state.hands[seat]!;
-  const toBeat = highestBid(state.bids);
-  const minValue = toBeat ? bidValue(toBeat.contract) : 0;
   return allContracts(state.rules).filter((contract) => {
-    if (bidValue(contract) <= minValue) return false;
+    if (bidValue(contract) < minValue) return false;
     const mode = MODES[contract.kind];
-    if (mode.suitChoices && !mode.suitChoices(hand).includes(contract.suit!)) return false;
-    return true;
+    return !mode.suitChoices || mode.suitChoices(hand).includes(contract.suit!);
   });
+}
+
+/** Rufe, die `seat` jetzt machen darf (leer, wenn nicht an der Reihe). Passive Rufe zuerst. */
+export function legalCalls(state: HandState, seat: Seat): BidCall[] {
+  if (state.phase !== 'bidding' || state.turn !== seat) return [];
+  const { stage, holder, level } = state.auction;
+  const current = level ? bidValue(level) : 0;
+  if (stage === 'interest') {
+    const calls: BidCall[] = [{ type: 'pass' }];
+    if (playable(state, seat, 0).length > 0) calls.push({ type: 'interest' });
+    return calls;
+  }
+  if (stage === 'duel') {
+    const calls: BidCall[] = [{ type: 'yield' }];
+    if (seat === holder) {
+      if (playable(state, seat, current).length > 0) calls.push({ type: 'hold' });
+      return calls;
+    }
+    for (const l of allLevels(state.rules)) {
+      if (bidValue(l) > current && playable(state, seat, bidValue(l)).length > 0) {
+        calls.push({ type: 'name', level: l });
+      }
+    }
+    return calls;
+  }
+  return playable(state, seat, current).map((contract) => ({ type: 'declare', contract }));
+}
+
+/** Spiele, die `seat` jetzt nennen darf – nur in Stufe 3, sonst leer. */
+export function legalContracts(state: HandState, seat: Seat): Contract[] {
+  return legalCalls(state, seat).flatMap((c) => (c.type === 'declare' ? [c.contract] : []));
+}
+
+function sameCall(a: BidCall, b: BidCall): boolean {
+  if (a.type !== b.type) return false;
+  if (a.type === 'name' && b.type === 'name') {
+    return a.level.kind === b.level.kind && Boolean(a.level.tout) === Boolean(b.level.tout);
+  }
+  if (a.type === 'declare' && b.type === 'declare') return sameContract(a.contract, b.contract);
+  return true;
+}
+
+/** Nur die bekannten Felder übernehmen – Rufe kommen aus dem Netz. */
+function cleanCall(call: BidCall): BidCall {
+  switch (call.type) {
+    case 'name':
+      return {
+        type: 'name',
+        level: { kind: call.level.kind, ...(call.level.tout ? { tout: true } : {}) },
+      };
+    case 'declare':
+      return {
+        type: 'declare',
+        contract: {
+          kind: call.contract.kind,
+          ...(call.contract.suit ? { suit: call.contract.suit } : {}),
+          ...(call.contract.tout ? { tout: true } : {}),
+        },
+      };
+    default:
+      return { type: call.type };
+  }
 }
 
 /** Karten, die `seat` jetzt spielen darf (leer, wenn nicht an der Reihe). */
@@ -149,46 +252,83 @@ export function legalCards(state: HandState, seat: Seat): Card[] {
   );
 }
 
-function applyBid(state: HandState, seat: Seat, contract: Contract | null): ActionResult {
-  if (contract && !legalContracts(state, seat).some((c) => sameContract(c, contract))) {
-    return { ok: false, error: 'illegal_bid' };
+/** Nächster Zweikampf oder, wenn keiner mehr fordert, Stufe 3. Ändert `next`. */
+function nextDuel(next: HandState): void {
+  const auction = next.auction;
+  const challenger = auction.waiting.shift();
+  if (challenger === undefined) {
+    auction.stage = 'declare';
+    auction.challenger = null;
+    next.turn = auction.holder!;
+  } else {
+    auction.stage = 'duel';
+    auction.challenger = challenger;
+    next.turn = challenger;
   }
-  const next = structuredClone(state);
+}
+
+function startPlay(next: HandState, declarer: Seat, contract: Contract): void {
   const players = next.rules.players;
-  // Nur die bekannten Felder übernehmen – Aktionen kommen aus dem Netz.
-  const clean: Contract | null = contract
-    ? {
-        kind: contract.kind,
-        ...(contract.suit ? { suit: contract.suit } : {}),
-        ...(contract.tout ? { tout: true } : {}),
-      }
-    : null;
-  next.bids.push({ seat, contract: clean });
-
-  if (next.bids.length < players) {
-    next.turn = (seat + 1) % players;
-    return { ok: true, state: next };
-  }
-
-  const best = highestBid(next.bids);
-  if (!best) {
-    // Alle weiter. Aktuell einzige Regel: zusammenwerfen (siehe RuleSet.allPassed).
-    next.phase = 'finished';
-    next.result = { kind: 'passed', payments: Array.from({ length: players }, () => 0) };
-    return { ok: true, state: next };
-  }
-
-  next.contract = best.contract;
-  next.declarer = best.seat;
-  if (MODES[best.contract.kind].suitRole === 'called') {
-    const sau = card(best.contract.suit!, 'A');
+  next.contract = contract;
+  next.declarer = declarer;
+  if (MODES[contract.kind].suitRole === 'called') {
+    const sau = card(contract.suit!, 'A');
     next.partner = next.initialHands.findIndex((h) => h.includes(sau));
   }
   const first = (next.dealer + 1) % players;
   next.phase = 'playing';
   next.turn = first;
   next.currentTrick = { leader: first, cards: [] };
-  return { ok: true, state: next };
+}
+
+function applyBid(state: HandState, seat: Seat, raw: BidCall): ActionResult {
+  if (!legalCalls(state, seat).some((c) => sameCall(c, raw))) {
+    return { ok: false, error: 'illegal_bid' };
+  }
+  const call = cleanCall(raw);
+  const next = structuredClone(state);
+  const players = next.rules.players;
+  const auction = next.auction;
+  next.bids.push({ seat, call });
+
+  switch (call.type) {
+    case 'pass':
+    case 'interest': {
+      const first = (next.dealer + 1) % players;
+      if (next.bids.length < players) {
+        next.turn = (seat + 1) % players;
+        return { ok: true, state: next };
+      }
+      const interested = Array.from({ length: players }, (_, i) => (first + i) % players).filter(
+        (s) => next.bids.some((b) => b.seat === s && b.call.type === 'interest'),
+      );
+      if (interested.length === 0) {
+        // Alle weiter. Aktuell einzige Regel: zusammenwerfen (siehe RuleSet.allPassed).
+        next.phase = 'finished';
+        next.result = { kind: 'passed', payments: Array.from({ length: players }, () => 0) };
+        return { ok: true, state: next };
+      }
+      auction.holder = interested[0]!;
+      auction.waiting = interested.slice(1);
+      nextDuel(next);
+      return { ok: true, state: next };
+    }
+    case 'name':
+      auction.level = call.level;
+      next.turn = auction.holder!;
+      return { ok: true, state: next };
+    case 'hold':
+      next.turn = auction.challenger!;
+      return { ok: true, state: next };
+    case 'yield':
+      // Gibt der Haltende auf, hält ab jetzt der Forderer.
+      if (seat === auction.holder) auction.holder = auction.challenger;
+      nextDuel(next);
+      return { ok: true, state: next };
+    case 'declare':
+      startPlay(next, seat, call.contract);
+      return { ok: true, state: next };
+  }
 }
 
 function applyPlay(state: HandState, seat: Seat, played: Card): ActionResult {
@@ -221,6 +361,6 @@ export function applyAction(state: HandState, action: Action): ActionResult {
   if (state.phase !== expected) return { ok: false, error: 'wrong_phase' };
   if (state.turn !== action.seat) return { ok: false, error: 'not_your_turn' };
   return action.type === 'bid'
-    ? applyBid(state, action.seat, action.contract)
+    ? applyBid(state, action.seat, action.call)
     : applyPlay(state, action.seat, action.card);
 }

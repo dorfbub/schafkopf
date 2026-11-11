@@ -4,7 +4,7 @@
  * `subscribe`/`getSnapshot` an (passt direkt auf Reacts `useSyncExternalStore`).
  */
 
-import type { Card, Contract, PlayerAction, Seat, TableView } from '@schafkopf/core';
+import type { BidCall, Card, PlayerAction, Seat, TableView } from '@schafkopf/core';
 import {
   type ClientTransport,
   type HostErrorCode,
@@ -88,8 +88,8 @@ export class ClientSession {
 
   getSnapshot = (): ClientSnapshot => this.snapshot;
 
-  bid(contract: Contract | null): void {
-    this.act({ type: 'bid', contract });
+  bid(call: BidCall): void {
+    this.act({ type: 'bid', call });
   }
 
   play(card: Card): void {

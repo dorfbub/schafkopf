@@ -3,7 +3,7 @@
  * lassen sich später als zweite Datei mit denselben Schlüsseln ergänzen.
  */
 
-import type { Contract, ContractKind, Rank, Suit } from '@schafkopf/core';
+import type { BidCall, BidLevel, Contract, ContractKind, Rank, Suit } from '@schafkopf/core';
 import type { HostErrorCode } from '@schafkopf/net';
 
 export const SUIT_NAME: Record<Suit, string> = {
@@ -99,6 +99,29 @@ export const KIND_NAME: Record<ContractKind, string> = {
   bettel: 'Bettel',
 };
 
+/** Spielart ohne Farbe, wie sie im Zweikampf genannt wird. */
+export function levelLabel(level: BidLevel): string {
+  return level.tout ? `${KIND_NAME[level.kind]} Tout` : KIND_NAME[level.kind];
+}
+
+/** Was ein Spieler in der Ansage laut sagt. */
+export function callLabel(call: BidCall): string {
+  switch (call.type) {
+    case 'pass':
+      return 'weiter';
+    case 'interest':
+      return 'Ich würde';
+    case 'name':
+      return levelLabel(call.level);
+    case 'hold':
+      return 'ich auch';
+    case 'yield':
+      return 'gut';
+    case 'declare':
+      return contractLabel(call.contract);
+  }
+}
+
 /** Texte des Spieltischs (src/ui/table). */
 export const TABLE_TEXT = {
   brand: 'Schafkopf',
@@ -128,6 +151,19 @@ export const TABLE_TEXT = {
   hand: 'Deine Karten',
   wonBy: (name: string, points: number) => `${name} sticht · ${points} Augen`,
   // Ansage-Dialog
+  interestTitle: 'Würdest du spielen?',
+  interestBody: 'Erst sagt jeder, ob er spielen würde. Wer mag, nennt danach sein Spiel.',
+  interestYes: 'Ich würde',
+  duelTitle: (name: string) => `Gegen ${name}: Was hast du?`,
+  duelHint: (name: string) => `${name} war vorher dran und hat bei Gleichstand Vorrang.`,
+  duelHintLevel: (name: string, level: string) => `${name} hält ${level} – du musst höher gehen.`,
+  duelName: (label: string) => `„${label}“ sagen`,
+  duelYield: 'Aufgeben',
+  holdTitle: (name: string, level: string) => `${name} sagt: ${level}`,
+  holdBody: (level: string) =>
+    `Hast du ${level} oder Höheres? Bei Gleichstand hast du Vorrang, weil du vorher dran warst.`,
+  holdYes: 'Ich auch',
+  holdNo: 'Gut',
   bidTitle: 'Was spielst du?',
   bidKind: 'Spielart',
   bidSuitCalled: 'Auf welche Sau?',
@@ -146,7 +182,7 @@ export const TABLE_TEXT = {
       .filter(Boolean)
       .join(' · '),
   bidSaid: (name: string, what: string) => `${name}: ${what}`,
-  bidToBeat: (label: string) => `Zu überbieten: ${label}`,
+  bidMinimum: (label: string) => `Mindestens: ${label}`,
   // Ergebnis
   passedTitle: 'Alle weiter – es wird zusammengeworfen',
   resultTitle: (names: string, plural: boolean, won: boolean) =>

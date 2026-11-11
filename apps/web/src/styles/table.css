@@ -1171,3 +1171,8 @@
 .tisch-platz .player-seat__bubble {
   animation: dialog-rein var(--duration-base) var(--ease-out) both;
 }
+
+.ansage__text {
+  margin: var(--space-3) 0 0;
+  max-width: 34rem;
+}
