@@ -9,7 +9,7 @@ export type SignSymbol = { suit: Suit } | { letter: string } | null;
  * Was gespielt wird, als Schild am Platz des Spielers. Neue Fälle kommen hier dazu:
  * - Ramsch (K3b): kein Spieler – dann `seat: null` und das Schild steht in der Tischmitte.
  * - Kontra/Re (K4): weitere Einträge in `extras`.
- * - Hochzeit (K5): eigener Name und eigenes Zeichen; der Partner ist sofort bekannt.
+ * - Hochzeit (K5): Name „Hochzeit“ ohne Zeichen; der Partner trägt sofort die Marke „Mitspieler“.
  */
 export interface GameSignInfo {
   seat: Seat;

@@ -146,6 +146,21 @@ describe('Hochzeit über das Netz', () => {
     expect(snapshot).not.toBeNull();
     expect(snapshot!.table.hand!.phase).toBe('prelude');
     expect(snapshot!.table.hand!.prelude).toMatchObject({ step: 'exchange', partner: 2 });
+    // Wiederhergestellt gelten alle Menschen als getrennt; nach der Frist vertreten Bots sie,
+    // der Bot auf Cillis Platz gibt eine Karte zurück, und das Spiel läuft zu Ende.
+    const queue: (() => void)[] = [];
+    const restored = HostSession.restore(snapshot!, {
+      createBot: (s) => createRandomBot(s),
+      seed: () => SEED,
+      schedule: (fn) => void queue.push(fn),
+      standInDelayMs: 0,
+    });
+    for (let i = 0; queue.length > 0 && i < 10_000; i++) queue.shift()!();
+    const hand = restored.getTable().hand!;
+    expect(hand.phase).toBe('finished');
+    expect(hand.contract).toEqual({ kind: 'hochzeit' });
+    expect(hand.partner).toBe(2);
+    expect(hand.result!.outcome!.winners.length).toBe(2);
   });
 });
 

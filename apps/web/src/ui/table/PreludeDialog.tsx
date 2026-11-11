@@ -1,13 +1,7 @@
-import {
-  type Card,
-  type HandView,
-  type PreludeMove,
-  type TableView,
-  rankOf,
-  suitOf,
-} from '@schafkopf/core';
+import type { Card, HandView, PreludeMove, TableView } from '@schafkopf/core';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { RANK_NAME, SUIT_NAME, TABLE_TEXT, preludeMoveLabel } from '../../i18n/de';
+import { TABLE_TEXT, preludeMoveLabel } from '../../i18n/de';
+import { cardLabel } from '../CardView';
 import { bayerischTheme } from '../cardTheme';
 import { Button, Dialog } from '../kit';
 import { type SeatInfo, sortHand } from './layout';
@@ -41,6 +35,13 @@ export function PreludeDialog({ view, hand, seats, onMove }: Props) {
   return <ExchangeStep hand={hand} declarer={declarer} onMove={onMove} />;
 }
 
+/** Anker für den Fokus: Beim Erscheinen springt er in den Dialog, aber nicht auf einen Knopf. */
+function FocusAnchor() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => ref.current?.focus(), []);
+  return <div ref={ref} tabIndex={-1} className="ansage__anker" />;
+}
+
 function OfferStep({
   declarer,
   status,
@@ -50,8 +51,6 @@ function OfferStep({
   status: ReactNode;
   onMove: (move: PreludeMove) => void;
 }) {
-  const anchor = useRef<HTMLDivElement>(null);
-  useEffect(() => anchor.current?.focus(), []);
   return (
     <Dialog
       className="ansage hochzeit"
@@ -66,7 +65,7 @@ function OfferStep({
         </>
       }
     >
-      <div ref={anchor} tabIndex={-1} className="ansage__anker" />
+      <FocusAnchor />
       <p className="ansage__text">{TABLE_TEXT.weddingOfferBody(declarer)}</p>
     </Dialog>
   );
@@ -106,16 +105,16 @@ function ExchangeStep({
         </Button>
       }
     >
+      <FocusAnchor />
       <div className="hochzeit__karten" role="group" aria-label={TABLE_TEXT.hand}>
         {cards.map((card) => {
-          const label = `${SUIT_NAME[suitOf(card)]}-${RANK_NAME[rankOf(card)]}`;
           const usable = allowed.has(card);
           return (
             <button
               key={card}
               type="button"
               className={`card ${usable ? 'card--playable' : 'card--locked'} hochzeit__karte`}
-              aria-label={label}
+              aria-label={cardLabel(card)}
               aria-pressed={chosen.includes(card)}
               disabled={!usable}
               onClick={() => toggle(card)}

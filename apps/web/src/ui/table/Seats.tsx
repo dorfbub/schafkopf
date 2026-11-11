@@ -93,9 +93,14 @@ export function inParty(hand: HandView, seat: Seat): boolean {
   return hand.declarer === seat || hand.partner === seat;
 }
 
-/** Was ein Sitz in der Ansage zuletzt gesagt hat; `null`, wenn er noch nichts gesagt hat. */
+/**
+ * Was ein Sitz in der Ansage zuletzt gesagt hat; `null`, wenn er noch nichts gesagt hat. Ist ein
+ * Vorspiel gescheitert (keiner nahm die Hochzeit an), zählt nur, was seit der Wiederaufnahme
+ * gesagt wurde – sonst stünde beim Nachrücker noch sein altes „gut“.
+ */
 export function lastCall(hand: HandView, seat: Seat): BidCall | null {
-  return hand.bids.findLast((b) => b.seat === seat)?.call ?? null;
+  const since = hand.bids.findLastIndex((b) => b.call.type === 'declare') + 1;
+  return hand.bids.slice(since).findLast((b) => b.seat === seat)?.call ?? null;
 }
 
 /** Ist der Sitz mit diesem Ruf aus der Ansage ausgestiegen („weiter“, „gut“)? */

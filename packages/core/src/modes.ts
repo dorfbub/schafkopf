@@ -135,10 +135,11 @@ function sauspielTrumps(): Card[] {
   return [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])];
 }
 
-/** Anzahl der Sauspiel-Trümpfe in einer Hand. */
+/** Anzahl der Sauspiel-Trümpfe in einer Hand (Liste erst beim ersten Aufruf gebaut). */
+let sauspielTrumpList: readonly Card[] | null = null;
 function countSauspielTrumps(hand: readonly Card[]): number {
-  const trumps = sauspielTrumps();
-  return hand.filter((c) => trumps.includes(c)).length;
+  sauspielTrumpList ??= sauspielTrumps();
+  return hand.filter((c) => sauspielTrumpList!.includes(c)).length;
 }
 
 function requireSuit(contract: Contract): Suit {
