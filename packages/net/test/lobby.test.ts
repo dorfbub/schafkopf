@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createRandomBot } from '@schafkopf/bots';
+import { DEFAULT_RULES } from '@schafkopf/core';
 import {
   ClientSession,
   HostSession,
@@ -251,5 +252,51 @@ describe('Lobby: Befehle des Gastgebers', () => {
     host.start();
     expect(host.unseat(0)).toBe(false);
     expect(host.unseat(1)).toBe(false); // Bot, im Spiel
+  });
+});
+
+describe('Lobby: Tischregeln', () => {
+  const custom = () => ({
+    ...JSON.parse(JSON.stringify(DEFAULT_RULES)),
+    allowTout: false,
+    tariff: { sauspiel: 20, solo: 60, extra: 5 },
+  });
+
+  it('Gastgeber ändert die Regeln, Gäste sehen sie in ihrer Sicht', () => {
+    const host = createHost();
+    const anna = join(host, 'Anna');
+    expect(host.setRules(custom())).toBe(true);
+    const rules = anna.getSnapshot().view!.rules;
+    expect(rules.allowTout).toBe(false);
+    expect(rules.tariff).toEqual({ sauspiel: 20, solo: 60, extra: 5 });
+  });
+
+  it('ungültige Regeln werden abgewiesen, nichts ändert sich', () => {
+    const host = createHost();
+    const bad = custom();
+    bad.tariff.extra = -5;
+    expect(host.setRules(bad)).toBe(false);
+    expect(host.getTable().rules).toEqual(DEFAULT_RULES);
+  });
+
+  it('nach Spielbeginn sind die Regeln fest', () => {
+    const host = createHost();
+    join(host, 'Anna');
+    host.start();
+    expect(host.setRules(custom())).toBe(false);
+    expect(host.getTable().rules).toEqual(DEFAULT_RULES);
+  });
+
+  it('die Regeln überstehen den Speicherstand', () => {
+    const host = createHost();
+    host.setRules(custom());
+    const saved = parseHostSnapshot(JSON.parse(JSON.stringify(host.exportSnapshot())));
+    expect(saved?.table.rules.tariff.solo).toBe(60);
+  });
+
+  it('ein Speicherstand mit ungültigen Regeln wird verworfen', () => {
+    const snap = JSON.parse(JSON.stringify(createHost().exportSnapshot()));
+    snap.table.rules.laufende.wenz = 99;
+    expect(parseHostSnapshot(snap)).toBeNull();
   });
 });

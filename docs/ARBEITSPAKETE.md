@@ -57,7 +57,7 @@ Die Ansage läuft derzeit in einer Runde. Umsetzen wie am Tisch üblich: erst re
 - **Abnahme:** Tests für: Früherer behält bei Gleichstand; Überbieten; alle weiter. REGELN.md,
   Abschnitt „Ansage“ und Annahme 1 aktualisiert.
 
-### K2 · Regeln am Tisch einstellbar
+### K2 · Regeln am Tisch einstellbar (erledigt)
 
 `RuleSet` vollständig aus der Lobby wählbar machen: erlaubte Spielarten, Tout, Tarif, Schwellen für
 Laufende. Annahmen aus REGELN.md, die Geschmackssache sind, als Optionen abbilden.

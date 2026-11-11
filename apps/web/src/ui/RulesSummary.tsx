@@ -1,0 +1,31 @@
+import { CONTRACT_KINDS, LAUFENDE_KINDS, type RuleSet } from '@schafkopf/core';
+import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
+
+/** Die Tischregeln zum Lesen – für Gäste in der Lobby und im Info-Dialog am Tisch. */
+export function RulesSummary({ rules }: { rules: RuleSet }) {
+  const yesNo = (b: boolean) => (b ? T.yes : T.no);
+  const kinds = CONTRACT_KINDS.filter((k) => rules.contracts.includes(k));
+  return (
+    <dl className="regeln">
+      <dt>{T.contracts}</dt>
+      <dd>{kinds.map((k) => KIND_NAME[k]).join(', ')}</dd>
+      <dt>{T.tout}</dt>
+      <dd>{yesNo(rules.allowTout)}</dd>
+      <dt>{T.tariff}</dt>
+      <dd>
+        {T.tariffSauspiel} {rules.tariff.sauspiel} · {T.tariffSolo} {rules.tariff.solo} ·{' '}
+        {T.tariffExtra} {rules.tariff.extra}
+      </dd>
+      <dt>{T.laufende}</dt>
+      <dd>
+        {LAUFENDE_KINDS.filter((k) => rules.contracts.includes(k))
+          .map((k) => `${KIND_NAME[k]} ${rules.laufende[k]}`)
+          .join(' · ')}
+      </dd>
+      <dt>{T.sie}</dt>
+      <dd>{yesNo(rules.sie)}</dd>
+      <dt>{T.davonlaufen}</dt>
+      <dd>{yesNo(rules.davonlaufen)}</dd>
+    </dl>
+  );
+}

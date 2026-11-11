@@ -231,3 +231,29 @@ export const LOBBY_TEXT = {
   spectatorsHintLocal: 'Nur bei einem Tisch mit Einladungslink möglich.',
   guestWaits: 'Der Gastgeber startet das Spiel.',
 } as const;
+
+/** Tischregeln (K2): Einstellungen in der Lobby und Regelübersicht am Tisch. */
+export const RULES_TEXT = {
+  title: 'Regeln',
+  info: 'Regeln',
+  close: 'Schließen',
+  contracts: 'Spielarten',
+  contractsHint: 'Das Sauspiel ist immer dabei.',
+  tout: 'Tout erlaubt',
+  sie: 'Sie (alle Ober und Unter) wird bezahlt',
+  davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',
+  tariff: 'Tarif (Cent)',
+  tariffSauspiel: 'Sauspiel',
+  tariffSolo: 'Einzelspiel',
+  tariffExtra: 'Aufschlag',
+  tariffHint: 'Aufschlag je Schneider, Schwarz und Laufendem.',
+  laufende: 'Laufende ab …',
+  laufendeHint: 'Ab so vielen Laufenden wird gezahlt. Erlaubt sind 1 bis 8.',
+  invalid: 'Bitte eine ganze Zahl eingeben.',
+  invalidRange: 'Bitte eine Zahl von 1 bis 8 eingeben.',
+  guestHint: 'So wird an diesem Tisch gespielt. Der Gastgeber kann das vor dem Start ändern.',
+  yes: 'ja',
+  no: 'nein',
+  cent: (n: number) => `${n} Cent`,
+  from: (n: number) => `ab ${n}`,
+} as const;

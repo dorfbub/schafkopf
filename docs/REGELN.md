@@ -107,6 +107,31 @@ Aufschlag 10 Cent.
 - **Zahlung**: Im Sauspiel zahlt jeder Verlierer den Spielwert an einen Gewinner. Im Einzelspiel
   zahlt bzw. bekommt der Spieler den Spielwert von jedem der drei Gegner.
 
+## Einstellbare Tischregeln
+
+Der Gastgeber stellt in der Lobby ein, womit der Tisch spielt (`RuleSet`); nach Spielbeginn ist
+nichts mehr änderbar. Alle Mitspieler sehen die Regeln (Lobby und Info-Knopf am Tisch). Die
+Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
+
+| Option (`RuleSet`)    | Bedeutung                                            | Standard          | Gültig             |
+| --------------------- | ---------------------------------------------------- | ----------------- | ------------------ |
+| `contracts`           | erlaubte Spielarten; Sauspiel ist immer an           | alle sechs        | Sauspiel enthalten |
+| `allowTout`           | Tout-Ansagen erlaubt                                 | an                | an/aus             |
+| `tariff.sauspiel`     | Grundtarif Sauspiel (Cent)                           | 10                | ganzzahlig ≥ 0     |
+| `tariff.solo`         | Grundtarif Einzelspiele (Cent)                       | 50                | ganzzahlig ≥ 0     |
+| `tariff.extra`        | Aufschlag je Schneider, Schwarz, Laufendem (Cent)    | 10                | ganzzahlig ≥ 0     |
+| `laufende.<Spielart>` | Schwelle für Laufende je Spielart (ohne Bettel)      | 3 / 2 / 3 / 2 / 3 | ganzzahlig 1–8     |
+| `sie`                 | „Sie“ (alle Ober und Unter) wird erkannt und bezahlt | an                | an/aus             |
+| `davonlaufen`         | Davonlaufen mit vier Karten der Ruffarbe erlaubt     | an                | an/aus             |
+
+Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz → 3, 3, 2, 2, 3.
+Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abgerechnet
+(Laufende zählen dann). Ist `davonlaufen` aus, darf die Ruffarbe nur mit der Sau angespielt werden.
+Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
+
+Keine Optionen sind Ramsch, Stock, Muss, Kontra/Re, Legen und Bockrunden (K3/K4) sowie die
+Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
+
 ## Annahmen – bitte prüfen
 
 Diese Punkte wurden nicht abgefragt und nach gängiger Spielweise festgelegt. Jede Runde spielt
@@ -116,11 +141,11 @@ etwas anders; Abweichungen bitte hier korrigieren.
    nächste Interessent in Sitzreihenfolge den bisherigen Sieger; „ich auch“ und das Nennen sind nur
    mit einem Blatt erlaubt, das ein Spiel dieser Spielart oder höher hergibt (kein Bluff ins Leere).
 2. **Rangfolge der Spielarten**, vor allem die Einordnung von Bettel, Geier und Farbwenz.
-3. **Tarif** 10 / 50 / 10 Cent.
-4. **Laufende** ohne Obergrenze; Schwelle 2 bei Wenz und Geier, sonst 3.
+3. **Tarif** 10 / 50 / 10 Cent (einstellbar).
+4. **Laufende** ohne Obergrenze; Schwelle 2 bei Wenz und Geier, sonst 3 (einstellbar).
 5. **Bettel**: Zehner reiht sich zwischen Unter und Neuner ein; kein offener Bettel („Bettel
    ouvert“).
 6. **Tout**: Laufende werden mitverdoppelt.
-7. **Sie** wird automatisch erkannt und abgerechnet, muss nicht angesagt werden.
-8. **Davonlaufen** ab vier Karten der Ruffarbe einschließlich der Sau.
+7. **Sie** wird automatisch erkannt und abgerechnet, muss nicht angesagt werden (abschaltbar).
+8. **Davonlaufen** ab vier Karten der Ruffarbe einschließlich der Sau (abschaltbar).
 9. **Herauskommen**: Auch im Solo kommt der Spieler links vom Geber heraus.

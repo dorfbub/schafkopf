@@ -247,6 +247,7 @@ export function legalCards(state: HandState, seat: Seat): Card[] {
       hand,
       trick,
       completedTricks: state.tricks.map((t) => t.cards),
+      davonlaufen: state.rules.davonlaufen,
     },
     candidates,
   );

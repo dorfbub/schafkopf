@@ -5,6 +5,7 @@ import {
   type Contract,
   type ContractKind,
   type HandState,
+  type RuleSet,
   DEFAULT_RULES,
   applyAction,
   createRng,
@@ -18,8 +19,8 @@ import {
 } from '../src';
 
 /** Baut einen Spielzustand mit festen Händen (Sitz 0 kommt raus, Geber ist Sitz 3). */
-function handWith(hands: Card[][]): HandState {
-  const state = dealHand(DEFAULT_RULES, 3, 1);
+function handWith(hands: Card[][], rules: RuleSet = DEFAULT_RULES): HandState {
+  const state = dealHand(rules, 3, 1);
   return { ...state, hands, initialHands: hands.map((h) => [...h]) };
 }
 
@@ -230,7 +231,9 @@ describe('Rufsau', () => {
   it('wird die Ruffarbe angespielt, muss die Sau fallen – danach kennt jeder den Mitspieler', () => {
     let state = play(start(), 'G7');
     state = play(state, 'G8');
-    expect(legalCards(state, 2)).toEqual(['GA']);
+    const legal = legalCards(state, 2);
+    expect(legal).toContain('GA');
+    for (const c of ['G10', 'GK', 'G9'] as Card[]) expect(legal).not.toContain(c);
     state = play(state, 'GA');
     expect(handViewFor(state, 3).partner).toBe(2);
   });
@@ -276,6 +279,26 @@ describe('Rufsau', () => {
     state = play(state, 'H7');
     expect(state.turn).toBe(2);
     expect(legalCards(state, 2)).toContain('G9');
+  });
+
+  it('Option davonlaufen aus: auch mit vier Karten nur mit der Sau anspielen', () => {
+    const hands: Card[][] = [
+      ['GO', 'HO', 'EU', 'HA', 'H10', 'G7', 'S7', 'E7'],
+      ['SO', 'GU', 'HK', 'H9', 'EA', 'E10', 'G8', 'S8'],
+      ['EO', 'SU', 'GA', 'G10', 'GK', 'G9', 'EK', 'S9'],
+      ['HU', 'H8', 'H7', 'E9', 'E8', 'SA', 'S10', 'SK'],
+    ];
+    let state = bidAll(handWith(hands, { ...DEFAULT_RULES, davonlaufen: false }), [
+      GRAS,
+      null,
+      null,
+      null,
+    ]);
+    for (const c of ['GO', 'SO', 'EO', 'H7'] as Card[]) state = play(state, c);
+    expect(state.turn).toBe(2);
+    const legal = legalCards(state, 2);
+    expect(legal).toContain('GA');
+    for (const c of ['G10', 'GK', 'G9'] as Card[]) expect(legal).not.toContain(c);
   });
 
   it('mit weniger als vier Karten darf die Ruffarbe nur mit der Sau angespielt werden', () => {

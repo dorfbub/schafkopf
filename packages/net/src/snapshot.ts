@@ -16,13 +16,15 @@ import {
   dealHand,
   handViewFor,
   isCard,
+  parseRuleOptions,
   tableViewFor,
 } from '@schafkopf/core';
 
 /** Erhöhen, sobald sich `HostSnapshot`, `TableState`, `HandState` oder `RuleSet` ändern. */
 /** 2: zweistufige Ansage (K1) hat `HandState` verändert. */
 /** 3: Lobby-Funktionen (N4): `watching`, `spectatorsWelcome`. */
-export const HOST_SNAPSHOT_VERSION = 3;
+/** 4: Tischregeln erweitert (K2): `RuleSet.laufende`, `sie`, `davonlaufen`. */
+export const HOST_SNAPSHOT_VERSION = 4;
 
 export interface HostSnapshot {
   v: number;
@@ -89,6 +91,7 @@ function check(raw: unknown): HostSnapshot | null {
   if (!isObj(rules) || !hasKeys(rules, DEFAULT_RULES)) return null;
   const players = rules.players;
   if (!isInt(players, 2, 8)) return null;
+  if (!parseRuleOptions(rules)) return null;
   const last = players - 1;
 
   const { seats, balances, dealer, handNo, hand } = table;

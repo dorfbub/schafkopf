@@ -30,6 +30,8 @@ export interface LegalContext {
   trick: readonly Card[];
   /** Karten aller abgeschlossenen Stiche (jeweils in Spielreihenfolge). */
   completedTricks: readonly (readonly Card[])[];
+  /** Davonlaufen erlaubt (`RuleSet.davonlaufen`). */
+  davonlaufen: boolean;
 }
 
 export interface ModeDefinition {
@@ -43,8 +45,8 @@ export interface ModeDefinition {
   canTout: boolean;
   /** 'points' = 61 Augen nötig; 'noTricks' = Ansager darf keinen Stich machen. */
   goal: 'points' | 'noTricks';
-  /** Ab wie vielen Laufenden gezahlt wird; null = keine Laufenden. */
-  minLaufende: number | null;
+  /** Gibt es Laufende? Die Schwelle steht im `RuleSet` (`laufende`). */
+  hasLaufende: boolean;
   /** Alle Trümpfe (volles Blatt), höchster zuerst. */
   trumps(contract: Contract): Card[];
   /** Abweichende Rang-Reihenfolge der Farbkarten (Standard: `RANKS`). */
@@ -87,7 +89,7 @@ function restrictRufsau(ctx: LegalContext, candidates: Card[]): Card[] {
   if (ledBefore) return candidates;
 
   if (ctx.trick.length === 0) {
-    if (ctx.hand.filter(isCalled).length >= 4) return candidates;
+    if (ctx.davonlaufen && ctx.hand.filter(isCalled).length >= 4) return candidates;
     return candidates.filter((c) => !isCalled(c) || c === sau);
   }
   if (isCalled(ctx.trick[0]!)) return [sau];
@@ -104,7 +106,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     alone: false,
     canTout: false,
     goal: 'points',
-    minLaufende: 3,
+    hasLaufende: true,
     trumps: () => [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])],
     // Rufbar ist jede Farbe außer Herz, von der man eine Karte, aber nicht die Sau hat.
     suitChoices: (hand) =>
@@ -123,7 +125,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     alone: true,
     canTout: false,
     goal: 'noTricks',
-    minLaufende: null,
+    hasLaufende: false,
     trumps: () => [],
     // Im Bettel gibt es keine Trümpfe; der Zehner reiht sich zwischen Unter und Neuner ein.
     rankOrder: ['A', 'K', 'O', 'U', '10', '9', '8', '7'],
@@ -135,7 +137,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     alone: true,
     canTout: true,
     goal: 'points',
-    minLaufende: 2,
+    hasLaufende: true,
     trumps: () => [...OBER],
   },
   farbwenz: {
@@ -145,7 +147,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     alone: true,
     canTout: true,
     goal: 'points',
-    minLaufende: 3,
+    hasLaufende: true,
     trumps: (contract) => [...UNTER, ...suitCards(requireSuit(contract), ['U'])],
   },
   wenz: {
@@ -155,7 +157,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     alone: true,
     canTout: true,
     goal: 'points',
-    minLaufende: 2,
+    hasLaufende: true,
     trumps: () => [...UNTER],
   },
   solo: {
@@ -165,7 +167,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     alone: true,
     canTout: true,
     goal: 'points',
-    minLaufende: 3,
+    hasLaufende: true,
     trumps: (contract) => [...OBER, ...UNTER, ...suitCards(requireSuit(contract), ['O', 'U'])],
   },
 };

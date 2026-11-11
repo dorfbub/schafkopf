@@ -123,3 +123,53 @@ input[type='checkbox'] {
   background: var(--color-brass);
   color: var(--color-on-brass);
 }
+
+/* Tischregeln (K2): Einstellungen in der Lobby, Übersicht in Lobby und am Tisch */
+
+.regeln {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-2) 0;
+  line-height: var(--leading-normal);
+}
+
+.regeln dt {
+  font-weight: var(--weight-semibold);
+}
+
+.regeln dd {
+  margin: 0;
+}
+
+.regeln-einstellung {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.regeln-einstellung__gruppe {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.regeln-einstellung__gruppe legend {
+  padding: 0;
+  font-weight: var(--weight-semibold);
+}
+
+.regeln-einstellung__zahl {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 7rem;
+  font-size: var(--text-sm);
+}
+
+.regeln-einstellung__zahl input[aria-invalid='true'] {
+  border-color: var(--text-negative);
+}
+
+.regeln-einstellung__zahl input[aria-invalid='true'] ~ .hint {
+  color: var(--text-negative);
+}
