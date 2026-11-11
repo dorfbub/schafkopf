@@ -17,6 +17,7 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 | Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
 | Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
 | Mischen wie am echten Tisch | klein                     | –                                    |
+| Kopfzeile bricht um         | klein                     | –                                    |
 
 ---
 
@@ -94,3 +95,11 @@ Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
 Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche teilweise zusammenbleiben. Das
 ist bewusst nicht zufällig und wäre eine eigene Tischregel (`RuleSet`). Das faire, zufällige
 Mischen ist beschrieben in `docs/ARCHITEKTUR.md`, „Mischen“.
+
+## Kopfzeile bricht um
+
+Auf schmalen Handys (360 px) bricht die Kopfzeile „Resi spielt Sauspiel auf die Eichel-Sau“ in zwei
+Zeilen um, „Zusammengeworfen“ nicht. Zwischen zwei Spielen wird die Tischfläche dadurch um etwa
+20 px kleiner oder größer. Seit dem Spielschild am Platz ist die Zeile doppelt; kürzen oder auf eine
+Zeile begrenzen. Gefunden beim Mergen am 11.11.2026 (E2E `layout.spec.ts` misst nur das gespielte
+Spiel).

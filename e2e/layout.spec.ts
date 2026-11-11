@@ -48,7 +48,11 @@ for (const size of SIZES) {
       if (await next.isVisible()) {
         const title = await page.getByRole('dialog').getByRole('heading').first().innerText();
         if (!/zusammengeworfen/.test(title)) break;
+        // Gemessen wird nur das gespielte Spiel; zusammengeworfene davor zählen nicht mit.
         await next.click();
+        await page.evaluate(() => {
+          (window as unknown as { __raum: unknown[] }).__raum = [];
+        });
         continue;
       }
       if (!(await act(page))) await page.waitForTimeout(30);
