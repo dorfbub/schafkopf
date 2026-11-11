@@ -4,7 +4,7 @@
  * alle anderen sind reine Mitspieler über WebRTC.
  */
 
-import { createRandomBot } from '@schafkopf/bots';
+import { createHeuristicBot } from '@schafkopf/bots';
 import {
   ClientSession,
   type HostOptions,
@@ -249,7 +249,7 @@ export function signalingOptions(): TrysteroOptions {
 
 function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
   return {
-    createBot: (seat) => createRandomBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
+    createBot: (seat) => createHeuristicBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
   };
 }
 

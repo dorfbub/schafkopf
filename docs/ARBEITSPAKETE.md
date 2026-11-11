@@ -253,7 +253,12 @@ Töne (Karte legen, Stich), kurze Sprüche/Emotes an den Tisch, Einstellungen da
 
 ## B – Bots (`packages/bots`)
 
-### B1 · Bot, der vernünftig spielt
+### B1 · Bot, der vernünftig spielt (erledigt)
+
+Umgesetzt als `createHeuristicBot` in `packages/bots/src/heuristicBot.ts`; Quote und Regeltreue
+in `packages/bots/test/heuristicBot.test.ts`. Bekannte Schwächen: kennt die Tischregeln nicht
+(sagt in Stufe 1 evtl. für eine abgeschaltete Spielart „Ich würde“), merkt sich nach dem
+Wiederherstellen eines Tisches nur die Stiche ab dann, zählt keine Augen mit.
 
 Heuristik-Bot: sagt nach Blattstärke an (Trumpfzahl, Laufende, freie Farben), spielt sinnvoll
 (Partner schmieren, Trumpf ziehen als Spieler, Rufsau suchen als Gegner).
