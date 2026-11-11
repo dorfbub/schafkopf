@@ -5,7 +5,8 @@
 
 import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 
-export const PROTOCOL_VERSION = 3;
+/** 4: ausgefallene Mitspieler (N3): `absent` in der `state`-Nachricht. */
+export const PROTOCOL_VERSION = 4;
 
 export type ClientMessage =
   | {
@@ -40,9 +41,26 @@ export interface LobbyInfo {
   spectatorsWelcome: boolean;
 }
 
+/**
+ * Ein Platz, dessen Spieler im laufenden Spiel die Verbindung verloren hat. Der
+ * Platz bleibt ihm; nach einer Frist (oder auf Wunsch des Gastgebers sofort)
+ * zieht ein Bot für ihn, bis er zurück ist.
+ */
+export interface AbsentSeat {
+  seat: Seat;
+  /** Ein Bot vertritt den Spieler gerade. */
+  standIn: boolean;
+  /**
+   * Restzeit bis zur Vertretung in Millisekunden, gemessen beim Absenden;
+   * `null`, wenn der Bot schon vertritt. Eine Restzeit statt eines Zeitpunkts,
+   * weil die Uhren der Geräte nicht übereinstimmen.
+   */
+  standInInMs: number | null;
+}
+
 export type HostMessage =
   | { t: 'welcome'; v: number; seat: Seat | null }
-  | { t: 'state'; view: TableView; lobby: LobbyInfo }
+  | { t: 'state'; view: TableView; lobby: LobbyInfo; absent: AbsentSeat[] }
   | { t: 'error'; code: HostErrorCode };
 
 /**

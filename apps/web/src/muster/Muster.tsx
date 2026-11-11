@@ -355,6 +355,31 @@ function Seats() {
         <PlayerSeat name="Resi" info="0 Stiche · ±0,00 €" dealer cards={<Backs n={7} />} />
         <PlayerSeat name="Hias" info="3 Stiche · +0,60 €" disconnected cards={<Backs n={5} />} />
         <PlayerSeat
+          name="Wast"
+          info="1 Stich · −0,20 €"
+          disconnected
+          disconnectedLabel="getrennt · Bot in 24 s"
+          actions={
+            <>
+              <Button variant="secondary" size="small">
+                Bot übernehmen lassen
+              </Button>
+              <Button variant="secondary" size="small">
+                Vom Platz nehmen
+              </Button>
+            </>
+          }
+          cards={<Backs n={5} />}
+        />
+        <PlayerSeat
+          name="Kathi"
+          info="2 Stiche · +0,10 €"
+          disconnected
+          standIn
+          turn
+          cards={<Backs n={4} />}
+        />
+        <PlayerSeat
           name="Maximiliane"
           info="Spielt"
           turn
@@ -372,7 +397,8 @@ function Seats() {
         />
       </div>
       <p className="text-muted">
-        Normal · am Zug · Geber · getrennt · am Zug und Geber mit Marke und Ansage · Mitspieler
+        Normal · am Zug · Geber · getrennt · getrennt mit Restzeit und Gastgeber-Knöpfen · Bot
+        vertritt · am Zug und Geber mit Marke und Ansage · Mitspieler
       </p>
     </Section>
   );

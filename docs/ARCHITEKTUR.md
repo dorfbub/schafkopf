@@ -152,6 +152,28 @@ bewusst akzeptiert. Gäste können nicht schummeln: Der Host prüft jede Aktion.
 **Wiederverbinden.** Jeder Browser-Tab hat eine `clientId` (sessionStorage). Meldet sich dieselbe
 `clientId` erneut, bekommt sie ihren Platz zurück.
 
+**Ausgefallene Mitspieler (N3).** Verliert ein Mensch die Verbindung, wird sein Platz in der Lobby
+frei; im laufenden Spiel (`table.hand !== null`) bleibt er ihm (`PlayerInfo.connected = false`),
+und der Host startet eine Frist (`HostOptions.standInDelayMs`, Standard 30 s). Danach zieht ein
+Bot (`createBot`) für ihn, bis er sich mit seiner `clientId` zurückmeldet; ab dem nächsten Zug
+spielt dann wieder der Mensch (überlegt der Bot gerade, verfällt dessen Zug).
+
+- **Sicht:** Jede `state`-Nachricht trägt `absent: AbsentSeat[]` – je getrenntem Platz, ob ein Bot
+  vertritt, und die Restzeit bis zur Vertretung in Millisekunden. Eine Restzeit statt eines
+  Zeitpunkts, weil die Uhren der Geräte nicht übereinstimmen; `ClientSession` rechnet sie beim
+  Empfang mit der eigenen Uhr in `AbsentSeatInfo.standInAt` um. Die Oberfläche zeigt am Platz
+  „getrennt · Bot in 24 s“ bzw. „Bot vertritt“.
+- **Gastgeber-Befehle** (direkt über `HostSession`): `standInNow(platz)` lässt den Bot sofort
+  übernehmen (der Spieler kann trotzdem zurückkommen); `replaceWithBot(platz)` nimmt einen
+  getrennten Spieler dauerhaft vom Platz – der Platz wird ein gewöhnlicher Bot-Platz samt
+  Kontostand, die `clientId` schaut beim Wiederkommen zu. Beide nur für getrennte Spieler.
+- **Zeit:** Die Frist läuft über `schedule`, die Restzeit über `HostOptions.now`; Tests ersetzen
+  beides durch eine synchrone Uhr. Jede Frist hat eine Marke, damit ein alter Zeitgeber nach
+  Rückkehr und erneutem Trennen nicht zählt.
+- **Speicherstand:** Fristen und Vertretungen werden nicht gespeichert (`HOST_SNAPSHOT_VERSION`
+  bleibt). Nach `restore` gelten alle Menschen als getrennt und ihre Frist beginnt von vorn – auch
+  wer vorher schon vertreten wurde. Dauerhaft ersetzte Plätze stehen als Bot-Plätze im Stand.
+
 **Neuladen des Gastgebers (N2).** Der Tisch lebt im Speicher des Gastgeber-Tabs. Damit ein
 Neuladen ihn nicht beendet, schreibt `apps/web/src/connection.ts` nach jeder Änderung
 `HostSession.exportSnapshot()` in den localStorage (`schafkopf.host`): `TableState`,
@@ -260,15 +282,22 @@ Gleichverteilung der Karten (oben) deckt es mit ab.
 - Lädt der Gastgeber neu, geht der Tisch weiter – aber nur im selben Browser. Wechselt der
   Gastgeber das Gerät oder löscht er die Website-Daten, ist der Tisch weg; ein privates Fenster ohne
   localStorage übersteht kein Neuladen. Nach 12 Stunden gilt ein gespeicherter Tisch als vergessen.
-- Gäste, die nach dem Neuladen des Gastgebers nicht zurückkommen, halten ihren Platz besetzt – auch
-  in der Lobby (der Tisch wartet auf sie, siehe nächster Punkt).
+- Gäste, die nach dem Neuladen des Gastgebers nicht zurückkommen, halten in der Lobby ihren Platz
+  besetzt (der Gastgeber kann sie mit „vom Platz nehmen“ entfernen). Im laufenden Spiel vertritt sie
+  nach der Frist ein Bot.
 - Hinter sehr strengen Routern kommt ohne TURN-Server keine Verbindung zustande
   (`VITE_TURN_CONFIG`, siehe „Verbindungsaufbau“).
 - Die Vermittlung hängt an öffentlichen Relays, die kommen und gehen. Die Liste in `signaling.ts`
   gelegentlich prüfen (Messwerkzeug) und notfalls per `VITE_SIGNALING_URLS` übersteuern.
 - Ruht die Vermittlung, kann niemand neu dazukommen (z. B. als Zuschauer) – erst wenn ein Platz frei
   wird oder jemand die Verbindung verliert, oder der Gastgeber „Zuschauer zulassen“ einschaltet.
-- Fällt ein Mitspieler aus, wartet der Tisch auf ihn.
+- Fällt ein Mitspieler aus, wartet der Tisch die Frist ab (Standard 30 s), dann zieht ein Bot. Bis
+  der Ausfall bemerkt wird, vergeht je nach Transport zusätzlich etwas Zeit (WebRTC: wenige
+  Sekunden). Ein Gast, der nur langsam ist, aber verbunden bleibt, wird nie vertreten – eine
+  Bedenkzeit gibt es nicht.
+- Schließt ein Gast seinen Tab ganz, ist seine `clientId` (sessionStorage) weg; ein neuer Tab ist
+  ein neuer Mitspieler und kann nur zuschauen. Zurück an den Platz kommt nur, wer denselben Tab neu
+  lädt oder ihn über „Geschlossenen Tab wieder öffnen“ zurückholt.
 
 ## Messungen zum Verbindungsaufbau (N1, November 2026)
 

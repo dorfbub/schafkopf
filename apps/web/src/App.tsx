@@ -73,7 +73,7 @@ export function App() {
 function Game({ connection, onLeave }: { connection: Connection; onLeave: () => void }) {
   const { client, host, roomId } = connection;
   const snapshot = useSyncExternalStore(client.subscribe, client.getSnapshot);
-  const { view, status, lastError } = snapshot;
+  const { view, status, lastError, absent } = snapshot;
 
   if (!view) {
     return (
@@ -90,7 +90,7 @@ function Game({ connection, onLeave }: { connection: Connection; onLeave: () => 
     <>
       <ConnectBanner status={status} onRetry={() => client.retry()} />
       {view.hand ? (
-        <Table view={view} client={client} host={host} onLeave={onLeave} />
+        <Table view={view} client={client} host={host} absent={absent} onLeave={onLeave} />
       ) : (
         <Lobby view={view} client={client} host={host} roomId={roomId} onLeave={onLeave} />
       )}

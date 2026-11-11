@@ -1,11 +1,14 @@
-import type { BidCall, Card, TableView } from '@schafkopf/core';
+import type { BidCall, Card, Seat, TableView } from '@schafkopf/core';
+import type { AbsentSeatInfo } from '@schafkopf/net';
 import { useCallback, useState } from 'react';
+import { TABLE_TEXT } from '../../i18n/de';
+import { Button, Dialog } from '../kit';
 import { BidDialog } from './BidDialog';
 import { LastTrickDialog } from './LastTrickDialog';
 import { seatInfo } from './layout';
 import { OwnSeat } from './OwnSeat';
 import { ResultDialog } from './ResultDialog';
-import { Seats } from './Seats';
+import { type AbsentActions, Seats } from './Seats';
 import { RulesDialog } from './RulesDialog';
 import { TableBar } from './TableBar';
 import { TrickArea } from './TrickArea';
@@ -18,13 +21,27 @@ export interface TableBoardProps {
   /** Nur der Gastgeber gibt das nächste Spiel. */
   onNext: (() => void) | null;
   onLeave: () => void;
+  /** Getrennte Mitspieler (N3). */
+  absent?: AbsentSeatInfo[];
+  /** Nur der Gastgeber: Bot sofort übernehmen lassen bzw. Spieler dauerhaft ersetzen. */
+  onStandInNow?: ((seat: Seat) => void) | null;
+  onReplaceWithBot?: ((seat: Seat) => void) | null;
 }
 
 /**
  * Der Spieltisch: Leiste, Filz mit den Plätzen der anderen und dem Stich, darunter der eigene
  * Platz mit der Hand. Arbeitet nur auf der `TableView`; Aktionen gehen über die Rückrufe.
  */
-export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardProps) {
+export function TableBoard({
+  view,
+  onBid,
+  onPlay,
+  onNext,
+  onLeave,
+  absent = [],
+  onStandInNow = null,
+  onReplaceWithBot = null,
+}: TableBoardProps) {
   const hand = view.hand!;
   const seats = seatInfo(view);
   const shown = useTrickDisplay(hand, view.handNo);
@@ -32,6 +49,14 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
   const [rulesOpen, setRulesOpen] = useState(false);
   const closeRules = useCallback(() => setRulesOpen(false), []);
   const closeLast = useCallback(() => setLastOpen(false), []);
+  const [removing, setRemoving] = useState<Seat | null>(null);
+  const hostActions: AbsentActions | null =
+    onStandInNow && onReplaceWithBot
+      ? { standInNow: onStandInNow, askRemove: (seat) => setRemoving(seat) }
+      : null;
+  // Kommt der Spieler zurück, während die Rückfrage offen ist, erübrigt sie sich.
+  const removingSeat =
+    removing !== null && absent.some((a) => a.seat === removing) ? removing : null;
 
   const myTurn = view.you !== null && hand.turn === view.you && hand.phase !== 'finished';
   const canSeeLast = hand.lastTrick !== null && shown.completed === null;
@@ -58,7 +83,7 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
       />
       <div className="tisch__raum">
         <div className="tisch__platte" aria-hidden="true" />
-        <Seats view={view} hand={hand} seats={seats} />
+        <Seats view={view} hand={hand} seats={seats} absent={absent} hostActions={hostActions} />
         <TrickArea
           trick={shown.trick}
           completed={shown.completed}
@@ -87,6 +112,27 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
           <LastTrickDialog trick={hand.lastTrick} seats={seats} onClose={closeLast} />
         )}
         {rulesOpen && <RulesDialog rules={view.rules} onClose={closeRules} />}
+        {removingSeat !== null && onReplaceWithBot && (
+          <Dialog
+            title={TABLE_TEXT.absentRemoveTitle(seats.nameOf(removingSeat))}
+            hint={TABLE_TEXT.absentRemoveHint(seats.nameOf(removingSeat))}
+            actions={
+              <>
+                <Button variant="secondary" onClick={() => setRemoving(null)}>
+                  {TABLE_TEXT.absentRemoveCancel}
+                </Button>
+                <Button
+                  onClick={() => {
+                    onReplaceWithBot(removingSeat);
+                    setRemoving(null);
+                  }}
+                >
+                  {TABLE_TEXT.absentRemoveConfirm}
+                </Button>
+              </>
+            }
+          />
+        )}
       </div>
       <OwnSeat view={view} hand={hand} seats={seats} onPlay={play} />
     </main>

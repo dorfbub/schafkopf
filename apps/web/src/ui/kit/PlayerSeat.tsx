@@ -8,6 +8,12 @@ interface Props {
   turn?: boolean;
   dealer?: boolean;
   disconnected?: boolean;
+  /** Ein Bot vertritt den getrennten Spieler. */
+  standIn?: boolean;
+  /** Ersetzt die Marke „getrennt“, z. B. durch die Restzeit bis zur Vertretung. */
+  disconnectedLabel?: string;
+  /** Schaltflächen am Platz, z. B. für den Gastgeber. */
+  actions?: ReactNode;
   /** Marken wie „Spieler“ oder „Mitspieler“. */
   marks?: ReactNode;
   /** Sprechblase, z. B. die Ansage. */
@@ -17,13 +23,19 @@ interface Props {
   className?: string;
 }
 
-/** Platz eines Mitspielers am Tisch mit den Zuständen „am Zug“, „Geber“ und „getrennt“. */
+/**
+ * Platz eines Mitspielers am Tisch mit den Zuständen „am Zug“, „Geber“, „getrennt“ und
+ * „Bot vertritt“.
+ */
 export function PlayerSeat({
   name,
   info,
   turn,
   dealer,
   disconnected,
+  standIn,
+  disconnectedLabel,
+  actions,
   marks,
   bubble,
   cards,
@@ -34,6 +46,7 @@ export function PlayerSeat({
     turn && 'player-seat--turn',
     dealer && 'player-seat--dealer',
     disconnected && 'player-seat--disconnected',
+    disconnected && standIn && 'player-seat--stand-in',
     className,
   ]
     .filter(Boolean)
@@ -41,7 +54,8 @@ export function PlayerSeat({
   const states = [
     turn && UI_TEXT.seatTurn,
     dealer && UI_TEXT.seatDealer,
-    disconnected && UI_TEXT.seatDisconnected,
+    disconnected && (disconnectedLabel ?? UI_TEXT.seatDisconnected),
+    disconnected && standIn && UI_TEXT.seatStandIn,
   ].filter(Boolean);
   return (
     <div className={classes} aria-label={[name, ...states].join(', ')} role="group">
@@ -58,10 +72,14 @@ export function PlayerSeat({
       {(marks || disconnected || turn) && (
         <span className="player-seat__marks">
           {turn && <span className="marke marke--brass">{UI_TEXT.seatTurn}</span>}
-          {disconnected && <span className="marke">{UI_TEXT.seatDisconnected}</span>}
+          {disconnected && !standIn && (
+            <span className="marke">{disconnectedLabel ?? UI_TEXT.seatDisconnected}</span>
+          )}
+          {disconnected && standIn && <span className="marke">{UI_TEXT.seatStandIn}</span>}
           {marks}
         </span>
       )}
+      {actions && <span className="player-seat__actions">{actions}</span>}
       {bubble && <span className="player-seat__bubble">{bubble}</span>}
       {cards && (
         <span className="player-seat__cards" aria-hidden="true">

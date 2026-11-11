@@ -120,6 +120,7 @@ export const UI_TEXT = {
   seatDealer: 'Geber',
   seatDealerShort: 'G',
   seatDisconnected: 'getrennt',
+  seatStandIn: 'Bot vertritt',
 };
 
 /** Name einer Spielart ohne Farbe, für den Ansage-Dialog. */
@@ -239,6 +240,17 @@ export const TABLE_TEXT = {
   // Ansagen für Bildschirmleser
   announceTurn: 'Du bist dran.',
   announceBid: 'Du bist mit der Ansage dran.',
+  // Ausgefallene Mitspieler (N3)
+  absentCountdown: (seconds: number) => `getrennt · Bot in ${seconds} s`,
+  absentStandInNow: 'Bot übernehmen lassen',
+  absentStandInNowLabel: (name: string) => `Für ${name} sofort einen Bot spielen lassen`,
+  absentRemove: 'Vom Platz nehmen',
+  absentRemoveLabel: (name: string) => `${name} dauerhaft vom Platz nehmen`,
+  absentRemoveTitle: (name: string) => `${name} vom Platz nehmen?`,
+  absentRemoveHint: (name: string) =>
+    `Ein Bot spielt dann dauerhaft auf diesem Platz weiter, samt Kontostand. Kommt ${name} zurück, bleibt nur das Zuschauen.`,
+  absentRemoveConfirm: 'Vom Platz nehmen',
+  absentRemoveCancel: 'Abbrechen',
 };
 
 /** Lobby (Paket N4, gestaltet in D4). */

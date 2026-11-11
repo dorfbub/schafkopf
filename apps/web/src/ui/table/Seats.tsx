@@ -1,7 +1,16 @@
 import type { BidCall, HandView, Seat, TableView } from '@schafkopf/core';
+import type { AbsentSeatInfo } from '@schafkopf/net';
+import { useEffect, useState } from 'react';
 import { TABLE_TEXT, callLabel, money } from '../../i18n/de';
-import { CardBack, PlayerSeat } from '../kit';
+import { Button, CardBack, PlayerSeat } from '../kit';
 import type { SeatInfo } from './layout';
+
+/** Gastgeber-Befehle für getrennte Mitspieler; fehlt bei Gästen. */
+export interface AbsentActions {
+  standInNow: (seat: Seat) => void;
+  /** Fragt nach, bevor ein Spieler dauerhaft vom Platz genommen wird. */
+  askRemove: (seat: Seat) => void;
+}
 
 /** Höchstens so viele verdeckte Karten am Platz zeigen. */
 const MAX_BACKS = 8;
@@ -10,6 +19,25 @@ interface SeatProps {
   view: TableView;
   hand: HandView;
   seats: SeatInfo;
+  absent: AbsentSeatInfo[];
+  hostActions: AbsentActions | null;
+}
+
+/** Aktuelle Uhrzeit, sekündlich erneuert, solange `active` gilt (für Restzeiten). */
+function useNow(active: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [active]);
+  return now;
+}
+
+/** Sekunden bis zur Vertretung, aufgerundet, nie negativ. */
+function secondsLeft(info: AbsentSeatInfo, now: number): number {
+  return Math.max(0, Math.ceil(((info.standInAt ?? now) - now) / 1000));
 }
 
 /** Stiche und Kontostand eines Sitzes, z. B. „1 Stich · −0,40 €“. */
@@ -48,7 +76,8 @@ export function isOut(call: BidCall): boolean {
 }
 
 /** Die Plätze der anderen am Tisch (für Zuschauer alle vier). */
-export function Seats({ view, hand, seats }: SeatProps) {
+export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
+  const now = useNow(absent.some((a) => a.standInAt !== null));
   return (
     <>
       {view.seats.map((player, seat) => {
@@ -56,15 +85,46 @@ export function Seats({ view, hand, seats }: SeatProps) {
         const turn = hand.turn === seat && hand.phase !== 'finished';
         const bid = hand.phase === 'bidding' ? lastCall(hand, seat) : null;
         const size = hand.handSizes[seat]!;
+        const away = absent.find((a) => a.seat === seat);
+        const name = seats.nameOf(seat);
         return (
           <PlayerSeat
             key={seat}
             className={`tisch-platz tisch-platz--${seats.position(seat)}`}
-            name={seats.nameOf(seat)}
+            name={name}
             info={<SeatStats view={view} hand={hand} seat={seat} />}
             turn={turn}
             dealer={seat === hand.dealer}
             disconnected={player !== null && !player.connected}
+            standIn={away?.standIn}
+            disconnectedLabel={
+              away && !away.standIn ? TABLE_TEXT.absentCountdown(secondsLeft(away, now)) : undefined
+            }
+            actions={
+              away &&
+              hostActions && (
+                <>
+                  {!away.standIn && (
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      aria-label={TABLE_TEXT.absentStandInNowLabel(name)}
+                      onClick={() => hostActions.standInNow(seat)}
+                    >
+                      {TABLE_TEXT.absentStandInNow}
+                    </Button>
+                  )}
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    aria-label={TABLE_TEXT.absentRemoveLabel(name)}
+                    onClick={() => hostActions.askRemove(seat)}
+                  >
+                    {TABLE_TEXT.absentRemove}
+                  </Button>
+                </>
+              )
+            }
             marks={inParty(hand, seat) && <PartyMarks hand={hand} seat={seat} />}
             bubble={
               bid && <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>

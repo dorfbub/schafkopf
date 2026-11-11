@@ -143,12 +143,14 @@ verbinden sich automatisch neu.
 - **Abnahme:** Test: Host aus gespeichertem Zustand erzeugen, Gast meldet sich mit alter `clientId`
   und sieht dieselbe Hand.
 
-### N3 · Ausgefallene Mitspieler
+### N3 · Ausgefallene Mitspieler (erledigt)
 
 Getrennte Spieler nach Wartezeit durch einen Bot vertreten lassen, bei Rückkehr wieder übernehmen.
 Gastgeber kann Spieler vom Tisch nehmen.
 
 - **Abnahme:** Tests mit Loopback: Trennen → Bot zieht → Wiederverbinden → Mensch zieht.
+- **Stand:** Frist 30 s (`HostOptions.standInDelayMs`), Anzeige am Platz mit Restzeit,
+  Gastgeber-Befehle `standInNow` und `replaceWithBot` (Protokoll 4; Speicherstand unverändert).
 
 ### N4 · Lobby-Funktionen
 
