@@ -11,6 +11,7 @@ import {
   applyAction,
   dealHand,
 } from './hand';
+import type { SeedInput } from './rng';
 import { DEFAULT_RULES, type RuleSet } from './rules';
 
 export interface PlayerInfo {
@@ -46,7 +47,7 @@ export function createTable(rules: RuleSet = DEFAULT_RULES): TableState {
 }
 
 /** Startet das erste bzw. nächste Spiel. Der Geber wandert reihum weiter. */
-export function startHand(table: TableState, seed: number): TableResult {
+export function startHand(table: TableState, seed: SeedInput): TableResult {
   if (table.seats.some((s) => s === null)) return { ok: false, error: 'seats_open' };
   if (table.hand && table.hand.phase !== 'finished') return { ok: false, error: 'hand_running' };
   const dealer = table.hand ? (table.dealer + 1) % table.rules.players : table.dealer;

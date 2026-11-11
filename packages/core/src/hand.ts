@@ -19,7 +19,7 @@ import {
   orderFor,
   sameContract,
 } from './modes';
-import { createRng, shuffle } from './rng';
+import { createRng, shuffle, type SeedInput } from './rng';
 import type { RuleSet } from './rules';
 import { type HandResult, scoreHand } from './scoring';
 import { followable, trickWinnerIndex } from './trick';
@@ -105,7 +105,7 @@ export type RuleError = 'wrong_phase' | 'not_your_turn' | 'illegal_bid' | 'illeg
 
 export type ActionResult = { ok: true; state: HandState } | { ok: false; error: RuleError };
 
-export function dealHand(rules: RuleSet, dealer: Seat, seed: number): HandState {
+export function dealHand(rules: RuleSet, dealer: Seat, seed: SeedInput): HandState {
   const deck = shuffle(createDeck(rules.deck), createRng(seed));
   const size = deck.length / rules.players;
   if (!Number.isInteger(size)) throw new Error('Blatt lässt sich nicht gleichmäßig verteilen');

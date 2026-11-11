@@ -207,6 +207,54 @@ React + Vite, keine weitere Zustandsbibliothek.
 | Anderer Verbindungsweg         | Weitere Implementierung von `HostTransport`/`ClientTransport`             |
 | Android                        | PWA, später ggf. Hülle (Capacitor/Tauri) um `apps/web`                    |
 
+## Mischen (Seed und Generator)
+
+**Ablauf.** Vor jedem Spiel zieht der Host 128 Bit aus Web Crypto (`cryptoSeed` in
+`packages/net/src/host.ts`, vier `Uint32`). Der Kern mischt damit in `dealHand`: `createRng`
+(`packages/core/src/rng.ts`) ist **xoshiro128\*\*** (Blackman/Vigna, 128 Bit Zustand, Periode
+2¹²⁸ − 1, besteht BigCrush), darauf ein Fisher-Yates-Mischen der 32 Karten. Dann wird
+reihum gegeben.
+
+**Seed-Typ.** `Seed` = `[number, number, number, number]` (vier Zahlen 0 … 2³² − 1): als JSON
+speicherbar (Speicherstand, später Spielprotokoll) und mit `isSeed` prüfbar. Eine einzelne Zahl ist
+als Kurzform erlaubt (Tests, Bots) und wird per splitmix32 auf 128 Bit gestreut. Der Seed steckt
+nicht im Speicherstand des Hosts, nur die ausgeteilten Hände; `HOST_SNAPSHOT_VERSION` blieb
+unverändert.
+
+**Warum das fair ist.**
+
+- Vorher: 32 Bit Seed → höchstens 2³² ≈ 4,3 Milliarden verschiedene Mischungen. Es gibt aber
+  32!/(8!)⁴ ≈ 9,96 · 10¹⁶ (≈ 2⁵⁶,⁵) verschiedene Kartenverteilungen auf vier Spieler; über 99,99999 %
+  davon wären nie vorgekommen. Jetzt 2¹²⁸: jede Verteilung ist erreichbar, und der Seed lässt sich
+  nicht erraten.
+- Fisher-Yates ist bei gleichverteilten Zufallszahlen exakt gleichverteilt. Die Umrechnung
+  `floor(u · (i + 1))` aus 32-Bit-Werten hat einen Rest-Fehler von höchstens i/2³² ≈ 10⁻⁹ pro
+  Schritt, praktisch ohne Wirkung.
+- Der Host entscheidet allein über den Seed und gibt ihn nie heraus (Mitspieler sehen nur ihre
+  `HandView`). Ein Host, der schummeln will, kann das mit jedem Peer-to-Peer-Aufbau ohne Server;
+  dagegen hilft nur ein Protokoll mit Verpflichtung auf den Seed (siehe Backlog, Spielprotokoll).
+
+**Prüfung** (`packages/core/test/shuffle-statistics.test.ts`, 20 000 Mischungen mit festen Seeds,
+läuft in unter einer Sekunde; Schwelle jeweils 99,9 %-Quantil, ein Fehlschlag ist also ein echter
+Befund):
+
+| Messgröße                                                   | Erwartet                      | Gemessen                      |
+| ----------------------------------------------------------- | ----------------------------- | ----------------------------- |
+| Karte × Position, Chi² über 32 × 32 Felder (992 FG)         | 992 (Grenze ≈ 1130)           | 1006                          |
+| Karte × Spieler, größtes Chi² einer Karte (3 FG)            | 3 (Grenze 21,5)               | 8,1                           |
+| Sauspiel, Hände mit 0 / 1 / 2 / 3 / 4 Trümpfen (Platz 0)    | 83 / 847 / 3212 / 5930 / 5824 | 78 / 863 / 3137 / 5971 / 5807 |
+| Sauspiel, Hände mit 5 / 6 / 7 / 8 Trümpfen                  | 3106 / 874 / 118 / 5,7        | 3160 / 868 / 108 / 8          |
+| Drei höchste Trümpfe bei einem Spieler (3 Laufende, Spiele) | 903 (± 29)                    | 912                           |
+
+Die Trumpfzahl folgt der hypergeometrischen Verteilung (14 Trümpfe unter 32 Karten, 8 je Hand);
+getestet wird Chi² je Platz. Die Erwartungswerte „drei höchste Trümpfe“: 4 · C(29,5)/C(32,8)
+≈ 4,5 % der Spiele.
+
+**Nur gerechnet, nicht getestet: „Sie“.** Alle acht Ober und Unter auf einer Hand ist bei vier
+Spielern die Wahrscheinlichkeit 4 · 1/C(32,8) ≈ 3,8 · 10⁻⁷ je Spiel, also etwa einmal in 2,6
+Millionen Spielen. Das lässt sich mit vertretbarer Laufzeit nicht statistisch prüfen; die
+Gleichverteilung der Karten (oben) deckt es mit ab.
+
 ## Bekannte Grenzen des Grundgerüsts
 
 - Lädt der Gastgeber neu, geht der Tisch weiter – aber nur im selben Browser. Wechselt der

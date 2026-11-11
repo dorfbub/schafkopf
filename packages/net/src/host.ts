@@ -18,6 +18,8 @@ import {
   isCard,
   startHand,
   tableViewFor,
+  type Seed,
+  type SeedInput,
 } from '@schafkopf/core';
 import {
   type ClientMessage,
@@ -37,7 +39,7 @@ export interface HostOptions {
   /** Bedenkzeit der Bots in Millisekunden. */
   botDelayMs?: number;
   /** Quelle für den Misch-Seed. Standard: Web Crypto. */
-  seed?: () => number;
+  seed?: () => SeedInput;
   /** Zeitsteuerung; in Tests durch eine synchrone Variante ersetzbar. */
   schedule?: (fn: () => void, ms: number) => void;
   /** Raum-Code; wird nur in den Speicherstand übernommen (`exportSnapshot`). */
@@ -60,8 +62,10 @@ interface Peer {
 
 const DEFAULT_BOT_NAMES = ['Sepp', 'Resi', 'Xaver', 'Vroni'];
 
-function cryptoSeed(): number {
-  return globalThis.crypto.getRandomValues(new Uint32Array(1))[0]!;
+/** 128 Bit aus Web Crypto, siehe docs/ARCHITEKTUR.md „Mischen“. */
+function cryptoSeed(): Seed {
+  const w = globalThis.crypto.getRandomValues(new Uint32Array(4));
+  return [w[0]!, w[1]!, w[2]!, w[3]!];
 }
 
 export class HostSession {
@@ -81,7 +85,7 @@ export class HostSession {
   private readonly createBot: (seat: Seat) => Bot;
   private readonly botNames: string[];
   private readonly botDelayMs: number;
-  private readonly seed: () => number;
+  private readonly seed: () => SeedInput;
   private readonly schedule: (fn: () => void, ms: number) => void;
   readonly roomId: string | null;
 

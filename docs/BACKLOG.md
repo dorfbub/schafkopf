@@ -6,13 +6,13 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
-| Thema                   | Größe                     | Klären                               |
-| ----------------------- | ------------------------- | ------------------------------------ |
-| Mehrere Kartensets      | mittel                    | Welche Sets zuerst; Lizenzen         |
-| Watten                  | groß                      | Variante(n); integrieren oder forken |
-| Android-App             | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Spezialregeln der Runde | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Mischen prüfen          | klein                     | –                                    |
+| Thema                       | Größe                     | Klären                               |
+| --------------------------- | ------------------------- | ------------------------------------ |
+| Mehrere Kartensets          | mittel                    | Welche Sets zuerst; Lizenzen         |
+| Watten                      | groß                      | Variante(n); integrieren oder forken |
+| Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
+| Spezialregeln der Runde     | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
+| Mischen wie am echten Tisch | klein                     | –                                    |
 
 ---
 
@@ -71,19 +71,8 @@ In Lukas' Runde gibt es manchmal Eisenbahner, Hawaii, Habicht, arabische Hochzei
   Ablauf vor dem Spiel brauchen den Vorbereitungs-Hook aus K5 (Hochzeit).
 - **Reihenfolge:** nach K5, damit der Hook schon existiert.
 
-## Mischen prüfen
+## Mischen wie am echten Tisch
 
-Ist das Mischen wirklich zufällig und für das Spiel geeignet?
-
-- **Stand heute:** Der Host zieht einen Zufallswert aus Web Crypto (`cryptoSeed` in
-  `packages/net/src/host.ts`), damit wird per `mulberry32` und Fisher-Yates gemischt
-  (`packages/core/src/rng.ts`).
-- **Schon erkennbare Schwäche:** Der Seed hat nur 32 Bit, also gut 4 Milliarden mögliche Spiele.
-  Verschiedene Kartenverteilungen auf vier Spieler gibt es etwa 10 Billiarden (32! / (8!⁴)). Die
-  meisten Blätter kommen deshalb nie vor. Am Tisch merkt das niemand, aber es ist leicht zu
-  beheben: größerer Seed (z. B. 128 Bit) mit passendem Zufallsgenerator.
-- **Prüfen:** statistische Tests über viele Mischungen. Steht jede Karte gleich oft an jeder
-  Position? Entspricht die Verteilung der Trumpfzahl pro Hand der Erwartung
-  (hypergeometrisch)? Kommen „Sie“ und Laufende so oft vor wie berechnet?
-- **Möglicher Wunsch dazu:** Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche
-  teilweise zusammenbleiben. Das ist bewusst nicht zufällig und wäre eine eigene Tischregel.
+Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche teilweise zusammenbleiben. Das
+ist bewusst nicht zufällig und wäre eine eigene Tischregel (`RuleSet`). Das faire, zufällige
+Mischen ist beschrieben in `docs/ARCHITEKTUR.md`, „Mischen“.
