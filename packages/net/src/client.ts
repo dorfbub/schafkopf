@@ -9,6 +9,7 @@ import {
   type ClientTransport,
   type HostErrorCode,
   type HostMessage,
+  type LobbyInfo,
   PROTOCOL_VERSION,
 } from './protocol';
 import { defaultSetTimer } from './signaling';
@@ -26,6 +27,10 @@ export interface ClientSnapshot {
   seat: Seat | null;
   view: TableView | null;
   lastError: HostErrorCode | null;
+  /** Zuschauer und Beitrittsregel; null bis zur ersten Sicht. */
+  lobby: LobbyInfo | null;
+  /** Der Name, den dieser Mitspieler gerade führt. */
+  name: string;
 }
 
 export interface ClientOptions {
@@ -45,6 +50,8 @@ export class ClientSession {
     seat: null,
     view: null,
     lastError: null,
+    lobby: null,
+    name: '',
   };
   private readonly listeners = new Set<() => void>();
   private cancelTimeout: (() => void) | null = null;
@@ -54,12 +61,13 @@ export class ClientSession {
     private readonly transport: ClientTransport,
     private readonly options: ClientOptions,
   ) {
+    this.snapshot.name = options.name;
     transport.onOpen = () => {
       transport.send({
         t: 'hello',
         v: PROTOCOL_VERSION,
         clientId: options.clientId,
-        name: options.name,
+        name: this.snapshot.name,
       });
     };
     transport.onMessage = (message) => this.handle(message);
@@ -94,6 +102,18 @@ export class ClientSession {
 
   play(card: Card): void {
     this.act({ type: 'play', card });
+  }
+
+  /** Freien Platz wählen oder wechseln; `null` = nur zuschauen. Nur in der Lobby. */
+  takeSeat(seat: Seat | null): void {
+    this.update({ lastError: null });
+    this.transport.send({ t: 'seat', seat });
+  }
+
+  /** Eigenen Namen ändern (gilt auch nach einem Wiederverbinden). */
+  rename(name: string): void {
+    this.update({ name, lastError: null });
+    this.transport.send({ t: 'rename', name });
   }
 
   act(action: PlayerAction): void {
@@ -132,7 +152,7 @@ export class ClientSession {
         this.update({ status: 'connected', seat: message.seat });
         break;
       case 'state':
-        this.update({ view: message.view, seat: message.view.you });
+        this.update({ view: message.view, seat: message.view.you, lobby: message.lobby });
         break;
       case 'error':
         this.update({ lastError: message.code });

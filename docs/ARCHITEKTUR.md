@@ -121,6 +121,30 @@ Spieldaten. Der Tisch-Code im Einladungslink ist der Raumname.
 - **Messen:** `apps/web/src/dev/messung.ts` (nur im Entwicklungsserver) spielt Verbindungsversuche
   zwischen zwei Tabs automatisch durch; Anleitung im Dateikopf.
 
+**Lobby-Funktionen (N4).** Vor dem ersten Spiel (`table.hand === null`) regeln Gäste und Gastgeber
+die Plätze; im laufenden Spiel ist alles davon gesperrt (`wrong_phase`).
+
+- **Gäste-Befehle** sind `ClientMessage`s, die der Host prüft: `seat` (freien Platz wählen oder
+  wechseln; `null` = nur zuschauen; besetzt → `seat_taken`, ungültig → `bad_message`) und `rename`
+  (Name 1–24 Zeichen). Ein Platz wird nie einem anderen Menschen weggenommen oder getauscht.
+- **Admin-Befehle des Gastgebers** laufen direkt über `HostSession`, nicht übers Protokoll:
+  `moveSeat(von, nach)` (tauscht, wenn `nach` besetzt ist), `unseat(platz)` und
+  `setSpectatorsWelcome(bool)`. Sie geben `false` zurück, wenn der Befehl nicht möglich ist.
+- **Zuschauer:** Wer keinen Platz hat oder nur zuschauen will (`seat` mit `null`, oder der Gastgeber
+  nimmt ihn vom Platz), bekommt eine Sicht ohne Hand (`TableView.you === null`) und merkt sich beim
+  Host als „will zuschauen“: Beim Wiederverbinden wird ihm kein freier Platz zugeteilt. Die Namen
+  der verbundenen Zuschauer und die Einstellung „Zuschauer zulassen“ kommen in jeder `state`-
+  Nachricht als `lobby: LobbyInfo` mit; `ClientSession.getSnapshot().lobby` hält sie.
+- **Zuschauer-Beitritt und Vermittlung:** Die Vermittlung ruht, sobald alle Plätze verbunden sind
+  (N1). Dann kann niemand mehr neu dazukommen. Lässt der Gastgeber „Zuschauer zulassen“
+  (`setSpectatorsWelcome(true)`, Standard aus) an, bleibt `isDiscoverable()` immer `true` – auch bei
+  voller Besetzung und im laufenden Spiel. Das kostet Relay-Nachrichten, deshalb nur auf Wunsch.
+  Die Einstellung steht im Speicherstand (`spectatorsWelcome`, ebenso `watching`).
+- **Name:** Wer einen Platz hat, behält dort seinen Namen, auch wenn der Gast sich mit dem alten
+  Namen neu verbindet; das `hello` bestimmt den Namen nur für neue Plätze und Zuschauer.
+- **Oberfläche:** `ui/Lobby` hat einen eigenen Bereich „Einstellungen“ (`#tisch-einstellungen`, nur
+  Gastgeber); dort kommen mit K2 die Tischregeln dazu.
+
 **Vertrauensmodell.** Der Host kennt alle Karten und könnte schummeln. Für Freundesrunden ist das
 bewusst akzeptiert. Gäste können nicht schummeln: Der Host prüft jede Aktion.
 
@@ -194,7 +218,7 @@ React + Vite, keine weitere Zustandsbibliothek.
 - Die Vermittlung hängt an öffentlichen Relays, die kommen und gehen. Die Liste in `signaling.ts`
   gelegentlich prüfen (Messwerkzeug) und notfalls per `VITE_SIGNALING_URLS` übersteuern.
 - Ruht die Vermittlung, kann niemand neu dazukommen (z. B. als Zuschauer) – erst wenn ein Platz frei
-  wird oder jemand die Verbindung verliert.
+  wird oder jemand die Verbindung verliert, oder der Gastgeber „Zuschauer zulassen“ einschaltet.
 - Fällt ein Mitspieler aus, wartet der Tisch auf ihn.
 
 ## Messungen zum Verbindungsaufbau (N1, November 2026)

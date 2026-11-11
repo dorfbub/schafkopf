@@ -21,7 +21,8 @@ import {
 
 /** Erhöhen, sobald sich `HostSnapshot`, `TableState`, `HandState` oder `RuleSet` ändern. */
 /** 2: zweistufige Ansage (K1) hat `HandState` verändert. */
-export const HOST_SNAPSHOT_VERSION = 2;
+/** 3: Lobby-Funktionen (N4): `watching`, `spectatorsWelcome`. */
+export const HOST_SNAPSHOT_VERSION = 3;
 
 export interface HostSnapshot {
   v: number;
@@ -32,6 +33,10 @@ export interface HostSnapshot {
   seatByClient: [clientId: string, seat: Seat][];
   /** Plätze, die ein Bot spielt; die Bots selbst werden beim Laden neu erzeugt. */
   botSeats: Seat[];
+  /** `clientId`s, die ausdrücklich zuschauen wollen (bekommen keinen Platz zugeteilt). */
+  watching: string[];
+  /** Tisch bleibt für Zuschauer offen. */
+  spectatorsWelcome: boolean;
 }
 
 type Obj = Record<string, unknown>;
@@ -74,7 +79,7 @@ export function parseHostSnapshot(raw: unknown): HostSnapshot | null {
 
 function check(raw: unknown): HostSnapshot | null {
   if (!isObj(raw) || raw.v !== HOST_SNAPSHOT_VERSION) return null;
-  const { roomId, table, seatByClient, botSeats } = raw;
+  const { roomId, table, seatByClient, botSeats, watching, spectatorsWelcome } = raw;
   if (roomId !== null && (typeof roomId !== 'string' || !/^[a-z0-9]{1,32}$/.test(roomId))) {
     return null;
   }
@@ -129,6 +134,9 @@ function check(raw: unknown): HostSnapshot | null {
   if (seats.some((s, i) => (s as Obj | null)?.kind === 'bot' && !botSeats.includes(i))) {
     return null;
   }
+
+  if (!Array.isArray(watching) || !watching.every((id) => typeof id === 'string')) return null;
+  if (typeof spectatorsWelcome !== 'boolean') return null;
 
   const snapshot = raw as unknown as HostSnapshot;
   // Probelesen: jede Sicht muss sich bauen lassen, sonst scheitert es erst mitten im Spiel.

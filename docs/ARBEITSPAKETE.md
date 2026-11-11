@@ -156,6 +156,9 @@ laufen direkt über `HostSession`, nicht über das Protokoll.
 
 - **Abnahme:** Tests für Platzwechsel und Zuschauer; Protokolländerungen erhöhen
   `PROTOCOL_VERSION`.
+- **Stand:** Platzwahl, Zuschauer, Umbenennen, Vom-Platz-Nehmen umgesetzt (Protokoll 3,
+  Speicherstand 3). Tischregeln einstellen folgt mit K2; die Lobby hat dafür den Bereich
+  „Einstellungen“.
 
 ---
 
