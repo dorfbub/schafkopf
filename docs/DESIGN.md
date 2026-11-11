@@ -84,9 +84,9 @@ aber keine Schmid-Scans abpausen. Als Vorlage taugen gemeinfreie Drucke des Mün
   Eigenes Arbeitspaket; die Bewegungsvariablen (`--duration-*`, `--ease-*`, abgeschaltet bei
   „Bewegung reduzieren“) stehen seit D2 bereit.
 
-## Gestaltungssystem (D2)
+## Gestaltungssystem (D2, freigegeben am 11.11.2026)
 
-Aus der Richtung „Kartentisch“ abgeleitet. **Stand: Entwurf, wartet auf Freigabe durch Lukas.**
+Aus der Richtung „Kartentisch“ abgeleitet. **Freigegeben von Lukas am 11.11.2026.**
 
 ### Dateien
 
