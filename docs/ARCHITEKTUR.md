@@ -69,7 +69,8 @@ Eine ESLint-Regel verbietet im Kern `window`, `document`, `setTimeout`, `Math.ra
   exportiert als `@schafkopf/net/trystero`; der gewählte Weg wird erst beim Verbinden nachgeladen.
 - `broadcastTransport.ts` – `BroadcastChannel` zwischen Tabs desselben Browsers, ohne Relays; das
   Weggehen eines Tabs erkennt er über Web Locks. Nur für die Ende-zu-Ende-Tests (`npm run e2e`,
-  Ordner `e2e/`): Der Schalter `?transport=broadcast` (dazu `?botDelay=` und `?standIn=` in ms)
+  Ordner `e2e/`): Der Schalter `?transport=broadcast` (dazu `?botDelay=`, `?standIn=` und
+  `?kontraWindow=` in ms)
   existiert nur in einem Build mit `VITE_E2E=1`; im ausgelieferten Bündel ist er entfernt.
 
 ```
@@ -180,6 +181,19 @@ spielt dann wieder der Mensch (überlegt der Bot gerade, verfällt dessen Zug).
   bleibt). Nach `restore` gelten alle Menschen als getrennt und ihre Frist beginnt von vorn – auch
   wer vorher schon vertreten wurde. Dauerhaft ersetzte Plätze stehen als Bot-Plätze im Stand.
 
+**Kontra und Re (K4).** Die Aktion `{ type: 'double' }` ist an keinen Zug gebunden: `applyAction`
+prüft sie vor der Zugreihenfolge, `canDouble(state, sitz)` entscheidet (Tischregel an, Spiel läuft,
+noch keine Karte, Spielerpartei vorhanden; Kontra für Gegenspieler, danach Re für die
+Spielerpartei). Der Stand steht in `HandState.doubling`, die Sicht trägt `doubling` und für den
+eigenen Platz `canDouble`. Die Faktoren entstehen in Stufe 2 der Abrechnung (`factorsFor`).
+
+- **Kontra-Fenster:** Weil Bots sonst nach `botDelayMs` sofort die erste Karte legen, wartet der
+  Host mit dem ersten Zug eines Bots mindestens `HostOptions.kontraWindowMs` (Standard 3 s),
+  solange ein Mensch (kein Bot, keine Vertretung) noch Kontra oder Re sagen darf. Ändert sich
+  Kontra/Re während der Wartezeit, plant der Host den Bot-Zug neu (der alte Zeitgeber verfällt
+  über eine Kennung) – mit frischem Fenster, wenn nun ein Mensch Re sagen darf, sonst ohne.
+- **Bots** sagen nie Kontra (B3 kann das später übernehmen).
+
 **Neuladen des Gastgebers (N2).** Der Tisch lebt im Speicher des Gastgeber-Tabs. Damit ein
 Neuladen ihn nicht beendet, schreibt `apps/web/src/connection.ts` nach jeder Änderung
 `HostSession.exportSnapshot()` in den localStorage (`schafkopf.host`): `TableState`,
@@ -250,7 +264,8 @@ Bot-Vertretung (N3) – und vergleichen.
   `TableView.history` trägt nur die Zusammenfassungen _fertiger_ Spiele – ohne Karten, für alle
   Plätze gleich. Daraus baut U4 die Verlaufstabelle.
 - **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5 (seit K3a 6: `pot`, `carry`, `HandResult` in
-  Stufen). `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
+  Stufen; seit K4 7: `RuleSet.kontra`, `HandState.doubling`). Kontra und Re stehen als Aktion
+  `double` mit Sitz im Protokoll. `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
   ≈ 106 KiB JSON (Protokolle + Verlauf; je Protokoll stecken die Regeln mit ~½ KiB mit drin),
   also gut im Rahmen der ~5 MiB von localStorage.
 - Später möglich: den Host über den Seed festlegen (Schutz gegen Schummeln) und Spiele nachspielen.

@@ -147,6 +147,9 @@ sie sind nicht Teil dieses Pakets – der Entwurf hält nur den Platz frei (`Han
 - **Abnahme:** Tests für: Kontra nur durch Gegenspieler und nur vor der ersten Karte; Re nur nach
   Kontra und nur durch die Spielerpartei; Verdopplung und Vervierfachung des Spielwerts, auch bei
   Tout; kein Kontra im Ramsch; Pott wird nicht verdoppelt.
+- **Stand:** umgesetzt (November 2026). Tests in `packages/core/test/kontra.test.ts`,
+  `packages/net/test/kontra.test.ts` und E2E „Kontra“; neue Annahmen 20–23 in `REGELN.md`
+  (bitte prüfen). Der Ramsch-Fall ist bis K3b nur mit einem Spiel ohne Ansager nachgestellt.
 
 ### K5 · Hochzeit (Vorspiel-Hook)
 

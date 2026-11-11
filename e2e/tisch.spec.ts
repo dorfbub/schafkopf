@@ -4,6 +4,7 @@ import {
   newTisch,
   openStart,
   playUntilCardOnTable,
+  playUntilKontra,
   playUntilResult,
   seatedLobby,
   startGame,
@@ -72,4 +73,32 @@ test('Lobby: Platz wechseln und Regel ändern sieht der Gast', async ({ context 
   await expect
     .poll(async () => free.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label'))))
     .not.toEqual(before);
+});
+
+test('Kontra: der Gastgeber schaltet es ein, ein Gegenspieler sagt es, beide sehen es', async ({
+  context,
+}) => {
+  const table = await newTisch(context);
+  await seatedLobby(table);
+  const kontraRow = table.guest.locator('dt', { hasText: 'Kontra und Re' }).locator('+ dd');
+  await expect(kontraRow).toHaveText('nein');
+  await table.host.getByRole('checkbox', { name: 'Kontra und Re' }).check();
+  await expect(kontraRow).toHaveText('ja');
+  await startGame(table);
+
+  const doubler = await playUntilKontra(table);
+  // Beide sehen die Marke in der Leiste; der Knopf ist weg.
+  for (const page of [table.host, table.guest]) {
+    await expect(page.locator('.tisch-leiste').getByText('Kontra', { exact: true })).toBeVisible();
+  }
+  await expect(doubler.getByRole('button', { name: /^Kontra geben/ })).toHaveCount(0);
+
+  const { host, guest } = await playUntilResult(table);
+  expect(guest).toEqual(host);
+  const name = doubler === table.host ? 'Hanni' : 'Sepp';
+  for (const page of [table.host, table.guest]) {
+    await expect(
+      page.getByRole('dialog').getByText(`${name} sagt Kontra – Spielwert ×2`),
+    ).toBeVisible();
+  }
 });

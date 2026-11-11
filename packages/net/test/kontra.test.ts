@@ -103,10 +103,12 @@ describe('Kontra und Re über das Netz', () => {
       if (hand.phase !== 'playing' || hand.turn === 0 || !canDouble(hand, 0)) continue;
       expect(queue.map((q) => q.ms)).toEqual([3000]);
       anna.double();
-      // Der alte Zeitgeber spielt nicht, sondern plant neu – ohne Fenster, denn Re darf nur ein Bot.
+      // Sofort neu geplant – ohne Fenster, denn Re darf nur ein Bot. Der alte Zeitgeber verfällt.
+      expect(queue.map((q) => q.ms)).toEqual([3000, 800]);
       queue.shift()!.fn();
       expect(host.getTable().hand!.currentTrick.cards).toHaveLength(0);
-      expect(queue.at(-1)!.ms).toBe(800);
+      queue.shift()!.fn();
+      expect(host.getTable().hand!.currentTrick.cards).toHaveLength(1);
       flush();
       expect(host.getTable().hand!.doubling.kontra).toBe(0);
       return;

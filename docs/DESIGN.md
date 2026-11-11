@@ -185,15 +185,15 @@ Beschriftungen in Messing immer als Marke (Messing-Fläche, dunkle Schrift).
 
 ### Bausteine
 
-| Baustein     | Komponente / Klasse                  | Zustände                                                                                                                  |
-| ------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| Schaltfläche | `<Button>` / `.btn`                  | `primary` (eine Hauptaktion je Ansicht), `secondary`, `small`, deaktiviert, Hover, Fokus                                  |
-| Eingabefeld  | `<TextField>` / `.field`             | leer mit Platzhalter, gefüllt, Hinweis, Fehler, deaktiviert                                                               |
-| Tafel        | `<Tafel>` / `.tafel`                 | Papier (Standard), `felt` (dunkle Fläche auf dem Filz)                                                                    |
-| Dialog       | `<Dialog>` / `.dialog`               | mittig auf dem Tisch oder im Fluss; nicht modal, die Hand bleibt bedienbar                                                |
-| Spielerplatz | `<PlayerSeat>` / `.player-seat`      | normal, am Zug (Messing-Schein + Marke), Geber („G“ am Bild), getrennt (gestrichelt + Marke), dazu Marken und Sprechblase |
-| Karte        | `<CardView>`, `<CardBack>` / `.card` | offen, verdeckt, spielbar (Messingrand, hebt sich), gesperrt (abgedunkelt), sticht (heller Rand)                          |
-| Marke        | `.marke`, `--brass`, `--paper`       | kleines Schild: „am Zug“, „Spieler“, „Mitspieler“, „getrennt“                                                             |
+| Baustein     | Komponente / Klasse                        | Zustände                                                                                                                  |
+| ------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Schaltfläche | `<Button>` / `.btn`                        | `primary` (eine Hauptaktion je Ansicht), `secondary`, `small`, deaktiviert, Hover, Fokus                                  |
+| Eingabefeld  | `<TextField>` / `.field`                   | leer mit Platzhalter, gefüllt, Hinweis, Fehler, deaktiviert                                                               |
+| Tafel        | `<Tafel>` / `.tafel`                       | Papier (Standard), `felt` (dunkle Fläche auf dem Filz)                                                                    |
+| Dialog       | `<Dialog>` / `.dialog`                     | mittig auf dem Tisch oder im Fluss; nicht modal, die Hand bleibt bedienbar                                                |
+| Spielerplatz | `<PlayerSeat>` / `.player-seat`            | normal, am Zug (Messing-Schein + Marke), Geber („G“ am Bild), getrennt (gestrichelt + Marke), dazu Marken und Sprechblase |
+| Karte        | `<CardView>`, `<CardBack>` / `.card`       | offen, verdeckt, spielbar (Messingrand, hebt sich), gesperrt (abgedunkelt), sticht (heller Rand)                          |
+| Marke        | `.marke`, `--brass`, `--paper`, `--kontra` | kleines Schild: „am Zug“, „Spieler“, „Mitspieler“, „getrennt“; „Kontra“/„Re“ in Akzentfarbe mit hellem Rand               |
 
 Karten laufen über die Schnittstelle `CardTheme`. **Einziges Kartenbild ist das bayerische Blatt**
 (`bayerischTheme` in `ui/cardTheme.tsx`), auch in der App selbst; das frühere schlichte Text-Kartenbild
@@ -279,6 +279,11 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
   bei 61), Stiche/Schneider/Schwarz/Sie/Laufende als Stichworte, Betrag je Gegenspieler, Tabelle
   Spiel/Stand. Die Aufschlüsselung und der Verlauf folgen mit U4. Erscheint erst, wenn der letzte
   Stich weggeräumt ist.
+- **Kontra und Re (K4):** Solange man darf, steht am eigenen Platz neben „Du bist dran“ der
+  Knopf „Kontra“ bzw. „Re“ (Hauptknopf, klein) mit dem Hinweis „bis zur ersten Karte“. Gesagtes
+  zeigt eine Marke „Kontra“/„Re“ (Akzentfarbe) am Platz dessen, der es gesagt hat, und in der
+  Leiste hinter der Spielart. Im Ergebnis eine Zeile „Lukas sagt Kontra – Spielwert ×2“ und beim
+  Betrag „0,50 € × 2 = 1,00 €“.
 - **Letzter Stich:** Dialog mit den vier Karten und Namen; Escape schließt, der Fokus kehrt zurück.
 
 ### Größenstufen

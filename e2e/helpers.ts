@@ -1,7 +1,7 @@
 import { type BrowserContext, type Page, expect } from '@playwright/test';
 
 /** Verkürzte Zeiten und der Transport ohne Relays; gilt nur im E2E-Build (`VITE_E2E=1`). */
-export const E2E_QUERY = 'transport=broadcast&botDelay=0&standIn=3000';
+export const E2E_QUERY = 'transport=broadcast&botDelay=0&standIn=3000&kontraWindow=4000';
 
 export interface Tisch {
   host: Page;
@@ -131,6 +131,28 @@ export async function playUntilResult(
     if (!moved.some(Boolean)) await table.host.waitForTimeout(50);
   }
   throw new Error('Kein Spielergebnis innerhalb der Frist');
+}
+
+/**
+ * Spielt (beide steigen aus der Ansage aus), bis einer der beiden Menschen Kontra sagen darf, und
+ * sagt es. Gibt die Seite zurück, die Kontra gesagt hat.
+ */
+export async function playUntilKontra(table: Tisch): Promise<Page> {
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    for (const page of [table.host, table.guest]) {
+      const kontra = page.getByRole('button', { name: /^Kontra geben/ });
+      if (await kontra.isVisible()) {
+        await kontra.click();
+        return page;
+      }
+    }
+    await nextIfThrownIn(table.host);
+    // Liegt schon eine Karte, ist das Fenster zu: dieses Spiel zu Ende spielen.
+    const moved = [await act(table.host), await act(table.guest)];
+    if (!moved.some(Boolean)) await table.host.waitForTimeout(50);
+  }
+  throw new Error('Nie Kontra möglich');
 }
 
 /** Spielt, bis im Stich mindestens eine Karte liegt (das Spiel ist dann im Gang, mitten im Stich). */

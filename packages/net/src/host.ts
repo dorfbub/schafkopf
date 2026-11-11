@@ -106,7 +106,9 @@ export class HostSession {
   private absenceToken = 0;
   private readonly transports: HostTransport[] = [];
   private readonly listeners = new Set<() => void>();
-  private botPending = false;
+  /** Geplanter Bot-Zug: Kennung und Kontra/Re beim Planen (ändert es sich, wird neu geplant). */
+  private botPending: { token: number; kontra: Seat | null; re: Seat | null } | null = null;
+  private botToken = 0;
   private closed = false;
   private discoverable = true;
   /** Wer ausdrücklich zuschauen will: bekommt beim Beitritt keinen Platz zugeteilt. */
@@ -584,30 +586,40 @@ export class HostSession {
   }
 
   private driveBots(): void {
-    if (this.botPending || this.closed) return;
+    if (this.closed) return;
     const hand = this.table.hand;
+    if (this.botPending) {
+      // Kontra oder Re während der Wartezeit: neu planen – ohne Fenster oder mit frischem für Re.
+      // Der alte Zeitgeber verfällt (Kennung passt nicht mehr).
+      const same =
+        !hand ||
+        (hand.doubling.kontra === this.botPending.kontra &&
+          hand.doubling.re === this.botPending.re);
+      if (same) return;
+      this.botPending = null;
+    }
     if (!hand || hand.phase === 'finished') return;
     const seat = hand.turn;
     const bot = this.botFor(seat);
     if (!bot) return;
 
     // Darf ein Mensch noch Kontra oder Re sagen, bekommt er Zeit dafür, bevor die erste Karte
-    // fällt. Ändert sich Kontra/Re in der Zwischenzeit, beginnt die Wartezeit neu (Fenster für Re).
+    // fällt (Kontra-Fenster).
     const { kontra, re } = hand.doubling;
     const delay = this.humanMayDouble()
       ? Math.max(this.botDelayMs, this.kontraWindowMs)
       : this.botDelayMs;
-    this.botPending = true;
+    const token = ++this.botToken;
+    this.botPending = { token, kontra, re };
     this.schedule(() => {
-      this.botPending = false;
+      if (this.botPending?.token !== token) return; // überholt durch eine neue Planung
+      this.botPending = null;
       const current = this.table.hand;
       if (
         this.closed ||
         !current ||
         current.phase === 'finished' ||
         current.turn !== seat ||
-        current.doubling.kontra !== kontra ||
-        current.doubling.re !== re ||
         this.botFor(seat) !== bot // Spieler ist zurück und zieht selbst
       ) {
         return this.driveBots();

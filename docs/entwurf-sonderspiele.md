@@ -1,6 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
-Stand November 2026. Umgesetzt ist bisher K3a (Umbau ohne Verhaltensänderung), siehe §12. Die
+Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung) und K4 (Kontra/Re), siehe
+§12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -472,8 +473,14 @@ durch 500 Referenzspiele (`packages/core/test/reference.test.ts`). `PROTOCOL_VER
 Noch nicht eingezogen, weil erst das jeweilige Paket sie braucht (ohne Verhalten wären es tote
 Zweige): Vorspiel-Hook und Phase `'prelude'` (§4, K5), `Auction.yielded` (K5), `suit2`/`suitCount`
 (H2), `suitChoices(hand, { forced })` und `Auction.forced` (K3d), `goal: 'fewestPoints'` und
-`RamschDetails` (K3b), die Schrittarten `play`, `forced`, `fallback` in `AllPassedStep` (K3b, K3d),
-`doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
+`RamschDetails` (K3b), die Schrittarten `play`, `forced`, `fallback` in `AllPassedStep` (K3b, K3d).
+Die Typen sind so angelegt, dass sie nur ergänzt werden.
+
+**K4 (Kontra und Re, November 2026)** hat eingezogen: `RuleSet.kontra`, Aktion `double`,
+`HandState.doubling` mit `canDouble`, `HandView.doubling`/`canDouble`, die Faktoren `kontra` und
+`re` in `factorsFor`. `PROTOCOL_VERSION` 7, `HOST_SNAPSHOT_VERSION` 7. Abweichend von der Skizze
+zusätzlich: der Fehler `illegal_double` und ein Kontra-Fenster im Host (Bots warten mit der ersten
+Karte, siehe ARCHITEKTUR.md); „kein Kontra im Ramsch“ hängt allgemein an `declarer === null`.
 
 Abweichungen von den Skizzen oben, mit Grund:
 
