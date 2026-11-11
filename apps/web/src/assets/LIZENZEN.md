@@ -1,10 +1,11 @@
 # Lizenzen der eingebundenen Inhalte
 
-| Inhalt                                  | Quelle                                                  | Lizenz          |
-| --------------------------------------- | ------------------------------------------------------- | --------------- |
-| Zahlenkarten (7, 8, 9, 10) aller Farben | Fabian Bally, `docs/entwuerfe/karten/*-{7,8,9,10}.svg`  | CC0 1.0         |
-| Bildkarten (Unter, Ober, König, Sau)    | erzeugt mit `docs/entwuerfe/karten/erzeuge-figuren.mjs` | wie das Projekt |
-| Schrift Fraunces                        | npm `@fontsource-variable/fraunces` (Undercase Type)    | SIL OFL 1.1     |
-| Schrift Source Sans 3                   | npm `@fontsource-variable/source-sans-3` (Adobe)        | SIL OFL 1.1     |
+| Inhalt                                               | Quelle                                                                        | Lizenz          |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------- | --------------- |
+| Farbzeichen und Bildchen der Karten (`karten/*.svg`) | Fabian Bally, Vorlagen in `apps/web/scripts/karten/vorlagen/*-{7,8,9,10}.svg` | CC0 1.0         |
+| Bildkarten, Rahmen, Eckzeichen, Rücken (`karten/`)   | selbst gezeichnet, erzeugt mit `apps/web/scripts/karten/erzeuge-karten.mjs`   | wie das Projekt |
+| Ziffern und Buchstaben der Eckzeichen (als Pfade)    | Schrift Fraunces, Umrisse in `apps/web/scripts/karten/glyphen.json`           | SIL OFL 1.1     |
+| Schrift Fraunces                                     | npm `@fontsource-variable/fraunces` (Undercase Type)                          | SIL OFL 1.1     |
+| Schrift Source Sans 3                                | npm `@fontsource-variable/source-sans-3` (Adobe)                              | SIL OFL 1.1     |
 
-Einzelheiten zur Herkunft der Karten: `docs/entwuerfe/karten/LIZENZ.md`.
+Einzelheiten zur Herkunft der Karten: `apps/web/scripts/karten/vorlagen/LIZENZ.md`.

@@ -47,7 +47,7 @@
       '-' +
       RANGNAME[c.r] +
       '">' +
-      '<img src="karten/' +
+      '<img src="../../apps/web/src/assets/karten/' +
       c.s +
       '-' +
       c.r +

@@ -11,7 +11,7 @@
     {
       "name": "entwuerfe",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "5190", "--directory", "docs/entwuerfe"],
+      "runtimeArgs": ["-m", "http.server", "5190", "--directory", "."],
       "port": 5190
     }
   ]

@@ -52,9 +52,7 @@
   /* ---------- Farben: Karten ---------- */
   --color-card-face: #ffffff;
   --color-card-edge: #a8a29e;
-  --color-card-back: #1f4f8a;
-  --color-card-back-line: rgb(255 255 255 / 0.13);
-  --color-card-back-rim: #ffffff;
+  --color-card-back: #14305a;
 
   /* ---------- Farben: Sonstiges ---------- */
   --color-scrim: rgb(0 0 0 / 0.45); /* Abdunkeln hinter Dialogen */

@@ -567,7 +567,7 @@
   height: 1.25em;
 }
 
-.wahl__zeichen svg {
+.wahl__zeichen > * {
   width: 100%;
   height: 100%;
 }
