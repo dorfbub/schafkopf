@@ -1,5 +1,5 @@
-import type { HandView, Seat, TableView } from '@schafkopf/core';
-import { TABLE_TEXT, contractLabel, money } from '../../i18n/de';
+import type { BidCall, HandView, Seat, TableView } from '@schafkopf/core';
+import { TABLE_TEXT, callLabel, money } from '../../i18n/de';
 import { CardBack, PlayerSeat } from '../kit';
 import type { SeatInfo } from './layout';
 
@@ -37,11 +37,14 @@ export function inParty(hand: HandView, seat: Seat): boolean {
   return hand.declarer === seat || hand.partner === seat;
 }
 
-/** Was ein Sitz in der Ansage gesagt hat; `null`, wenn er noch nicht dran war. */
-export function bidText(hand: HandView, seat: Seat): string | null {
-  const bid = hand.bids.find((b) => b.seat === seat);
-  if (!bid) return null;
-  return bid.contract ? contractLabel(bid.contract) : TABLE_TEXT.pass;
+/** Was ein Sitz in der Ansage zuletzt gesagt hat; `null`, wenn er noch nichts gesagt hat. */
+export function lastCall(hand: HandView, seat: Seat): BidCall | null {
+  return hand.bids.findLast((b) => b.seat === seat)?.call ?? null;
+}
+
+/** Ist der Sitz mit diesem Ruf aus der Ansage ausgestiegen („weiter“, „gut“)? */
+export function isOut(call: BidCall): boolean {
+  return call.type === 'pass' || call.type === 'yield';
 }
 
 /** Die Plätze der anderen am Tisch (für Zuschauer alle vier). */
@@ -51,7 +54,7 @@ export function Seats({ view, hand, seats }: SeatProps) {
       {view.seats.map((player, seat) => {
         if (seat === view.you) return null;
         const turn = hand.turn === seat && hand.phase !== 'finished';
-        const bid = hand.phase === 'bidding' ? bidText(hand, seat) : null;
+        const bid = hand.phase === 'bidding' ? lastCall(hand, seat) : null;
         const size = hand.handSizes[seat]!;
         return (
           <PlayerSeat
@@ -64,7 +67,7 @@ export function Seats({ view, hand, seats }: SeatProps) {
             disconnected={player !== null && !player.connected}
             marks={inParty(hand, seat) && <PartyMarks hand={hand} seat={seat} />}
             bubble={
-              bid && <span className={bid === TABLE_TEXT.pass ? 'blase--weiter' : ''}>{bid}</span>
+              bid && <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>
             }
             cards={
               size > 0 &&

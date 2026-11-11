@@ -34,10 +34,37 @@ Ober und Unter stechen untereinander in der Reihenfolge Eichel, Gras, Herz, Sche
 
 ## Ansage
 
-- Der Spieler links vom Geber beginnt; jeder sagt genau einmal an oder „weiter“.
-- Eine spätere Ansage muss die bisher höchste **überbieten**.
+Die Ansage läuft in zwei Stufen, wie am Wirtshaustisch (von Lukas so festgelegt).
+
+**Stufe 1 – „Ich würde“ oder „weiter“.** Reihum ab dem Spieler links vom Geber sagt jeder genau
+einmal „Ich würde“ (er möchte spielen) oder „weiter“. Wer „weiter“ sagt, ist für dieses Spiel
+draußen und kann später nicht mehr einsteigen.
+
+- Sagen alle „weiter“, wird zusammengeworfen.
+- Will nur einer spielen, nennt er gleich sein Spiel (Stufe 3) – jedes, das er spielen darf.
+
+**Stufe 2 – Zweikampf.** Wollen mehrere spielen, wird in Zweikämpfen ausgemacht, wer spielt. Der
+früheste Interessent (in Sitzreihenfolge ab links vom Geber) **hält**, der nächste **fordert** ihn.
+
+- Der Forderer nennt nur eine **Spielart** (z. B. „Wenz“, „Solo Tout“), keine Farbe. Sie muss höher
+  sein als die zuletzt im Zweikampf genannte Spielart.
+- Der Haltende antwortet „ich auch“ – er hält mit gleicher oder höherer Spielart, ohne sie zu
+  verraten – oder „gut“ und gibt auf. Bei gleichem Rang hat also der Frühere Vorrang.
+- Hält er, darf der Forderer eine höhere Spielart nennen oder aufgeben.
+- Wer aufgibt, ist draußen. Der Sieger hält gegen den nächsten Interessenten, bis keiner mehr übrig
+  ist.
+- Genannt und gehalten werden darf nur eine Spielart, für die man selbst ein erlaubtes Spiel dieser
+  oder höherer Spielart hat.
+
+**Stufe 3 – Spiel nennen.** Wer übrig bleibt, nennt sein genaues Spiel mit Farbe. Es muss
+mindestens so hoch sein wie die zuletzt im Zweikampf genannte Spielart; höher geht auch (Wenz
+gehalten, Solo gespielt). Ohne Zweikampf ist er frei.
+
+Für alle Stufen gilt:
+
+- Alles Gesagte ist für alle hörbar; „ich auch“ verrät aber nicht, was man hat.
 - Rangfolge: Sauspiel < Bettel < Geier < Farbwenz < Wenz < Solo. Jede Tout-Ansage schlägt jede
-  Ansage ohne Tout.
+  Ansage ohne Tout. Die Farbe spielt für den Rang keine Rolle.
 - Sauspiel: Gerufen werden darf jede Farbe außer Herz, von der man mindestens eine Farbkarte
   (kein Ober/Unter), aber nicht die Sau hat.
 - Tout gibt es für Solo, Wenz, Geier und Farbwenz.
@@ -85,9 +112,9 @@ Aufschlag 10 Cent.
 Diese Punkte wurden nicht abgefragt und nach gängiger Spielweise festgelegt. Jede Runde spielt
 etwas anders; Abweichungen bitte hier korrigieren.
 
-1. **Ansage in einer Runde.** Jeder spricht einmal. Die übliche zweistufige Ansage („Ich würde“ –
-   danach nennt man das Spiel, bei gleichem Rang hat der Frühere Vorrang) ist noch nicht umgesetzt.
-   Folge: Wer früh ein Sauspiel ansagt und überboten wird, kann nicht mehr erhöhen.
+1. **Ansage zweistufig** (Ablauf oben von Lukas festgelegt). Angenommen: Im Zweikampf fordert der
+   nächste Interessent in Sitzreihenfolge den bisherigen Sieger; „ich auch“ und das Nennen sind nur
+   mit einem Blatt erlaubt, das ein Spiel dieser Spielart oder höher hergibt (kein Bluff ins Leere).
 2. **Rangfolge der Spielarten**, vor allem die Einordnung von Bettel, Geier und Farbwenz.
 3. **Tarif** 10 / 50 / 10 Cent.
 4. **Laufende** ohne Obergrenze; Schwelle 2 bei Wenz und Geier, sonst 3.

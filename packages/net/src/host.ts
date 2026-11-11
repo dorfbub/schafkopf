@@ -272,7 +272,7 @@ export class HostSession {
         // Ein fehlerhafter Bot darf den Tisch nicht blockieren: irgendetwas Erlaubtes tun.
         const fallback: PlayerAction =
           current.phase === 'bidding'
-            ? { type: 'bid', contract: null }
+            ? { type: 'bid', call: view.legalCalls[0]! }
             : { type: 'play', card: view.legalCards[0]! };
         this.apply(seat, fallback);
       }
@@ -282,13 +282,30 @@ export class HostSession {
 
 function isWellFormed(action: unknown): action is PlayerAction {
   if (typeof action !== 'object' || action === null) return false;
-  const a = action as { type?: unknown; card?: unknown; contract?: unknown };
+  const a = action as { type?: unknown; card?: unknown; call?: unknown };
   if (a.type === 'play') return isCard(a.card);
-  if (a.type === 'bid') {
-    if (a.contract === null) return true;
-    return (
-      typeof a.contract === 'object' && typeof (a.contract as { kind?: unknown }).kind === 'string'
-    );
-  }
+  if (a.type === 'bid') return isWellFormedCall(a.call);
   return false;
+}
+
+const hasKind = (x: unknown): boolean =>
+  typeof x === 'object' && x !== null && typeof (x as { kind?: unknown }).kind === 'string';
+
+/** Nur die Form – ob der Ruf erlaubt ist, entscheidet der Kern. */
+function isWellFormedCall(call: unknown): boolean {
+  if (typeof call !== 'object' || call === null) return false;
+  const c = call as { type?: unknown; level?: unknown; contract?: unknown };
+  switch (c.type) {
+    case 'pass':
+    case 'interest':
+    case 'hold':
+    case 'yield':
+      return true;
+    case 'name':
+      return hasKind(c.level);
+    case 'declare':
+      return hasKind(c.contract);
+    default:
+      return false;
+  }
 }

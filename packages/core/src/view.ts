@@ -6,14 +6,16 @@
 
 import { type Card, card } from './cards';
 import {
+  type Auction,
   type Bid,
+  type BidCall,
   type CompletedTrick,
   type HandPhase,
   type HandState,
   type Seat,
   type Trick,
+  legalCalls,
   legalCards,
-  legalContracts,
 } from './hand';
 import { type Contract, MODES } from './modes';
 import type { RuleSet } from './rules';
@@ -28,7 +30,9 @@ export interface HandView {
   hand: Card[];
   /** Anzahl Karten je Sitz. */
   handSizes: number[];
+  /** Alle Rufe der Ansage – laut gesagt, also für alle sichtbar. */
   bids: Bid[];
+  auction: Auction;
   contract: Contract | null;
   declarer: Seat | null;
   /** Mitspieler im Sauspiel – erst gesetzt, wenn die Rufsau gefallen ist (oder man es selbst ist). */
@@ -39,7 +43,7 @@ export interface HandView {
   tricksWon: number[];
   /** Nur gefüllt, wenn man selbst an der Reihe ist. */
   legalCards: Card[];
-  legalContracts: Contract[];
+  legalCalls: BidCall[];
   result: HandResult | null;
 }
 
@@ -71,6 +75,7 @@ export function handViewFor(state: HandState, viewer: Seat | null): HandView {
     hand: viewer === null ? [] : [...state.hands[viewer]!],
     handSizes: state.hands.map((h) => h.length),
     bids: state.bids,
+    auction: state.auction,
     contract: state.contract,
     declarer: state.declarer,
     partner: partnerVisible(state, viewer) ? state.partner : null,
@@ -81,7 +86,7 @@ export function handViewFor(state: HandState, viewer: Seat | null): HandView {
       (_, seat) => state.tricks.filter((t) => t.winner === seat).length,
     ),
     legalCards: viewer === null ? [] : legalCards(state, viewer),
-    legalContracts: viewer === null ? [] : legalContracts(state, viewer),
+    legalCalls: viewer === null ? [] : legalCalls(state, viewer),
     result: state.result,
   };
 }

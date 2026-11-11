@@ -5,7 +5,7 @@
 
 import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 export type ClientMessage =
   | {

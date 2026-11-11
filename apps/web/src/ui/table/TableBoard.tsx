@@ -1,4 +1,4 @@
-import type { Card, Contract, TableView } from '@schafkopf/core';
+import type { BidCall, Card, TableView } from '@schafkopf/core';
 import { useCallback, useState } from 'react';
 import { BidDialog } from './BidDialog';
 import { LastTrickDialog } from './LastTrickDialog';
@@ -12,7 +12,7 @@ import { useTrickDisplay } from './useTrickDisplay';
 
 export interface TableBoardProps {
   view: TableView;
-  onBid: (contract: Contract | null) => void;
+  onBid: (call: BidCall) => void;
   onPlay: (card: Card) => void;
   /** Nur der Gastgeber gibt das nächste Spiel. */
   onNext: (() => void) | null;
@@ -61,7 +61,13 @@ export function TableBoard({ view, onBid, onPlay, onNext, onLeave }: TableBoardP
           seats={seats}
         />
         {hand.phase === 'bidding' && myTurn && (
-          <BidDialog key={view.handNo} view={view} hand={hand} seats={seats} onBid={onBid} />
+          <BidDialog
+            key={`${view.handNo}-${hand.bids.length}`}
+            view={view}
+            hand={hand}
+            seats={seats}
+            onBid={onBid}
+          />
         )}
         {showResult && (
           <ResultDialog

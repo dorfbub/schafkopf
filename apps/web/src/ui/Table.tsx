@@ -14,7 +14,7 @@ export function Table({ view, client, host, onLeave }: Props) {
   return (
     <TableBoard
       view={view}
-      onBid={(contract) => client.bid(contract)}
+      onBid={(call) => client.bid(call)}
       onPlay={(card) => client.play(card)}
       onNext={host ? () => host.nextHand() : null}
       onLeave={onLeave}
