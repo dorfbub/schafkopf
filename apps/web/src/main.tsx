@@ -5,7 +5,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
 import './styles/table.css';
-import './styles.css';
+import './styles/screens.css';
 
 const element = document.getElementById('root')!;
 
@@ -13,10 +13,11 @@ const element = document.getElementById('root')!;
 const messung = import.meta.env.DEV ? new URLSearchParams(location.search).get('messung') : null;
 
 // Nur im Entwicklungsserver: Musterseite der Bausteine (http://localhost:5180/#muster) und
-// Tischprobe mit festen Spielständen (#tisch?szene=ansage|warten|stich|ergebnis|zuschauer).
+// Tischprobe mit festen Spielständen (#tisch?szene=ansage|warten|stich|ergebnis|zuschauer),
+// Ansichtsprobe für Start, Lobby und Verbinden (#ansicht?szene=start|lobby-gast|suche|…).
 // Einladungslinks (#tisch=code) gehören nicht dazu.
 const devPage = (hash: string) =>
-  hash.startsWith('#muster') ? 'muster' : /^#tisch(\?|$)/.test(hash) ? hash : null;
+  hash.startsWith('#muster') ? 'muster' : /^#(tisch|ansicht)(\?|$)/.test(hash) ? hash : null;
 
 if (import.meta.env.DEV) {
   window.addEventListener('hashchange', (e) => {
@@ -34,6 +35,15 @@ if (messung) {
     root.render(
       <StrictMode>
         <Muster />
+      </StrictMode>,
+    ),
+  );
+} else if (import.meta.env.DEV && devPage(location.hash)?.startsWith('#ansicht')) {
+  const root = createRoot(element);
+  void import('./muster/Ansichtsprobe').then(({ Ansichtsprobe }) =>
+    root.render(
+      <StrictMode>
+        <Ansichtsprobe />
       </StrictMode>,
     ),
   );

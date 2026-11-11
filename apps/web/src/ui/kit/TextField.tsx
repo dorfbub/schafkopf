@@ -8,8 +8,9 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 /** Eingabefeld mit Beschriftung, Hinweis und Fehlerzustand. */
-export function TextField({ label, hint, error, className, ...rest }: Props) {
-  const id = useId();
+export function TextField({ label, hint, error, className, id: ownId, ...rest }: Props) {
+  const generated = useId();
+  const id = ownId ?? generated;
   const message = error ?? hint;
   return (
     <div className={`field${error ? ' field--error' : ''}${className ? ` ${className}` : ''}`}>

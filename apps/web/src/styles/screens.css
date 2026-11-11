@@ -1,0 +1,741 @@
+/*
+ * Ansichten außerhalb des Spieltischs (D4): Start, Lobby, Verbinden, Hinweise.
+ * Nur Variablen aus tokens.css. Beschreibung: docs/DESIGN.md, Abschnitt „Start und Lobby“.
+ */
+
+/* ---------- Gemeinsames ---------- */
+
+.brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-brand);
+  font-weight: var(--weight-display);
+  line-height: var(--leading-tight);
+  letter-spacing: calc(var(--tracking-caps) * -1);
+  color: var(--color-on-felt);
+}
+
+.brand--small {
+  font-size: var(--text-lg);
+  color: var(--color-brass);
+}
+
+/* Tisch-Code: zum Vorlesen gesperrt, Ziffern und Buchstaben gleich breit */
+.code {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-code);
+  white-space: nowrap;
+}
+
+.code--large {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+}
+
+.tafel__title {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xl);
+}
+
+.tafel__title--small {
+  font-size: var(--text-lg);
+}
+
+.tafel__text {
+  margin-bottom: var(--space-3);
+}
+
+.tafel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.tafel__actions > .btn {
+  flex: 1 1 auto;
+  padding-inline: var(--space-4);
+}
+
+.tafel__actions--center {
+  justify-content: center;
+}
+
+.start__small {
+  font-size: var(--text-sm);
+}
+
+/* Unauffälliger Textknopf, z. B. „Lieber selbst einen Tisch eröffnen“ */
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-sm);
+  margin-top: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+  cursor: pointer;
+}
+
+/* Runder Symbolknopf (Plätze tauschen, Hinweis schließen) */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: var(--text-lg);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 var(--border-thin) var(--btn-line, var(--color-felt-line));
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.icon-btn:hover {
+  box-shadow: inset 0 0 0 var(--border-medium) currentColor;
+}
+
+.surface-paper .icon-btn {
+  --btn-line: var(--color-paper-line);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.check input {
+  width: var(--space-5);
+  height: var(--space-5);
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.check:has(input:disabled) {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Suchanzeige: ein Ring in Messing; bei „Bewegung reduzieren“ steht er still */
+.spinner {
+  display: inline-block;
+  flex: none;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border: var(--border-thick) solid var(--color-brass-soft);
+  border-top-color: var(--color-brass);
+  border-radius: 50%;
+  animation: spin var(--duration-spin) linear infinite;
+}
+
+.surface-paper .spinner {
+  border-color: var(--color-paper-line);
+  border-top-color: var(--color-accent);
+}
+
+.spinner--small {
+  width: var(--spinner-size-sm);
+  height: var(--spinner-size-sm);
+  border-width: var(--border-medium);
+  border-color: var(--color-felt-shade);
+  border-top-color: currentColor;
+}
+
+@keyframes spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+/* Kleine Helfer für Inhalte in Tafeln (auch für die Tischregeln aus K2) */
+.hint {
+  margin: var(--space-2) 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---------- Startbildschirm ---------- */
+
+.start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--content-width);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-4) var(--space-6);
+}
+
+.start__brand {
+  margin-bottom: var(--space-3);
+  text-align: center;
+}
+
+.start__tagline {
+  margin: var(--space-2) 0 0;
+  color: var(--text-muted);
+}
+
+.start__resume {
+  box-shadow:
+    var(--shadow-raised),
+    inset var(--border-thick) 0 0 var(--color-brass);
+}
+
+.start__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.start__form > .tafel__text {
+  margin: 0;
+}
+
+.start__choices {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.start__wide {
+  width: 100%;
+}
+
+.start__invite-to {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: var(--weight-regular);
+  color: var(--text-muted);
+}
+
+.start__invite-to .code {
+  color: var(--color-on-paper);
+  font-size: var(--text-xl);
+}
+
+.start__join-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.start__code {
+  flex: 1;
+  min-width: 0;
+}
+
+.start__join .tafel__title {
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 40rem) {
+  .start__choices {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------- Verbinden ---------- */
+
+.connect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  min-height: 100dvh;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.connect__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+}
+
+.connect__card .spinner,
+.connect__icon {
+  margin-bottom: var(--space-4);
+}
+
+.connect__icon {
+  display: grid;
+  place-items: center;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border-radius: 50%;
+  background: var(--color-negative-on-paper);
+  color: var(--color-on-accent);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-display);
+}
+
+.connect__code {
+  margin-bottom: var(--space-4);
+}
+
+/* Zettel oben, wenn die Verbindung abreißt (über Tisch und Lobby) */
+.connect-banner {
+  font-size: var(--text-sm);
+  position: fixed;
+  z-index: 30;
+  top: var(--space-3);
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: max-content;
+  max-width: calc(100% - var(--space-5));
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-brass);
+  color: var(--color-on-brass);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--shadow-raised);
+  animation: notice-in var(--duration-slow) var(--ease-out);
+}
+
+/* ---------- Hinweis-Zettel unten ---------- */
+
+.notice-area {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  translate: -50% 0;
+  width: min(var(--notice-width), calc(100% - var(--space-5)));
+  pointer-events: none;
+}
+
+.notice-area--above-hand {
+  bottom: calc(var(--hand-card-h) * var(--hand-visible) + var(--space-4));
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-dialog);
+  font-weight: var(--weight-semibold);
+  pointer-events: auto;
+  animation: notice-in var(--duration-slow) var(--ease-out);
+}
+
+.notice__text {
+  flex: 1;
+}
+
+.notice__close {
+  flex: none;
+}
+
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+/* ---------- Lobby ---------- */
+
+.lobby {
+  max-width: var(--content-width-wide);
+  margin: 0 auto;
+  padding: 0 var(--space-4) var(--space-7);
+}
+
+.lobby__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--control-height);
+  padding: var(--space-3) 0;
+  margin-bottom: var(--space-3);
+  border-bottom: var(--border-thin) solid var(--color-felt-line);
+}
+
+.lobby__title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.lobby__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+.lobby__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Einladung */
+.lobby__code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.lobby__code-label {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.lobby__link {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.lobby__link-input {
+  flex: 1;
+  width: 100%;
+  color: var(--color-on-paper-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+}
+
+.lobby__copy-state {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-negative);
+}
+
+.lobby__copy-state:empty {
+  display: none;
+}
+
+/* Name ändern */
+.lobby__rename {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lobby__rename-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.lobby__rename-row .field__input {
+  flex: 1;
+  width: 100%;
+}
+
+/* Zuschauer */
+.lobby__watchers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lobby__watchers li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lobby__watcher-avatar {
+  display: grid;
+  place-items: center;
+  width: var(--seat-avatar-sm);
+  height: var(--seat-avatar-sm);
+  border-radius: 50%;
+  background: var(--color-felt-shade);
+  font-family: var(--font-display);
+}
+
+.lobby__below {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.lobby__below p {
+  margin: 0;
+}
+
+/* Der Tisch: Filz im Holzrahmen, Plätze ringsum, Mitte für „Spiel starten“ */
+.lobby__table-wrap {
+  container: lobbytisch / inline-size;
+  padding: var(--rim-width);
+}
+
+.lobby-table {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    '. top .'
+    'left center right'
+    '. bottom .';
+  align-items: center;
+  justify-items: center;
+  gap: var(--space-3);
+  aspect-ratio: var(--lobby-table-ratio-narrow);
+  padding: var(--space-6) var(--space-3);
+  border-radius: 50% / 42%;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 45%, var(--color-felt-light) 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 50%, var(--color-felt) 40%, var(--color-felt-deep) 100%);
+  box-shadow: var(--shadow-felt-inset), var(--shadow-rim);
+}
+
+/* Die Plätze liegen im Raster des Tischs; die Liste selbst bildet keinen Kasten */
+.lobby-table__seats {
+  display: contents;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lobby-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lobby-seat--top {
+  grid-area: top;
+}
+.lobby-seat--left {
+  grid-area: left;
+}
+.lobby-seat--right {
+  grid-area: right;
+}
+.lobby-seat--bottom {
+  grid-area: bottom;
+}
+
+.lobby-seat__player {
+  max-width: 100%;
+  --avatar-size: var(--lobby-avatar);
+}
+
+.lobby-seat__player .player-seat__avatar {
+  font-size: var(--text-xl);
+}
+
+.lobby-seat--bottom .player-seat__avatar {
+  box-shadow: 0 0 0 var(--border-thick) var(--color-brass);
+}
+
+.lobby-seat__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  max-width: 100%;
+}
+
+.lobby-seat__controls .icon-btn {
+  background: var(--color-felt-shade);
+}
+
+/* Freier Platz: gestrichelter Stuhl, die ganze Fläche ist der Knopf */
+.lobby-seat__free {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-on-felt-muted);
+  cursor: pointer;
+}
+
+.lobby-seat__chair {
+  display: grid;
+  place-items: center;
+  width: var(--lobby-avatar);
+  height: var(--lobby-avatar);
+  border-radius: 50%;
+  outline: var(--border-medium) dashed var(--color-on-felt-muted);
+  outline-offset: calc(var(--border-medium) * -1);
+  font-size: var(--text-xl);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    outline-color var(--duration-fast) var(--ease-out);
+}
+
+.lobby-seat__free-text {
+  font-weight: var(--weight-semibold);
+}
+
+.lobby-seat__free:hover {
+  color: var(--color-on-felt);
+}
+
+.lobby-seat__free:hover .lobby-seat__chair {
+  background: var(--color-felt-shade);
+  outline-color: var(--color-brass);
+  outline-style: solid;
+}
+
+.lobby-table__center {
+  grid-area: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.lobby-table__count {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-display-light);
+}
+
+.lobby-table__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+@container lobbytisch (min-width: 34rem) {
+  .lobby-table {
+    --lobby-avatar: var(--lobby-avatar-wide);
+    aspect-ratio: var(--lobby-table-ratio);
+    padding: var(--space-6) var(--space-7);
+  }
+}
+
+@media (min-width: 60rem) {
+  .lobby__grid {
+    grid-template-columns: minmax(0, 1fr) var(--side-width);
+    grid-template-areas:
+      'table invite'
+      'table side';
+    align-items: start;
+  }
+
+  .lobby__invite {
+    grid-area: invite;
+  }
+
+  .lobby__table-wrap {
+    grid-area: table;
+    grid-row: 1 / span 2;
+  }
+
+  .lobby__side {
+    grid-area: side;
+  }
+}
+
+@media (max-width: 40rem) {
+  .lobby__bar .brand {
+    display: none;
+  }
+}
+
+/* Tischregeln (K2): Einstellungen in der Lobby, Übersicht in Lobby und am Tisch */
+
+.regeln {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-2) 0;
+  line-height: var(--leading-normal);
+}
+
+.regeln dt {
+  font-weight: var(--weight-semibold);
+}
+
+.regeln dd {
+  margin: 0;
+}
+
+.regeln-einstellung {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.regeln-einstellung__gruppe {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.regeln-einstellung__gruppe legend {
+  padding: 0;
+  font-weight: var(--weight-semibold);
+}
+
+.regeln-einstellung__zahl {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 7rem;
+  font-size: var(--text-sm);
+}
+
+.regeln-einstellung__zahl input[aria-invalid='true'] {
+  border-color: var(--text-negative);
+}
+
+.regeln-einstellung__zahl input[aria-invalid='true'] ~ .hint {
+  color: var(--text-negative);
+}
