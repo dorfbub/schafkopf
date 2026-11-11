@@ -116,6 +116,41 @@ describe('Kontra und Re über das Netz', () => {
     throw new Error('kein passender Seed gefunden');
   });
 
+  it('Re-Fenster: nach Kontra wartet der Bot neu, wenn ein Mensch Re sagen darf', () => {
+    // Suche einen Seed: Bot spielt ein Sauspiel, Bene (Sitz 2) ist sein Mitspieler, der Bot auf
+    // Sitz 1 kommt heraus, Anna (Sitz 0) ist Gegenspielerin.
+    for (let seed = 1; seed < 500; seed++) {
+      const { host, queue } = createHost(seed);
+      const anna = join(host, 'Anna');
+      const bene = join(host, 'Bene');
+      host.moveSeat(1, 2);
+      host.start();
+      for (let step = 0; step < 20; step++) {
+        const hand = host.getTable().hand!;
+        if (hand.phase !== 'bidding') break;
+        if (hand.turn === 0) anna.bid({ type: 'pass' });
+        else if (hand.turn === 2) bene.bid({ type: 'pass' });
+        else queue.shift()!.fn();
+      }
+      const hand = host.getTable().hand!;
+      if (hand.phase !== 'playing' || hand.partner !== 2 || hand.declarer === 0) continue;
+      expect(queue.map((q) => q.ms)).toEqual([3000]);
+      anna.double();
+      // Bene darf jetzt Re sagen: frisches Fenster, der alte Zeitgeber verfällt.
+      expect(queue.map((q) => q.ms)).toEqual([3000, 3000]);
+      queue.shift()!.fn();
+      expect(host.getTable().hand!.currentTrick.cards).toHaveLength(0);
+      bene.double();
+      expect(host.getTable().hand!.doubling).toEqual({ kontra: 0, re: 2 });
+      expect(queue.map((q) => q.ms)).toEqual([3000, 800]);
+      queue.shift()!.fn();
+      queue.shift()!.fn();
+      expect(host.getTable().hand!.currentTrick.cards).toHaveLength(1);
+      return;
+    }
+    throw new Error('kein passender Seed gefunden');
+  });
+
   it('ohne Menschen, die Kontra sagen dürfen, ziehen Bots ohne Wartezeit', () => {
     const { host, queue } = createHost(1, DEFAULT_RULES);
     join(host, 'Anna');

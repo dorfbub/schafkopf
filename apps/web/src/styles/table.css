@@ -936,6 +936,7 @@
       'spiel tabelle'
       'titel tabelle'
       'augen tabelle'
+      'kontra tabelle'
       'knoepfe knoepfe';
     align-content: start;
     column-gap: var(--space-5);
@@ -956,7 +957,7 @@
   }
 
   .ergebnis__kontra {
-    grid-column: 1;
+    grid-area: kontra;
   }
 
   .ergebnis__tabelle {

@@ -1,5 +1,5 @@
 import { type Card, type HandView, type TableView, tricksPlayed } from '@schafkopf/core';
-import { type CSSProperties, type KeyboardEvent, useState } from 'react';
+import { type CSSProperties, type KeyboardEvent, useEffect, useState } from 'react';
 import { TABLE_TEXT, UI_TEXT } from '../../i18n/de';
 import { Button, CardView } from '../kit';
 import type { SeatInfo } from './layout';
@@ -29,11 +29,18 @@ function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
 
 /**
  * Knopf „Kontra“ bzw. „Re“ (K4) – nur, solange der Kern es erlaubt. Nach dem Klick verschwindet
- * er mit der nächsten Sicht von selbst; bis dahin ist er gesperrt, damit kein Doppelklick ankommt.
+ * er mit der nächsten Sicht von selbst; bis dahin ist er kurz gesperrt, damit kein Doppelklick
+ * ankommt.
  */
 function DoubleButton({ hand, onDouble }: { hand: HandView; onDouble: () => void }) {
   const re = hand.doubling.kontra !== null;
   const [sent, setSent] = useState(false);
+  // Kommt keine Antwort an (Verbindung hakt, Host lehnt ab), wird der Knopf wieder frei.
+  useEffect(() => {
+    if (!sent) return;
+    const id = setTimeout(() => setSent(false), 2000);
+    return () => clearTimeout(id);
+  }, [sent]);
   return (
     <span className="eigen__kontra">
       <Button

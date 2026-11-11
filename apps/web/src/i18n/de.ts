@@ -268,7 +268,7 @@ export const TABLE_TEXT = {
   markRe: 'Re',
   doublingSaid: (name: string, what: string) => `${name} sagt ${what}`,
   factorLine: (said: string[], factor: number) => `${said.join(' · ')} – Spielwert ×${factor}`,
-  valueTimes: (value: string, factor: number) => `${value} × ${factor}`,
+  valueTimes: (value: string, factor: number, total: string) => `${value} × ${factor} = ${total}`,
 };
 
 /** Lobby (Paket N4, gestaltet in D4). */

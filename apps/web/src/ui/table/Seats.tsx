@@ -60,16 +60,21 @@ export function PartyMarks({ hand, seat }: { hand: HandView; seat: Seat }) {
   return null;
 }
 
-/** Marken „Kontra“ und „Re“ an dem Platz, der es gesagt hat (K4). */
+/** Marke „Kontra“ bzw. „Re“ (K4) – am Platz, in der Leiste und im Ergebnis. */
+export function DoublingTag({ re = false, className }: { re?: boolean; className?: string }) {
+  return (
+    <span className={`marke marke--kontra${className ? ` ${className}` : ''}`}>
+      {re ? TABLE_TEXT.markRe : TABLE_TEXT.markKontra}
+    </span>
+  );
+}
+
+/** Marken „Kontra“ und „Re“ an dem Platz, der es gesagt hat. */
 export function DoublingMarks({ hand, seat }: { hand: HandView; seat: Seat }) {
   return (
     <>
-      {hand.doubling.kontra === seat && (
-        <span className="marke marke--kontra">{TABLE_TEXT.markKontra}</span>
-      )}
-      {hand.doubling.re === seat && (
-        <span className="marke marke--kontra">{TABLE_TEXT.markRe}</span>
-      )}
+      {hand.doubling.kontra === seat && <DoublingTag />}
+      {hand.doubling.re === seat && <DoublingTag re />}
     </>
   );
 }

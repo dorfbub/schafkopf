@@ -1,6 +1,7 @@
 import type { HandView, TableView } from '@schafkopf/core';
 import { TABLE_TEXT, contractLabel, money } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
+import { DoublingTag } from './Seats';
 import type { SeatInfo } from './layout';
 
 interface Props {
@@ -117,10 +118,7 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
       </div>
       {said.length > 0 && (
         <p className="ergebnis__kontra">
-          <span className="marke marke--kontra">
-            {doubling.re !== null ? TABLE_TEXT.markRe : TABLE_TEXT.markKontra}
-          </span>{' '}
-          {TABLE_TEXT.factorLine(said, factor)}
+          <DoublingTag re={doubling.re !== null} /> {TABLE_TEXT.factorLine(said, factor)}
         </p>
       )}
       <p className="ergebnis__wert">
@@ -128,7 +126,7 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
         <span className="num">
           {factor === 1
             ? unsigned(value)
-            : `${TABLE_TEXT.valueTimes(unsigned(value), factor)} = ${unsigned(value * factor)}`}
+            : TABLE_TEXT.valueTimes(unsigned(value), factor, unsigned(value * factor))}
         </span>
       </p>
       {table}
