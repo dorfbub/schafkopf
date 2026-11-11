@@ -10,14 +10,36 @@ import {
   resumeTable,
   saveName,
 } from './connection';
-import { ERROR_TEXT } from './i18n/de';
+import { ERROR_TEXT, UPDATE_TEXT } from './i18n/de';
 import { ConnectBanner, ConnectSearch } from './ui/ConnectStatus';
 import { Lobby } from './ui/Lobby';
 import { Notice } from './ui/Notice';
 import { StartScreen } from './ui/StartScreen';
+import { updates } from './updates';
 import { Table } from './ui/Table';
 
+/** Hinweis „Neue Version – neu laden“, auf jedem Bildschirm; lädt nie von allein neu. */
+function UpdateNotice() {
+  const available = useSyncExternalStore(updates.subscribe, updates.getSnapshot);
+  return (
+    <Notice
+      top
+      message={available ? UPDATE_TEXT.message : null}
+      action={{ label: UPDATE_TEXT.reload, onClick: updates.apply }}
+    />
+  );
+}
+
 export function App() {
+  return (
+    <>
+      <Screens />
+      <UpdateNotice />
+    </>
+  );
+}
+
+function Screens() {
   const [connection, setConnection] = useState<Connection | null>(null);
   // undefined = wird noch geprüft (Web Lock ist asynchron); null = nichts fortzusetzen.
   const [saved, setSaved] = useState<SavedTable | null | undefined>(() =>

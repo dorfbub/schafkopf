@@ -108,6 +108,12 @@ export const NOTICE_TEXT = {
   close: 'Hinweis schließen',
 };
 
+/** Hinweis auf eine neue Version der App (U5). */
+export const UPDATE_TEXT = {
+  message: 'Neue Version verfügbar.',
+  reload: 'Neu laden',
+};
+
 /** Cent-Betrag als Euro, mit Vorzeichen: 150 → "+1,50 €". */
 export function money(cents: number): string {
   const sign = cents > 0 ? '+' : cents < 0 ? '−' : '';

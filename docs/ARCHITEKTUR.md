@@ -217,6 +217,17 @@ React + Vite, keine weitere Zustandsbibliothek.
   Stile und Variablen in `styles/`, Musterseite unter `#muster` (nur Entwicklungsserver).
 - `i18n/de.ts` – alle Texte.
 
+## Installierbar und Updates (U5)
+
+- **Bau:** `apps/web/pwa-plugin.ts` schreibt `sw.js` (Dateiliste des Builds, relative Pfade) und
+  `version.json`; jeder Build hat eine Kennung (`__BUILD_ID__`, überschreibbar mit `BUILD_ID=…`).
+  Manifest und Symbole liegen in `apps/web/public/`.
+- **Cache:** Pro Version ein eigener Cache; eine offene Seite behält ihre alten Dateien, bis sie
+  neu lädt. Ein neuer Service Worker wartet, bis die Seite „Neu laden“ bestätigt.
+- **Hinweis:** `src/updates.ts` meldet eine neue Version (wartender Worker, abweichende
+  `version.json`, fehlendes Kartenbild); `App.tsx` zeigt sie als `Notice` oben. Geladen wird nie
+  von allein neu. Im Entwicklungsserver ist das alles aus.
+
 ## So wird erweitert
 
 | Vorhaben                       | Wo                                                                        |

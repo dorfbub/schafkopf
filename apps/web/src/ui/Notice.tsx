@@ -9,28 +9,40 @@ interface Props {
   message: string | null;
   /** Am Tisch über der Hand statt ganz unten. */
   aboveHand?: boolean;
+  /** Oben statt unten am Rand. */
+  top?: boolean;
+  /** Knopf im Hinweis; ein solcher Hinweis bleibt stehen, bis er geschlossen wird. */
+  action?: { label: string; onClick: () => void };
 }
 
 /**
  * Unaufdringlicher Hinweis unten am Rand – ein kleiner Papierzettel, der von selbst wieder
  * verschwindet. Für Bildschirmleser als Statusmeldung angesagt.
  */
-export function Notice({ message, aboveHand }: Props) {
+export function Notice({ message, aboveHand, top, action }: Props) {
   const [hidden, setHidden] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!message) return;
+    if (!message || action) return;
     setHidden(null);
     const timer = setTimeout(() => setHidden(message), NOTICE_MS);
     return () => clearTimeout(timer);
-  }, [message]);
+  }, [message, action]);
 
   const show = message !== null && hidden !== message;
   return (
-    <div className={`notice-area${aboveHand ? ' notice-area--above-hand' : ''}`} role="status">
+    <div
+      className={`notice-area${aboveHand ? ' notice-area--above-hand' : ''}${top ? ' notice-area--top' : ''}`}
+      role="status"
+    >
       {show && (
         <p className="notice surface-paper">
           <span className="notice__text">{message}</span>
+          {action && (
+            <button type="button" className="btn btn--primary btn--small" onClick={action.onClick}>
+              {action.label}
+            </button>
+          )}
           <button
             type="button"
             className="icon-btn notice__close"

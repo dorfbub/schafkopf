@@ -350,6 +350,11 @@
   bottom: calc(var(--hand-card-h) * var(--hand-visible) + var(--space-4));
 }
 
+.notice-area--top {
+  top: max(var(--space-3), env(safe-area-inset-top));
+  bottom: auto;
+}
+
 .notice {
   display: flex;
   align-items: center;
