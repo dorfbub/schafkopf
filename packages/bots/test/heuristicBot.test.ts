@@ -255,3 +255,49 @@ describe('Heuristik-Bot im Ramsch', () => {
     expect(decideFor(state)).toEqual({ type: 'play', card: 'E10' });
   });
 });
+
+describe('Heuristik-Bot im Muss', () => {
+  const MUSS: RuleSet = { ...DEFAULT_RULES, allPassed: 'muss' };
+  const passing = (seed: number): Bot => {
+    const inner = createHeuristicBot(seed);
+    return {
+      decide: (view: HandView) =>
+        view.phase === 'bidding' && view.auction.stage === 'interest'
+          ? { type: 'bid', call: { type: 'pass' } }
+          : inner.decide(view),
+    };
+  };
+
+  it('nennt als Eichel-Ober-Besitzer ein erlaubtes Sauspiel und spielt es zu Ende', () => {
+    let forced = 0;
+    for (let seed = 1; seed <= 150; seed++) {
+      const bots = [0, 1, 2, 3].map((s) => passing(seed * 4 + s));
+      const end = playHand(bots, seed, seed % 4, MUSS);
+      expect(end.result!.payments.reduce((a, b) => a + b, 0)).toBe(0);
+      if (end.result!.kind === 'played') {
+        forced++;
+        expect(end.contract!.kind).toBe('sauspiel');
+        expect(end.initialHands[end.declarer!]).toContain('EO');
+      }
+    }
+    expect(forced).toBeGreaterThan(140);
+  });
+
+  it('ruft gesperrt die Sau ohne eigene Farbkarte', () => {
+    const hands: Card[][] = [
+      ['GO', 'HO', 'SO', 'EU', 'GU', 'HU', 'SU', 'HA'],
+      ['EO', 'EA', 'GA', 'E7', 'H10', 'HK', 'H9', 'H8'],
+      ['E10', 'EK', 'E9', 'E8', 'G8', 'G9', 'S8', 'G7'],
+      ['G10', 'GK', 'SA', 'S10', 'SK', 'S9', 'H7', 'S7'],
+    ];
+    let state = dealHand(MUSS, 3, 1);
+    state = { ...state, hands, initialHands: hands.map((h) => [...h]) };
+    for (let i = 0; i < 4; i++)
+      state = act(state, state.turn, { type: 'bid', call: { type: 'pass' } });
+    expect(state.turn).toBe(1);
+    expect(decideFor(state)).toEqual({
+      type: 'bid',
+      call: { type: 'declare', contract: { kind: 'sauspiel', suit: 'schellen' } },
+    });
+  });
+});

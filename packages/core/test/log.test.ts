@@ -75,7 +75,7 @@ describe('Spielprotokoll', () => {
     expect(table.logs).toHaveLength(MAX_LOGS);
   });
 
-  it.each<AllPassedRule>(['ramsch', 'stock'])(
+  it.each<AllPassedRule>(['ramsch', 'stock', 'muss'])(
     'replay deckt die Regel „alle weiter“ ab: %s',
     (rule) => {
       let table = seated(rule);
@@ -85,7 +85,9 @@ describe('Spielprotokoll', () => {
         if (!started.ok) throw new Error(started.error);
         table = playRandom(started.table, n);
         const log = table.logs.at(-1)!;
-        if (log.actions.filter((a) => a.type === 'bid').every((a) => a.call.type === 'pass')) {
+        // Stufe 1: die ersten vier Rufe sind „weiter“.
+        const stage1 = log.actions.slice(0, 4);
+        if (stage1.every((a) => a.type === 'bid' && a.call.type === 'pass')) {
           passed++;
         }
         expect(replay(JSON.parse(JSON.stringify(log)))).toEqual(table.hand);

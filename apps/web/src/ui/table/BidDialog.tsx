@@ -9,7 +9,9 @@ import {
   BID_ORDER,
   MODES,
   SUITS,
+  rankOf,
   sameContract,
+  suitOf,
 } from '@schafkopf/core';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import {
@@ -313,8 +315,12 @@ function DeclareStep({
   onBid,
 }: StepProps & { view: TableView; level: BidLevel | null }) {
   const legal = hand.legalCalls.flatMap((c) => (c.type === 'declare' ? [c.contract] : []));
-  const [kind, setKind] = useState<ContractKind | null>(null);
-  const [suit, setSuit] = useState<Suit | null>(null);
+  // Muss: nur Sauspiel ist möglich – gleich vorwählen, die Farbe auch, wenn es nur eine gibt.
+  const forcedSuits = hand.auction.forced ? [...new Set(legal.map((c) => c.suit))] : [];
+  const [kind, setKind] = useState<ContractKind | null>(hand.auction.forced ? 'sauspiel' : null);
+  const [suit, setSuit] = useState<Suit | null>(
+    forcedSuits.length === 1 ? (forcedSuits[0] ?? null) : null,
+  );
   const [tout, setTout] = useState(false);
 
   const needsSuit = kind !== null && MODES[kind].suitRole !== 'none';
@@ -351,14 +357,22 @@ function DeclareStep({
     kind && (!needsSuit || suit)
       ? legal.find((c) => sameContract(c, { kind, ...(suit && needsSuit ? { suit } : {}), tout }))
       : undefined;
+  // Muss: gesperrt, wenn eine rufbare Sau dabei ist, von deren Farbe er keine Karte hat.
+  const forced = hand.auction.forced;
+  const blocked =
+    forced &&
+    legal.some(
+      (c) => !hand.hand.some((h) => suitOf(h) === c.suit && rankOf(h) !== 'O' && rankOf(h) !== 'U'),
+    );
 
   return (
     <Dialog
       className="ansage"
-      title={TABLE_TEXT.bidTitle}
+      title={forced ? TABLE_TEXT.mussTitle : TABLE_TEXT.bidTitle}
       hint={
         <>
           {status}
+          {forced && <strong className="ansage__hoechste">{TABLE_TEXT.mussBody}</strong>}
           {level && (
             <strong className="ansage__hoechste">{TABLE_TEXT.bidMinimum(levelLabel(level))}</strong>
           )}
@@ -377,6 +391,7 @@ function DeclareStep({
       }
     >
       <FocusAnchor />
+      {blocked && <p className="ansage__text">{TABLE_TEXT.mussBlocked}</p>}
       <KindChoice
         view={view}
         kind={kind}

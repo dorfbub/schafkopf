@@ -68,12 +68,21 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
   );
 
   if (result.kind === 'passed' || !result.outcome) {
+    // Zusammengeworfen trotz Muss: der Eichel-Ober hält alle drei Säue.
+    const muss = view.rules.allPassed === 'muss';
     return (
       <Dialog
         className="ergebnis"
-        title={result.potDelta > 0 ? TABLE_TEXT.stockTitle : TABLE_TEXT.passedTitle}
+        title={
+          result.potDelta > 0
+            ? TABLE_TEXT.stockTitle
+            : muss
+              ? TABLE_TEXT.mussFallbackTitle
+              : TABLE_TEXT.passedTitle
+        }
         actions={actions}
       >
+        {muss && <p className="ergebnis__spiel">{TABLE_TEXT.mussFallbackHint}</p>}
         <PotNote view={view} result={result} />
         {table}
       </Dialog>

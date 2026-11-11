@@ -36,7 +36,8 @@ import {
  */
 /** 7: Ramsch (K3b): `RuleSet.allPassed` einstellbar, `tariff.ramsch`, `ramsch`. */
 /** 8: Stock (K3c): `tariff.stock`; `TableState.pot` kann jetzt gefüllt sein. */
-export const HOST_SNAPSHOT_VERSION = 8;
+/** 9: Muss (K3d): `Auction.forced` in `HandState`. */
+export const HOST_SNAPSHOT_VERSION = 9;
 
 export interface HostSnapshot {
   v: number;

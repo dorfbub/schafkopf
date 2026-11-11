@@ -142,4 +142,33 @@ describe('Host mit vier Bots und einer Regel für „alle weiter“', () => {
     raw.table.pot += 10;
     expect(parseHostSnapshot(raw)).toBeNull();
   });
+
+  it('Muss: der Eichel-Ober-Bot nennt ein Sauspiel, Spiele laufen durch', () => {
+    let forced = 0;
+    for (const seed of [1, 2, 3]) {
+      const { host, flush, illegal, options } = botTable('muss', seed);
+      host.start();
+      for (let hand = 1; hand <= 12; hand++) {
+        flush();
+        const state = host.getTable().hand!;
+        expect(state.phase).toBe('finished');
+        if (state.result!.kind === 'played') {
+          forced++;
+          expect(state.contract!.kind).toBe('sauspiel');
+          expect(state.auction.forced).toBe(true);
+          expect(state.initialHands[state.declarer!]).toContain('EO');
+        }
+        if (hand < 12) host.nextHand();
+      }
+      expect(illegal).toEqual([]);
+      // Speicherstand während der Pflicht-Ansage.
+      const queue: (() => void)[] = [];
+      const stepping = new HostSession({ ...options, schedule: (fn) => void queue.push(fn) });
+      stepping.start();
+      while (queue.length > 0 && !stepping.getTable().hand!.auction.forced) queue.shift()!();
+      const snapshot = parseHostSnapshot(JSON.parse(JSON.stringify(stepping.exportSnapshot())));
+      expect(snapshot?.table.hand?.auction.forced).toBe(true);
+    }
+    expect(forced).toBeGreaterThan(30);
+  });
 });

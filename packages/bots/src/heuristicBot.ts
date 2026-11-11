@@ -327,15 +327,12 @@ function bid(view: HandView, rng: Rng): BidCall {
       return passive;
     }
     case 'declare': {
-      const legal = calls.flatMap((c) => (c.type === 'declare' ? [c.contract] : []));
-      const legalRated = rated.filter((r) =>
-        legal.some(
-          (l) =>
-            l.kind === r.contract.kind &&
-            l.suit === r.contract.suit &&
-            Boolean(l.tout) === Boolean(r.contract.tout),
-        ),
-      );
+      // Bewertet werden genau die erlaubten Spiele – im Muss auch gelockerte Rufe, die
+      // `candidateContracts` nicht kennt.
+      const legalRated = calls
+        .flatMap((c) => (c.type === 'declare' ? [c.contract] : []))
+        .filter((contract) => KNOWN_KINDS.includes(contract.kind))
+        .map((contract) => ({ contract, margin: rateContract(view.hand, contract, deckSize) }));
       const pickWanted = bestOf(legalRated.filter((r) => r.margin >= 0));
       const fallback = [...legalRated].sort((a, b) => b.margin - a.margin)[0];
       const chosen = pickWanted ?? fallback;

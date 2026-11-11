@@ -69,7 +69,7 @@ Laufende. Annahmen aus REGELN.md, die Geschmackssache sind, als Optionen abbilde
 - **Abhängigkeit:** N4 (Lobby-Einstellungen).
 - **Abnahme:** Jede Option hat einen Test, der ihr Verhalten zeigt; Standard bleibt wie bisher.
 
-### K3 · „Alle weiter“: Ramsch, Stock, Muss (in K3a–K3d geschnitten)
+### K3 · „Alle weiter“: Ramsch, Stock, Muss (in K3a–K3d geschnitten, erledigt)
 
 Regeln: [REGELN.md](REGELN.md), „Varianten“. Schnittstellen:
 [entwurf-sonderspiele.md](entwurf-sonderspiele.md). Die Pakete K3a–K3d, K5, H1–H3 und K4 berühren
@@ -122,7 +122,7 @@ Tisch und im Ergebnis; Lobby.
   `Summe(balances) + pot = 0`; Speicherstand mit Pott wird wiederhergestellt. Rückzahlung am Ende
   des Abends gehört zu U4 und ist dort vermerkt.
 
-### K3d · Muss
+### K3d · Muss (erledigt)
 
 `allPassed: 'muss'`: Besitzer des Eichel-Obers nennt ein Sauspiel (`auction.forced`), gelockerte
 Ruf-Bedingung nur wenn gesperrt, Zusammenwerfen bei drei eigenen Säuen; Hinweis im Ansage-Dialog;

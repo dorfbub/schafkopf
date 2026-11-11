@@ -107,8 +107,11 @@ export interface ModeDefinition {
   rankOrder?: readonly Rank[];
   /** Darf dieses Blatt die Spielart überhaupt ansagen? (Standard: ja; Hochzeit: genau ein Trumpf) */
   eligible?(hand: readonly Card[]): boolean;
-  /** Welche Farben darf ein Spieler mit dieser Hand ansagen? (Standard: alle) */
-  suitChoices?(hand: readonly Card[]): Suit[];
+  /**
+   * Welche Farben darf ein Spieler mit dieser Hand ansagen? (Standard: alle)
+   * `forced`: er muss spielen (Muss) – die Spielart darf die Bedingung dann lockern.
+   */
+  suitChoices?(hand: readonly Card[], ctx?: { forced: boolean }): Suit[];
   /** Sonderregeln, die die bedienbaren Karten weiter einschränken (z. B. Rufsau). */
   restrictLegal?(ctx: LegalContext, candidates: Card[]): Card[];
   /** Eigene Auswertung statt der Partei-Abrechnung (Stufe 1, z. B. Ramsch). */
@@ -131,6 +134,19 @@ function sauspielTrumps(): Card[] {
 function requireSuit(contract: Contract): Suit {
   if (!contract.suit) throw new Error(`Spielart ${contract.kind} braucht eine Farbe`);
   return contract.suit;
+}
+
+/**
+ * Rufbar ist jede Farbe außer Herz, von der man eine Farbkarte, aber nicht die Sau hat.
+ * Muss (`forced`) und nach diesen Regeln „gesperrt“: dann auch eine Sau, von deren Farbe man
+ * keine Karte hat – nur nicht Herz und keine, die man selbst hält.
+ */
+function rufbar(hand: readonly Card[], ctx?: { forced: boolean }): Suit[] {
+  const candidates = SUITS.filter((suit) => suit !== 'herz' && !hand.includes(card(suit, 'A')));
+  const normal = candidates.filter((suit) =>
+    hand.some((c) => suitOf(c) === suit && rankOf(c) !== 'O' && rankOf(c) !== 'U'),
+  );
+  return normal.length === 0 && ctx?.forced ? candidates : normal;
 }
 
 /**
@@ -172,14 +188,7 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     goal: 'points',
     hasLaufende: true,
     trumps: () => sauspielTrumps(),
-    // Rufbar ist jede Farbe außer Herz, von der man eine Karte, aber nicht die Sau hat.
-    suitChoices: (hand) =>
-      SUITS.filter(
-        (suit) =>
-          suit !== 'herz' &&
-          !hand.includes(card(suit, 'A')) &&
-          hand.some((c) => suitOf(c) === suit && rankOf(c) !== 'O' && rankOf(c) !== 'U'),
-      ),
+    suitChoices: rufbar,
     restrictLegal: restrictRufsau,
   },
   bettel: {

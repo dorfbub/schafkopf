@@ -10,7 +10,7 @@ import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind } from './modes';
  * Was passiert, wenn alle "weiter" sagen. Umgesetzt in der Registry `ALL_PASSED`
  * (`allPassed.ts`), die für jeden Eintrag hier einen Schritt kennt.
  */
-export const ALL_PASSED_RULES = ['zusammenwerfen', 'ramsch', 'stock'] as const;
+export const ALL_PASSED_RULES = ['zusammenwerfen', 'ramsch', 'stock', 'muss'] as const;
 export type AllPassedRule = (typeof ALL_PASSED_RULES)[number];
 
 export interface Tariff {

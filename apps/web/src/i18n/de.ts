@@ -235,9 +235,17 @@ export const TABLE_TEXT = {
   bidMinimum: (label: string) => `Mindestens: ${label}`,
   ramschStatus: 'Ramsch – jeder für sich',
   pot: (amount: string) => `Pott ${amount}`,
+  mussStatus: (name: string) => `Muss – ${name} hat den Eichel-Ober`,
+  mussYou: 'Muss – du hast den Eichel-Ober',
+  mussTitle: 'Du musst spielen',
+  mussBody: 'Alle haben „weiter“ gesagt. Du hast den Eichel-Ober und musst ein Sauspiel spielen.',
+  mussBlocked:
+    'Du bist gesperrt: Du darfst auch eine Sau rufen, von deren Farbe du keine Karte hast.',
   // Ergebnis
   passedTitle: 'Alle weiter – es wird zusammengeworfen',
   stockTitle: 'Alle weiter – jeder zahlt in den Stock',
+  mussFallbackTitle: 'Muss geht nicht – es wird zusammengeworfen',
+  mussFallbackHint: 'Wer den Eichel-Ober hat, hält alle drei Säue und kann keine rufen.',
   potFilled: (each: string) => `Im Pott (jeder ${each} eingezahlt)`,
   potWon: 'Pott gewonnen',
   potStays: 'Pott bleibt stehen',
@@ -351,12 +359,14 @@ export const RULES_TEXT = {
     zusammenwerfen: 'Zusammenwerfen',
     ramsch: 'Ramsch',
     stock: 'Stock',
+    muss: 'Muss',
   } satisfies Record<AllPassedRule, string>,
   allPassedHint: {
     zusammenwerfen: 'Die Karten werden neu gegeben, niemand zahlt.',
     ramsch: 'Jeder spielt für sich. Wer die meisten Augen hat, zahlt den Ramsch-Tarif an jeden.',
     stock:
       'Jeder zahlt den Einsatz in den Pott. Den Pott gewinnt, wer das nächste Spiel gewinnt (im Sauspiel geteilt).',
+    muss: 'Wer den Eichel-Ober hat, muss ein Sauspiel spielen. Hat er alle drei Säue, wird zusammengeworfen.',
   } satisfies Record<AllPassedRule, string>,
   tariffRamsch: 'Ramsch',
   tariffStock: 'Stock-Einsatz',

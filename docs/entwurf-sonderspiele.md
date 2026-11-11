@@ -1,7 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
-Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung), K3b (Ramsch) und K3c (Stock),
-siehe §12. Die
+Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung), K3b (Ramsch), K3c (Stock) und
+K3d (Muss), siehe §12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -472,8 +472,7 @@ durch 500 Referenzspiele (`packages/core/test/reference.test.ts`). `PROTOCOL_VER
 
 Noch nicht eingezogen, weil erst das jeweilige Paket sie braucht (ohne Verhalten wären es tote
 Zweige): Vorspiel-Hook und Phase `'prelude'` (§4, K5), `Auction.yielded` (K5), `suit2`/`suitCount`
-(H2), `suitChoices(hand, { forced })` und `Auction.forced` (K3d), die Schrittarten `forced` und
-`fallback` in `AllPassedStep` (K3d), `doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
+(H2), `doubling` (K4). Die Typen sind so angelegt, dass sie nur ergänzt werden.
 
 Abweichungen von den Skizzen oben, mit Grund:
 
@@ -525,3 +524,14 @@ Pott-Teilung bleibt stehen (Annahme 21). Der Pott selbst lief schon seit K3a üb
 oder gefülltem Pott) und im Ergebnis (`PotNote`: eingezahlt, gewonnen, bleibt stehen).
 `PROTOCOL_VERSION` 8, `HOST_SNAPSHOT_VERSION` 8. Die Rückzahlung eines stehengebliebenen Potts am
 Ende des Abends (Annahme 13) gehört zu U4 und ist dort vermerkt.
+
+**K3d (Muss, November 2026)** hat eingezogen: Eintrag `muss` in `ALL_PASSED` mit den Schrittarten
+`forced` (Besitzer des Eichel-Obers, Stufe 3 mit `Auction.forced`) und `fallback` (Zusammenwerfen,
+wenn er alle drei Farb-Säue hält); `suitChoices(hand, ctx?: { forced })` – das Sauspiel lockert
+den Ruf nur, wenn die normale Liste leer ist („gesperrt“); `playable` lässt bei `forced` nur
+Sauspiele zu, „weiter“ gibt es dann nicht. Gespielt wird ein gewöhnliches Sauspiel (Rufsau-Regeln
+unverändert). Oberfläche: Ansage-Dialog „Du musst spielen“ mit vorgewähltem Sauspiel und Hinweis
+bei „gesperrt“, Tischleiste „Muss – … hat den Eichel-Ober“, eigener Titel beim Zusammenwerfen.
+Der Heuristik-Bot bewertet in Stufe 3 jetzt genau die erlaubten Spiele (auch gelockerte Rufe).
+`PROTOCOL_VERSION` 9, `HOST_SNAPSHOT_VERSION` 9. Abweichung: `fallback` trägt die Regel als
+`Exclude<AllPassedRule, 'muss'>`, damit kein Kreis entstehen kann.
