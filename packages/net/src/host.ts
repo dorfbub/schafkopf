@@ -22,6 +22,7 @@ import {
   type HostErrorCode,
   type HostMessage,
   type HostTransport,
+  type LobbyInfo,
   PROTOCOL_VERSION,
 } from './protocol';
 import { HOST_SNAPSHOT_VERSION, type HostSnapshot } from './snapshot';
@@ -41,10 +42,18 @@ export interface HostOptions {
   roomId?: string | null;
 }
 
+/** Höchstlänge eines Namens. */
+const MAX_NAME_LENGTH = 24;
+
+function cleanName(name: string): string {
+  return name.trim().slice(0, MAX_NAME_LENGTH);
+}
+
 interface Peer {
   send: (message: HostMessage) => void;
   clientId: string | null;
   seat: Seat | null;
+  name: string;
 }
 
 const DEFAULT_BOT_NAMES = ['Sepp', 'Resi', 'Xaver', 'Vroni'];
@@ -63,6 +72,9 @@ export class HostSession {
   private botPending = false;
   private closed = false;
   private discoverable = true;
+  /** Wer ausdrücklich zuschauen will: bekommt beim Beitritt keinen Platz zugeteilt. */
+  private watching = new Set<string>();
+  private spectatorsWelcome = false;
 
   private readonly createBot: (seat: Seat) => Bot;
   private readonly botNames: string[];
@@ -101,6 +113,8 @@ export class HostSession {
     host.table = { ...snapshot.table, seats };
     for (const [clientId, seat] of snapshot.seatByClient) host.seatByClient.set(clientId, seat);
     for (const seat of snapshot.botSeats) host.bots.set(seat, host.createBot(seat));
+    host.watching = new Set(snapshot.watching);
+    host.spectatorsWelcome = snapshot.spectatorsWelcome;
     host.updateDiscovery();
     host.driveBots();
     return host;
@@ -117,6 +131,8 @@ export class HostSession {
       table: this.table,
       seatByClient: [...this.seatByClient],
       botSeats: [...this.bots.keys()],
+      watching: [...this.watching],
+      spectatorsWelcome: this.spectatorsWelcome,
     };
   }
 
@@ -144,11 +160,95 @@ export class HostSession {
    * Muss noch jemand den Tisch finden können? Vor dem ersten Spiel, solange ein
    * Platz frei ist; danach nur, wenn ein Mensch die Verbindung verloren hat
    * (auch nach `restore`, wenn die Gäste den Tisch wiederfinden müssen).
+   * Lässt der Gastgeber den Tisch für Zuschauer offen (`setSpectatorsWelcome`),
+   * bleibt die Vermittlung immer an.
    */
   isDiscoverable(): boolean {
     const { seats, hand } = this.table;
     const waiting = seats.some((s) => s?.kind === 'human' && !s.connected);
-    return waiting || (!hand && seats.some((s) => s === null));
+    return this.spectatorsWelcome || waiting || (!hand && seats.some((s) => s === null));
+  }
+
+  /** Bleibt der Tisch für Zuschauer offen? Standard: nein. */
+  isSpectatorsWelcome(): boolean {
+    return this.spectatorsWelcome;
+  }
+
+  /**
+   * Hält die Vermittlung offen, damit auch bei vollem Tisch (oder laufendem Spiel)
+   * noch jemand als Zuschauer dazukommen kann. Kostet Relay-Nachrichten, daher
+   * nur auf Wunsch des Gastgebers.
+   */
+  setSpectatorsWelcome(welcome: boolean): void {
+    if (this.spectatorsWelcome === welcome) return;
+    this.spectatorsWelcome = welcome;
+    this.changed();
+  }
+
+  /**
+   * Gastgeber-Befehl (nur in der Lobby): setzt den Spieler von `from` auf Platz
+   * `to`; ist dieser besetzt, tauschen beide. Gibt `false` zurück, wenn das nicht geht.
+   */
+  moveSeat(from: Seat, to: Seat): boolean {
+    if (this.table.hand || !this.isSeat(from) || !this.isSeat(to) || from === to) return false;
+    const seats = [...this.table.seats];
+    if (!seats[from]) return false;
+    [seats[from], seats[to]] = [seats[to]!, seats[from]!];
+    // `seats[to]` kann null gewesen sein – dann ist `from` jetzt frei.
+    const clientFrom = this.clientAt(from);
+    const clientTo = this.clientAt(to);
+    if (clientFrom) this.assign(clientFrom, to);
+    if (clientTo) this.assign(clientTo, from);
+    this.table = { ...this.table, seats };
+    this.changed();
+    return true;
+  }
+
+  /** Gastgeber-Befehl (nur in der Lobby): nimmt einen Spieler vom Platz; er schaut dann zu. */
+  unseat(seat: Seat): boolean {
+    if (this.table.hand || !this.isSeat(seat) || !this.table.seats[seat]) return false;
+    const clientId = this.clientAt(seat);
+    const seats = [...this.table.seats];
+    seats[seat] = null;
+    this.table = { ...this.table, seats };
+    if (clientId) {
+      this.seatByClient.delete(clientId);
+      this.watching.add(clientId);
+      this.syncPeers(clientId, null);
+    }
+    this.changed();
+    return true;
+  }
+
+  private isSeat(seat: unknown): seat is Seat {
+    return (
+      Number.isInteger(seat) && (seat as number) >= 0 && (seat as number) < this.table.seats.length
+    );
+  }
+
+  private clientAt(seat: Seat): string | null {
+    for (const [clientId, s] of this.seatByClient) if (s === seat) return clientId;
+    return null;
+  }
+
+  /** Ordnet einen Mitspieler einem Platz zu und merkt es sich (Peers und Platz-Zuordnung). */
+  private assign(clientId: string, seat: Seat): void {
+    this.seatByClient.set(clientId, seat);
+    this.watching.delete(clientId);
+    this.syncPeers(clientId, seat);
+  }
+
+  private syncPeers(clientId: string, seat: Seat | null): void {
+    for (const peer of this.peers.values()) if (peer.clientId === clientId) peer.seat = seat;
+  }
+
+  /** Namen der Zuschauer, die gerade verbunden sind. */
+  private watcherNames(): string[] {
+    const seen = new Map<string, string>();
+    for (const peer of this.peers.values()) {
+      if (peer.clientId !== null && peer.seat === null) seen.set(peer.clientId, peer.name);
+    }
+    return [...seen.values()];
   }
 
   /** Startet das erste Spiel; freie Plätze werden mit Bots besetzt. */
@@ -193,13 +293,15 @@ export class HostSession {
     if (this.closed) return;
     let peer = this.peers.get(peerKey);
     if (!peer) {
-      peer = { send, clientId: null, seat: null };
+      peer = { send, clientId: null, seat: null, name: 'Gast' };
       this.peers.set(peerKey, peer);
     }
     // Nachrichten kommen aus dem Netz: nichts ungeprüft übernehmen.
     if (typeof message !== 'object' || message === null) return this.reject(peer, 'bad_message');
     if (message.t === 'hello') return this.handleHello(peer, message);
     if (message.t === 'action') return this.handleAction(peer, message.action);
+    if (message.t === 'seat') return this.handleSeat(peer, message.seat);
+    if (message.t === 'rename') return this.handleRename(peer, message.name);
     this.reject(peer, 'bad_message');
   }
 
@@ -208,24 +310,66 @@ export class HostSession {
     if (typeof message.clientId !== 'string' || typeof message.name !== 'string') {
       return this.reject(peer, 'bad_message');
     }
-    const name = message.name.trim().slice(0, 24) || 'Gast';
+    let name = cleanName(message.name) || 'Gast';
     peer.clientId = message.clientId;
 
     let seat = this.seatByClient.get(message.clientId) ?? null;
-    if (seat === null && !this.table.hand) {
+    if (seat === null && !this.table.hand && !this.watching.has(message.clientId)) {
       const free = this.table.seats.findIndex((s) => s === null);
-      if (free >= 0) {
-        seat = free;
-        this.seatByClient.set(message.clientId, seat);
-      }
+      if (free >= 0) seat = free;
     }
-    peer.seat = seat;
     if (seat !== null) {
+      // Wer schon einen Platz hat, behält dort den Namen (ein Umbenennen überlebt das Neuladen).
+      const existing = this.table.seats[seat];
+      if (existing) name = existing.name;
+      this.assign(message.clientId, seat);
       const seats = [...this.table.seats];
       seats[seat] = { name, kind: 'human', connected: true };
       this.table = { ...this.table, seats };
     }
+    peer.name = name;
+    peer.seat = seat;
     peer.send({ t: 'welcome', v: PROTOCOL_VERSION, seat });
+    this.changed();
+  }
+
+  /** Gast wählt einen freien Platz oder (`null`) schaut nur zu. Nur in der Lobby. */
+  private handleSeat(peer: Peer, seat: unknown): void {
+    if (peer.clientId === null) return this.reject(peer, 'bad_message');
+    if (seat !== null && !this.isSeat(seat)) return this.reject(peer, 'bad_message');
+    if (this.table.hand) return this.reject(peer, 'wrong_phase');
+    if (seat === peer.seat) return;
+    const seats = [...this.table.seats];
+    if (seat !== null) {
+      if (seats[seat]) return this.reject(peer, 'seat_taken');
+      seats[seat] = { name: peer.name, kind: 'human', connected: true };
+    }
+    if (peer.seat !== null) seats[peer.seat] = null;
+    this.table = { ...this.table, seats };
+    if (seat === null) {
+      this.seatByClient.delete(peer.clientId);
+      this.watching.add(peer.clientId);
+      this.syncPeers(peer.clientId, null);
+    } else {
+      this.assign(peer.clientId, seat);
+    }
+    this.changed();
+  }
+
+  private handleRename(peer: Peer, raw: unknown): void {
+    if (peer.clientId === null || typeof raw !== 'string') return this.reject(peer, 'bad_message');
+    const name = cleanName(raw);
+    if (!name) return this.reject(peer, 'bad_message');
+    for (const other of this.peers.values()) {
+      if (other.clientId === peer.clientId) other.name = name;
+    }
+    const seat = peer.seat;
+    const player = seat === null ? null : this.table.seats[seat];
+    if (seat !== null && player) {
+      const seats = [...this.table.seats];
+      seats[seat] = { ...player, name };
+      this.table = { ...this.table, seats };
+    }
     this.changed();
   }
 
@@ -241,7 +385,10 @@ export class HostSession {
     if (!peer) return;
     this.peers.delete(peerKey);
     const seat = peer.seat;
-    if (seat === null) return;
+    if (seat === null) {
+      if (peer.clientId) this.changed(); // die Zuschauerliste hat sich geändert
+      return;
+    }
     // Hat sich derselbe Spieler inzwischen neu verbunden, bleibt der Platz besetzt.
     if ([...this.peers.values()].some((p) => p.seat === seat)) return;
 
@@ -275,9 +422,17 @@ export class HostSession {
 
   /** Nach jeder Zustandsänderung: Sichten verteilen, Beobachter wecken, Bots anstoßen. */
   private changed(): void {
+    let lobby: LobbyInfo | undefined;
     for (const peer of this.peers.values()) {
       if (peer.clientId === null) continue;
-      peer.send({ t: 'state', view: tableViewFor(this.table, peer.seat) });
+      peer.send({
+        t: 'state',
+        view: tableViewFor(this.table, peer.seat),
+        lobby: (lobby ??= {
+          watchers: this.watcherNames(),
+          spectatorsWelcome: this.spectatorsWelcome,
+        }),
+      });
     }
     for (const listener of this.listeners) listener();
     this.updateDiscovery();

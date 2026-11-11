@@ -46,6 +46,7 @@ export const ERROR_TEXT: Record<HostErrorCode, string> = {
   illegal_bid: 'Diese Ansage ist nicht erlaubt.',
   illegal_card: 'Diese Karte darfst du nicht spielen.',
   no_hand: 'Es läuft gerade kein Spiel.',
+  seat_taken: 'Dieser Platz ist schon besetzt.',
 };
 
 /** Verbindungsstatus für Gäste (Paket N1). */
@@ -207,3 +208,26 @@ export const TABLE_TEXT = {
   announceTurn: 'Du bist dran.',
   announceBid: 'Du bist mit der Ansage dran.',
 };
+
+/** Lobby (Paket N4). */
+export const LOBBY_TEXT = {
+  seats: 'Plätze',
+  free: 'frei',
+  you: '(du)',
+  sitHere: 'Hier sitzen',
+  watch: 'Nur zuschauen',
+  watchers: 'Zuschauer',
+  watching: 'Du schaust zu. Such dir einen freien Platz, wenn du mitspielen willst.',
+  noFreeSeat: 'Alle Plätze sind besetzt.',
+  rename: 'Dein Name',
+  renameButton: 'Ändern',
+  moveUp: 'Nach oben',
+  moveDown: 'Nach unten',
+  unseat: 'Vom Platz nehmen',
+  settings: 'Einstellungen',
+  spectators: 'Zuschauer zulassen',
+  spectatorsHint:
+    'Hält den Tisch auch bei voller Besetzung und im laufenden Spiel für neue Zuschauer offen. Das kostet etwas mehr Verbindungsverkehr über die öffentlichen Relays.',
+  spectatorsHintLocal: 'Nur bei einem Tisch mit Einladungslink möglich.',
+  guestWaits: 'Der Gastgeber startet das Spiel.',
+} as const;

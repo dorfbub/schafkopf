@@ -92,7 +92,7 @@ function Game({ connection, onLeave }: { connection: Connection; onLeave: () => 
       {view.hand ? (
         <Table view={view} client={client} host={host} onLeave={onLeave} />
       ) : (
-        <Lobby view={view} host={host} roomId={roomId} onLeave={onLeave} />
+        <Lobby view={view} client={client} host={host} roomId={roomId} onLeave={onLeave} />
       )}
     </>
   );

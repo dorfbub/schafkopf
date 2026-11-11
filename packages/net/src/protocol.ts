@@ -5,7 +5,7 @@
 
 import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 export type ClientMessage =
   | {
@@ -15,7 +15,11 @@ export type ClientMessage =
       clientId: string;
       name: string;
     }
-  | { t: 'action'; action: PlayerAction };
+  | { t: 'action'; action: PlayerAction }
+  /** Platz wählen oder tauschen (nur in der Lobby, nur ein freier Platz); `null` = zuschauen. */
+  | { t: 'seat'; seat: Seat | null }
+  /** Eigenen Namen ändern. */
+  | { t: 'rename'; name: string };
 
 export type HostErrorCode =
   | 'version_mismatch'
@@ -25,11 +29,20 @@ export type HostErrorCode =
   | 'not_your_turn'
   | 'illegal_bid'
   | 'illegal_card'
-  | 'no_hand';
+  | 'no_hand'
+  | 'seat_taken';
+
+/** Was die Lobby über die Sicht hinaus braucht: Zuschauer und Beitrittsregel. */
+export interface LobbyInfo {
+  /** Namen der verbundenen Zuschauer. */
+  watchers: string[];
+  /** Der Gastgeber lässt den Tisch für Zuschauer offen (Vermittlung ruht nie). */
+  spectatorsWelcome: boolean;
+}
 
 export type HostMessage =
   | { t: 'welcome'; v: number; seat: Seat | null }
-  | { t: 'state'; view: TableView }
+  | { t: 'state'; view: TableView; lobby: LobbyInfo }
   | { t: 'error'; code: HostErrorCode };
 
 /**
