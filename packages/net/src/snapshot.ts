@@ -20,7 +20,8 @@ import {
 } from '@schafkopf/core';
 
 /** Erhöhen, sobald sich `HostSnapshot`, `TableState`, `HandState` oder `RuleSet` ändern. */
-export const HOST_SNAPSHOT_VERSION = 1;
+/** 2: zweistufige Ansage (K1) hat `HandState` verändert. */
+export const HOST_SNAPSHOT_VERSION = 2;
 
 export interface HostSnapshot {
   v: number;

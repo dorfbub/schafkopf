@@ -49,7 +49,8 @@ function runningTable() {
     const client = hand.turn === 0 ? anna : hand.turn === 1 ? bene : null;
     if (!client) continue;
     const own = client.getSnapshot().view!.hand!;
-    if (own.phase === 'bidding') client.bid(own.legalContracts[0] ?? null);
+    // Die letzte erlaubte Ansage ist immer die aktive („Ich würde“, Spiel nennen) – so kommt ein Spiel zustande.
+    if (own.phase === 'bidding') client.bid(own.legalCalls.at(-1)!);
     else client.play(own.legalCards[0]!);
   }
   const hand = host.getTable().hand!;
@@ -97,7 +98,8 @@ describe('Speicherstand des Hosts', () => {
       const client = hand.turn === 0 ? annaBack : hand.turn === 1 ? beneBack : null;
       if (!client) throw new Error('Bots haben nach dem Laden nicht gezogen');
       const own = client.getSnapshot().view!.hand!;
-      if (own.phase === 'bidding') client.bid(null);
+      if (own.phase === 'bidding')
+        client.bid(own.legalCalls[0]!); // passiv: weiter / aufgeben
       else client.play(own.legalCards[0]!);
     }
     expect(restored.getTable().hand!.phase).toBe('finished');
