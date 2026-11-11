@@ -11,7 +11,7 @@ Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 | Mehrere Kartensets          | mittel                    | Welche Sets zuerst; Lizenzen         |
 | Watten                      | groß                      | Variante(n); integrieren oder forken |
 | Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Spezialregeln der Runde     | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
+| Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
 | Mischen wie am echten Tisch | klein                     | –                                    |
 
 ---
@@ -72,18 +72,18 @@ Stand nach U5 (installierbare Web-App, Einschätzung; auf einem echten Gerät no
   Benachrichtigungen gewünscht sind; dann TWA, bei Hintergrund-Verbindung Capacitor.
 - **Hinweis „Neue Version“** ist mit U5 umgesetzt (`apps/web/src/updates.ts`).
 
-## Spezialregeln der Runde
+## Weitere Hausregeln
 
-In Lukas' Runde gibt es manchmal Eisenbahner, Hawaii, Habicht, arabische Hochzeit u. a.
+Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
+([REGELN.md](REGELN.md), „Hausregeln“) und als Pakete H1–H3 geschnitten
+([ARBEITSPAKETE.md](ARBEITSPAKETE.md)); der gemeinsame Entwurf steht in
+[entwurf-sonderspiele.md](entwurf-sonderspiele.md). Hier bleibt nur, was noch nicht beschrieben ist.
 
-- **Erst aufschreiben:** Diese Regeln sind regional bzw. hausgemacht; es gibt keine verlässliche
-  allgemeine Quelle. Lukas beschreibt je Regel: Wer darf sie ansagen, was ist Trumpf, wer spielt
-  mit wem, wie wird abgerechnet, wo steht sie in der Rangfolge. Danach in
-  [REGELN.md](REGELN.md) unter einem eigenen Abschnitt „Hausregeln“.
-- **Passt zur Architektur:** Neue Spielarten sind Einträge in `MODES` (`packages/core/src/modes.ts`);
-  einschalten pro Tisch über `RuleSet` (seit K2 in der Lobby einstellbar). Regeln mit eigenem
-  Ablauf vor dem Spiel brauchen den Vorbereitungs-Hook aus K5 (Hochzeit).
-- **Reihenfolge:** nach K5, damit der Hook schon existiert.
+- **Weitere Regeln der Runde:** Lukas beschreibt je Regel: wer sie ansagen darf, was Trumpf ist,
+  wer mit wem spielt, wie abgerechnet wird, wo sie in der Rangfolge steht. Eintrag in REGELN.md
+  unter „Hausregeln“, dann ein Paket nach dem Muster von H1.
+- **Legen und Bockrunden:** spielt Lukas' Runde nicht. Der Entwurf hält den Platz frei
+  (`Factor`, `HandCarry.factor`); ein Paket gibt es erst, wenn eine Runde sie wünscht.
 
 ## Mischen wie am echten Tisch
 
