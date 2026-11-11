@@ -241,7 +241,8 @@
   font-size: var(--text-lg);
   font-weight: var(--weight-display);
   line-height: var(--leading-tight);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .player-seat__info {
