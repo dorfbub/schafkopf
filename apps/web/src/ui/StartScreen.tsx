@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { loadName, normalizeRoom, roomFromUrl } from '../connection';
+import { type SavedTable, loadName, normalizeRoom, roomFromUrl } from '../connection';
+import { RESUME_TEXT } from '../i18n/de';
 
 interface Props {
   onOpen: (name: string, online: boolean) => void;
   onJoin: (name: string, roomId: string) => void;
+  /** Gespeicherter Tisch dieses Geräts, der fortgesetzt werden kann (N2). */
+  saved?: SavedTable | null;
+  onResume?: (saved: SavedTable) => void;
+  onDiscard?: () => void;
 }
 
-export function StartScreen({ onOpen, onJoin }: Props) {
+export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard }: Props) {
   const [name, setName] = useState(loadName);
   const [room, setRoom] = useState(() => roomFromUrl() ?? '');
   const trimmed = name.trim();
@@ -25,6 +30,27 @@ export function StartScreen({ onOpen, onJoin }: Props) {
           placeholder="z. B. Lukas"
         />
       </label>
+
+      {saved && onResume && (
+        <section className="panel">
+          <h2>{RESUME_TEXT.title}</h2>
+          <p className="hint">
+            {saved.snapshot.roomId ? RESUME_TEXT.online(saved.snapshot.roomId) : RESUME_TEXT.local}{' '}
+            {RESUME_TEXT.progress(
+              saved.snapshot.table.handNo,
+              Math.max(1, Math.round((Date.now() - saved.savedAt) / 60_000)),
+            )}
+          </p>
+          <div className="row">
+            <button type="button" onClick={() => onResume(saved)}>
+              {RESUME_TEXT.resume}
+            </button>
+            <button type="button" className="secondary" onClick={onDiscard}>
+              {RESUME_TEXT.discard}
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <h2>Tisch eröffnen</h2>

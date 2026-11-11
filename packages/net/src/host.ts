@@ -24,6 +24,7 @@ import {
   type HostTransport,
   PROTOCOL_VERSION,
 } from './protocol';
+import { HOST_SNAPSHOT_VERSION, type HostSnapshot } from './snapshot';
 
 export interface HostOptions {
   rules?: RuleSet;
@@ -36,6 +37,8 @@ export interface HostOptions {
   seed?: () => number;
   /** Zeitsteuerung; in Tests durch eine synchrone Variante ersetzbar. */
   schedule?: (fn: () => void, ms: number) => void;
+  /** Raum-Code; wird nur in den Speicherstand übernommen (`exportSnapshot`). */
+  roomId?: string | null;
 }
 
 interface Peer {
@@ -66,14 +69,55 @@ export class HostSession {
   private readonly botDelayMs: number;
   private readonly seed: () => number;
   private readonly schedule: (fn: () => void, ms: number) => void;
+  readonly roomId: string | null;
 
   constructor(options: HostOptions) {
     this.table = createTable(options.rules);
+    this.roomId = options.roomId ?? null;
     this.createBot = options.createBot;
     this.botNames = options.botNames ?? DEFAULT_BOT_NAMES;
     this.botDelayMs = options.botDelayMs ?? 800;
     this.seed = options.seed ?? cryptoSeed;
     this.schedule = options.schedule ?? ((fn, ms) => void setTimeout(fn, ms));
+  }
+
+  /**
+   * Setzt einen Tisch aus einem Speicherstand fort (vorher mit
+   * `parseHostSnapshot` prüfen). Alle Menschen gelten als getrennt, bis sie sich
+   * mit ihrer alten `clientId` wieder melden; die Bots werden neu erzeugt.
+   */
+  static restore(
+    snapshot: HostSnapshot,
+    options: Omit<HostOptions, 'rules' | 'roomId'>,
+  ): HostSession {
+    const host = new HostSession({
+      ...options,
+      rules: snapshot.table.rules,
+      roomId: snapshot.roomId,
+    });
+    const seats = snapshot.table.seats.map((s) =>
+      s?.kind === 'human' ? { ...s, connected: false } : s,
+    );
+    host.table = { ...snapshot.table, seats };
+    for (const [clientId, seat] of snapshot.seatByClient) host.seatByClient.set(clientId, seat);
+    for (const seat of snapshot.botSeats) host.bots.set(seat, host.createBot(seat));
+    host.updateDiscovery();
+    host.driveBots();
+    return host;
+  }
+
+  /**
+   * Speicherstand für ein späteres `restore`. Enthält alle Hände – darf das
+   * Gerät des Gastgebers nie verlassen.
+   */
+  exportSnapshot(): HostSnapshot {
+    return {
+      v: HOST_SNAPSHOT_VERSION,
+      roomId: this.roomId,
+      table: this.table,
+      seatByClient: [...this.seatByClient],
+      botSeats: [...this.bots.keys()],
+    };
   }
 
   /** Voller Zustand – nur für den Host selbst (Tests, Debugging), nie versenden. */
@@ -98,12 +142,13 @@ export class HostSession {
 
   /**
    * Muss noch jemand den Tisch finden können? Vor dem ersten Spiel, solange ein
-   * Platz frei ist; danach nur, wenn ein Mensch die Verbindung verloren hat.
+   * Platz frei ist; danach nur, wenn ein Mensch die Verbindung verloren hat
+   * (auch nach `restore`, wenn die Gäste den Tisch wiederfinden müssen).
    */
   isDiscoverable(): boolean {
     const { seats, hand } = this.table;
-    if (!hand) return seats.some((s) => s === null);
-    return seats.some((s) => s?.kind === 'human' && !s.connected);
+    const waiting = seats.some((s) => s?.kind === 'human' && !s.connected);
+    return waiting || (!hand && seats.some((s) => s === null));
   }
 
   /** Startet das erste Spiel; freie Plätze werden mit Bots besetzt. */

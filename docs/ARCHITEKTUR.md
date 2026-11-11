@@ -54,6 +54,8 @@ Eine ESLint-Regel verbietet im Kern `window`, `document`, `setTimeout`, `Math.ra
   Transport-Schnittstellen `HostTransport` und `ClientTransport`.
 - `host.ts` – `HostSession`: hält den `TableState`, vergibt Plätze, prüft Aktionen mit dem Kern,
   verteilt Sichten, lässt Bots ziehen. Mehrere Transporte gleichzeitig möglich.
+- `snapshot.ts` – Speicherstand des Hosts (`HostSnapshot`) und dessen Prüfung
+  (`parseHostSnapshot`); siehe „Neuladen des Gastgebers“.
 - `client.ts` – `ClientSession`: meldet sich an, schickt Aktionen, hält die letzte Sicht.
   `subscribe`/`getSnapshot` passen auf Reacts `useSyncExternalStore`.
 - `loopback.ts` – Transport im selben Prozess. Der Gastgeber spielt selbst über Loopback mit –
@@ -125,6 +127,32 @@ bewusst akzeptiert. Gäste können nicht schummeln: Der Host prüft jede Aktion.
 **Wiederverbinden.** Jeder Browser-Tab hat eine `clientId` (sessionStorage). Meldet sich dieselbe
 `clientId` erneut, bekommt sie ihren Platz zurück.
 
+**Neuladen des Gastgebers (N2).** Der Tisch lebt im Speicher des Gastgeber-Tabs. Damit ein
+Neuladen ihn nicht beendet, schreibt `apps/web/src/connection.ts` nach jeder Änderung
+`HostSession.exportSnapshot()` in den localStorage (`schafkopf.host`): `TableState`,
+Platz-Zuordnung `clientId` → Sitz, Bot-Plätze und Raum-Code, dazu Gastgeber-`clientId`, Name und
+Zeitpunkt. `HostSession.restore` baut daraus den Host wieder auf; Bots werden neu erzeugt, alle
+Menschen gelten als getrennt, bis sie sich mit ihrer `clientId` melden. Weil damit ein Mensch fehlt,
+nimmt der Host die Vermittlung sofort wieder auf (`isDiscoverable`), und die Gäste – deren Transport
+nach dem Verlust des Hosts ohnehin weitersucht – finden ihn unter demselben Raum-Code.
+
+- **Fortsetzen:** Lädt derselbe Tab neu (gleiche `clientId` im sessionStorage), geht es ohne
+  Rückfrage weiter – die Gäste warten, und wer mitten im Spiel neu lädt, will weiterspielen. In
+  einem anderen Tab oder nach einem Neustart des Browsers bietet die Startseite „Tisch fortsetzen“
+  an, denn dort kann der Tisch längst vergessen sein; der neue Tab übernimmt dann die `clientId`
+  des Gastgebers und damit seinen Platz.
+- **Nur ein Host je Tisch:** Der hostende Tab hält ein Web Lock (`schafkopf.host`). Ist es belegt
+  (der hostende Tab ist noch offen, etwa nach dem Duplizieren eines Tabs), wird nichts fortgesetzt
+  oder angeboten. Eröffnet ein anderer Tab einen neuen Tisch, gewinnt dessen Stand; der ältere Tab
+  hört auf zu speichern.
+- **Verwerfen:** Stände mit anderer Version, älter als 12 Stunden oder mit unstimmigem Inhalt
+  (`parseHostSnapshot` prüft Aufbau, Wertebereiche, Kontosumme 0, Platz-Zuordnung, Felder von
+  `RuleSet` und `HandState`, und baut probehalber jede Sicht) werden gelöscht. „Tisch verlassen“
+  löscht den Stand ebenfalls. Bei Änderungen an `TableState`, `HandState` oder `RuleSet`
+  `HOST_SNAPSHOT_VERSION` in `snapshot.ts` erhöhen.
+- **Datenschutz:** Der Stand enthält alle Karten. Er bleibt im localStorage des Gastgebers und wird
+  weder verschickt noch in eine URL geschrieben.
+
 ### packages/bots
 
 Ein Bot implementiert `decide(view: HandView): PlayerAction`. Er sieht exakt das, was ein Mensch
@@ -134,7 +162,8 @@ sieht. `createRandomBot` ist der Platzhalter.
 
 React + Vite, keine weitere Zustandsbibliothek.
 
-- `connection.ts` – Tisch eröffnen/beitreten, Einladungslink, gemerkter Name.
+- `connection.ts` – Tisch eröffnen/beitreten/fortsetzen, Speicherstand des Gastgebers,
+  Einladungslink, gemerkter Name.
 - `ui/StartScreen`, `ui/Lobby`, `ui/Table` – die drei Ansichten.
 - `ui/cardTheme.tsx` – `CardTheme`: Schnittstelle für Kartenbilder; einziges Bild ist `bayerischTheme`.
 - `ui/kit/` – Grundbausteine (Schaltfläche, Eingabefeld, Tafel, Dialog, Spielerplatz, Karte);
@@ -155,7 +184,11 @@ React + Vite, keine weitere Zustandsbibliothek.
 
 ## Bekannte Grenzen des Grundgerüsts
 
-- Lädt der Gastgeber die Seite neu, ist der Tisch weg (Zustand nur im Speicher).
+- Lädt der Gastgeber neu, geht der Tisch weiter – aber nur im selben Browser. Wechselt der
+  Gastgeber das Gerät oder löscht er die Website-Daten, ist der Tisch weg; ein privates Fenster ohne
+  localStorage übersteht kein Neuladen. Nach 12 Stunden gilt ein gespeicherter Tisch als vergessen.
+- Gäste, die nach dem Neuladen des Gastgebers nicht zurückkommen, halten ihren Platz besetzt – auch
+  in der Lobby (der Tisch wartet auf sie, siehe nächster Punkt).
 - Hinter sehr strengen Routern kommt ohne TURN-Server keine Verbindung zustande
   (`VITE_TURN_CONFIG`, siehe „Verbindungsaufbau“).
 - Die Vermittlung hängt an öffentlichen Relays, die kommen und gehen. Die Liste in `signaling.ts`

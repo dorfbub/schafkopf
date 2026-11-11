@@ -62,6 +62,19 @@ export const CONNECT_TEXT = {
   lostFailed: 'Gastgeber nicht mehr erreichbar.',
 };
 
+/** Offener Tisch nach dem Neuladen des Gastgebers (Paket N2). */
+export const RESUME_TEXT = {
+  title: 'Offener Tisch',
+  online: (room: string) => `Dein Tisch ${room} läuft noch.`,
+  local: 'Dein Tisch gegen die Bots läuft noch.',
+  progress: (handNo: number, minutes: number) =>
+    handNo === 0
+      ? `Noch in der Lobby, zuletzt vor ${minutes} min.`
+      : `${handNo}. Spiel, zuletzt vor ${minutes} min. Kontostände und Karten bleiben erhalten.`,
+  resume: 'Tisch fortsetzen',
+  discard: 'Verwerfen',
+};
+
 /** Cent-Betrag als Euro, mit Vorzeichen: 150 → "+1,50 €". */
 export function money(cents: number): string {
   const sign = cents > 0 ? '+' : cents < 0 ? '−' : '';
