@@ -10,10 +10,11 @@
  */
 
 import { type Card, SUITS, card, createDeck, sumPoints } from './cards';
+import { ALL_PASSED } from './allPassed';
 import {
   type Contract,
   type ContractKind,
-  CONTRACT_KINDS,
+  BID_ORDER,
   MODES,
   bidValue,
   orderFor,
@@ -80,6 +81,20 @@ export interface CompletedTrick extends Trick {
 
 export type HandPhase = 'bidding' | 'playing' | 'finished';
 
+/**
+ * Was der Tisch dem Spiel mitgibt (siehe docs/entwurf-sonderspiele.md, §7). Reine Daten;
+ * das Spiel kennt den Tisch selbst nicht.
+ */
+export interface HandCarry {
+  /** Stock in Cent; 0, wenn nicht gespielt. */
+  pot: number;
+  /** Faktor auf den Spielwert (Bockrunde: 2, sonst 1; K4). */
+  factor: number;
+}
+
+/** Übertrag ohne Pott und ohne Faktor. */
+export const NO_CARRY: HandCarry = { pot: 0, factor: 1 };
+
 export interface HandState {
   rules: RuleSet;
   dealer: Seat;
@@ -93,11 +108,14 @@ export interface HandState {
   bids: Bid[];
   auction: Auction;
   contract: Contract | null;
+  /** Ansager; `null` auch bei laufendem Spiel, wenn die Spielart keinen hat (Ramsch). */
   declarer: Seat | null;
   /** Mitspieler im Sauspiel (Besitzer der Rufsau); sonst null. */
   partner: Seat | null;
   tricks: CompletedTrick[];
   currentTrick: Trick;
+  /** Übertrag vom Tisch (Pott, Faktor). */
+  carry: HandCarry;
   result: HandResult | null;
 }
 
@@ -105,7 +123,12 @@ export type RuleError = 'wrong_phase' | 'not_your_turn' | 'illegal_bid' | 'illeg
 
 export type ActionResult = { ok: true; state: HandState } | { ok: false; error: RuleError };
 
-export function dealHand(rules: RuleSet, dealer: Seat, seed: SeedInput): HandState {
+export function dealHand(
+  rules: RuleSet,
+  dealer: Seat,
+  seed: SeedInput,
+  carry: HandCarry = NO_CARRY,
+): HandState {
   const deck = shuffle(createDeck(rules.deck), createRng(seed));
   const size = deck.length / rules.players;
   if (!Number.isInteger(size)) throw new Error('Blatt lässt sich nicht gleichmäßig verteilen');
@@ -127,6 +150,7 @@ export function dealHand(rules: RuleSet, dealer: Seat, seed: SeedInput): HandSta
     partner: null,
     tricks: [],
     currentTrick: { leader: first, cards: [] },
+    carry: { pot: carry.pot, factor: carry.factor },
     result: null,
   };
 }
@@ -134,7 +158,7 @@ export function dealHand(rules: RuleSet, dealer: Seat, seed: SeedInput): HandSta
 /** Alle Ansagen, die die Tischregeln grundsätzlich zulassen (ohne Blick auf die Hand). */
 export function allContracts(rules: RuleSet): Contract[] {
   const out: Contract[] = [];
-  for (const kind of CONTRACT_KINDS) {
+  for (const kind of BID_ORDER) {
     if (!rules.contracts.includes(kind)) continue;
     const mode = MODES[kind];
     const suits = mode.suitRole === 'none' ? [undefined] : SUITS;
@@ -165,6 +189,7 @@ function playable(state: HandState, seat: Seat, minValue: number): Contract[] {
   return allContracts(state.rules).filter((contract) => {
     if (bidValue(contract) < minValue) return false;
     const mode = MODES[contract.kind];
+    if (mode.eligible && !mode.eligible(hand)) return false;
     return !mode.suitChoices || mode.suitChoices(hand).includes(contract.suit!);
   });
 }
@@ -234,7 +259,7 @@ function cleanCall(call: BidCall): BidCall {
 /** Karten, die `seat` jetzt spielen darf (leer, wenn nicht an der Reihe). */
 export function legalCards(state: HandState, seat: Seat): Card[] {
   if (state.phase !== 'playing' || state.turn !== seat || !state.contract) return [];
-  const order = orderFor(state.contract);
+  const order = orderFor(state.contract, state.tricks.length);
   const hand = state.hands[seat]!;
   const trick = state.currentTrick.cards;
   const candidates = followable(hand, trick, order);
@@ -268,11 +293,11 @@ function nextDuel(next: HandState): void {
   }
 }
 
-function startPlay(next: HandState, declarer: Seat, contract: Contract): void {
+function startPlay(next: HandState, declarer: Seat | null, contract: Contract): void {
   const players = next.rules.players;
   next.contract = contract;
   next.declarer = declarer;
-  if (MODES[contract.kind].suitRole === 'called') {
+  if (MODES[contract.kind].parties === 'calledAce') {
     const sau = card(contract.suit!, 'A');
     next.partner = next.initialHands.findIndex((h) => h.includes(sau));
   }
@@ -280,6 +305,17 @@ function startPlay(next: HandState, declarer: Seat, contract: Contract): void {
   next.phase = 'playing';
   next.turn = first;
   next.currentTrick = { leader: first, cards: [] };
+}
+
+/** Alle haben „weiter“ gesagt: die Tischregel aus der Registry entscheidet. Ändert `next`. */
+function allPassed(next: HandState): void {
+  const step = ALL_PASSED[next.rules.allPassed](next);
+  switch (step.type) {
+    case 'finish':
+      next.phase = 'finished';
+      next.result = step.result;
+      return;
+  }
 }
 
 function applyBid(state: HandState, seat: Seat, raw: BidCall): ActionResult {
@@ -304,9 +340,7 @@ function applyBid(state: HandState, seat: Seat, raw: BidCall): ActionResult {
         (s) => next.bids.some((b) => b.seat === s && b.call.type === 'interest'),
       );
       if (interested.length === 0) {
-        // Alle weiter. Aktuell einzige Regel: zusammenwerfen (siehe RuleSet.allPassed).
-        next.phase = 'finished';
-        next.result = { kind: 'passed', payments: Array.from({ length: players }, () => 0) };
+        allPassed(next);
         return { ok: true, state: next };
       }
       auction.holder = interested[0]!;
@@ -345,7 +379,8 @@ function applyPlay(state: HandState, seat: Seat, played: Card): ActionResult {
   }
 
   const { leader, cards } = next.currentTrick;
-  const winner = (leader + trickWinnerIndex(cards, orderFor(next.contract!))) % players;
+  const order = orderFor(next.contract!, next.tricks.length);
+  const winner = (leader + trickWinnerIndex(cards, order)) % players;
   next.tricks.push({ leader, cards, winner, points: sumPoints(cards) });
   next.currentTrick = { leader: winner, cards: [] };
   next.turn = winner;

@@ -1,4 +1,4 @@
-import type { Card, HandView, TableView } from '@schafkopf/core';
+import { type Card, type HandView, type TableView, tricksPlayed } from '@schafkopf/core';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { TABLE_TEXT, UI_TEXT } from '../../i18n/de';
 import { CardView } from '../kit';
@@ -36,7 +36,7 @@ export function OwnSeat({ view, hand, seats, onPlay }: Props) {
   }
   const me = view.you;
   const myTurn = hand.turn === me && hand.phase !== 'finished';
-  const cards = sortHand(hand.hand, hand.contract);
+  const cards = sortHand(hand.hand, hand.contract, tricksPlayed(hand));
   const n = cards.length;
   const turnText =
     myTurn && (hand.phase === 'bidding' ? TABLE_TEXT.yourTurnBid : TABLE_TEXT.yourTurnPlay);

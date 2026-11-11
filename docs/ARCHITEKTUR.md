@@ -24,19 +24,20 @@ Abhängigkeiten zeigen nur in Pfeilrichtung. `core` hängt von nichts ab.
 
 ### packages/core – Spielregeln
 
-| Datei        | Inhalt                                                                       |
-| ------------ | ---------------------------------------------------------------------------- |
-| `cards.ts`   | Karten als Strings (`"EA"`, `"HO"`), Augen, Blatt (lang/kurz)                |
-| `log.ts`     | Spielprotokoll `HandLog`, `replay`, `HandSummary`                            |
-| `rng.ts`     | Seed-basierter Zufall und Mischen                                            |
-| `trick.ts`   | Bedienpflicht und Stichgewinner – allgemein, über eine `CardOrder`           |
-| `modes.ts`   | Spielarten als deklarative `ModeDefinition` (Trümpfe, Rang, Sonderregeln)    |
-| `rules.ts`   | `RuleSet`: alles, was am Tisch einstellbar ist (Blatt, Spielarten, Tarif, …) |
-| `hand.ts`    | Ein Spiel: `dealHand`, `applyAction`, `legalCards`, `legalContracts`         |
-| `scoring.ts` | Abrechnung: Schneider, Schwarz, Laufende, Tout, Sie, Zahlungen               |
-| `table.ts`   | Der Tisch: Plätze, Kontostände, Geberwechsel                                 |
-| `view.ts`    | Sichten je Spieler (`HandView`, `TableView`)                                 |
-| `bot.ts`     | Schnittstelle `Bot`                                                          |
+| Datei          | Inhalt                                                                                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `cards.ts`     | Karten als Strings (`"EA"`, `"HO"`), Augen, Blatt (lang/kurz)                                                                 |
+| `log.ts`       | Spielprotokoll `HandLog` (mit `carry`), `replay`, `HandSummary`                                                               |
+| `rng.ts`       | Seed-basierter Zufall und Mischen                                                                                             |
+| `trick.ts`     | Bedienpflicht und Stichgewinner – allgemein, über eine `CardOrder`                                                            |
+| `modes.ts`     | Spielarten als `ModeDefinition` (Parteien, Tarifklasse, Trümpfe je Stich, Hooks); `BID_ORDER` als einzige Quelle für den Rang |
+| `rules.ts`     | `RuleSet`: alles, was am Tisch einstellbar ist (Blatt, Spielarten, Tarif, „alle weiter“, …)                                   |
+| `hand.ts`      | Ein Spiel: `dealHand` (mit `HandCarry`), `applyAction`, `legalCards`, `legalContracts`                                        |
+| `allPassed.ts` | Registry `ALL_PASSED`: was bei „alle weiter“ geschieht, je `RuleSet.allPassed`                                                |
+| `scoring.ts`   | Abrechnung in drei Stufen: `Outcome` (Spielart), `Factor`s, Zahlungen und Pott (`HandResult`)                                 |
+| `table.ts`     | Der Tisch: Plätze, Kontostände, Pott, Geberwechsel; `settle` als einzige Stelle, an der ein Ergebnis auf den Tisch wirkt      |
+| `view.ts`      | Sichten je Spieler (`HandView`, `TableView`)                                                                                  |
+| `bot.ts`       | Schnittstelle `Bot`                                                                                                           |
 
 Zentrale Signatur:
 
@@ -235,8 +236,8 @@ React + Vite, keine weitere Zustandsbibliothek.
 
 ## Spielprotokoll (K7)
 
-Ein Spiel ist durch `RuleSet`, Geber, `Seed` und die Folge der Aktionen (mit Sitz) vollständig
-bestimmt. `HandLog` (`packages/core/src/log.ts`) hält genau das fest; `replay(log)` gibt das Spiel
+Ein Spiel ist durch `RuleSet`, Geber, `Seed`, den Übertrag vom Tisch (`HandCarry`: Pott, Faktor)
+und die Folge der Aktionen (mit Sitz) vollständig bestimmt. `HandLog` (`packages/core/src/log.ts`) hält genau das fest; `replay(log)` gibt das Spiel
 mit `dealHand` + `applyAction` wieder und liefert denselben `HandState` wie der echte Ablauf (wirft,
 wenn eine Aktion nicht regelkonform ist). Die Tests spielen viele Zufallsspiele – im Netz auch mit
 Bot-Vertretung (N3) – und vergleichen.
@@ -248,23 +249,56 @@ Bot-Vertretung (N3) – und vergleichen.
 - **Beim Host:** Protokolle enthalten über den Seed alle Karten und verlassen den Host nie.
   `TableView.history` trägt nur die Zusammenfassungen _fertiger_ Spiele – ohne Karten, für alle
   Plätze gleich. Daraus baut U4 die Verlaufstabelle.
-- **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5. `parseHostSnapshot` prüft die Protokolle und spielt
-  das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
+- **Speicherstand:** `HOST_SNAPSHOT_VERSION` 5 (seit K3a 6: `pot`, `carry`, `HandResult` in
+  Stufen). `parseHostSnapshot` prüft die Protokolle und spielt das letzte nach; passt es nicht zum laufenden Spiel, wird der Stand verworfen. Größe: 50 Spiele
   ≈ 106 KiB JSON (Protokolle + Verlauf; je Protokoll stecken die Regeln mit ~½ KiB mit drin),
   also gut im Rahmen der ~5 MiB von localStorage.
 - Später möglich: den Host über den Seed festlegen (Schutz gegen Schummeln) und Spiele nachspielen.
 
 ## So wird erweitert
 
-| Vorhaben                       | Wo                                                                        |
-| ------------------------------ | ------------------------------------------------------------------------- |
-| Neue Spielart (z. B. Hochzeit) | `ContractKind` + Eintrag in `MODES`, ggf. Hook in `ModeDefinition`        |
-| Neue Tischregel (z. B. Ramsch) | Feld in `RuleSet`, Auswertung in `hand.ts`/`scoring.ts`, Auswahl in Lobby |
-| Kurzes Blatt / 3 Spieler       | `RuleSet.deck` / `RuleSet.players` (im Kern schon parametrisiert)         |
-| Anderes Kartenset              | Weiteres `CardTheme`                                                      |
-| Stärkerer Bot                  | Weitere `Bot`-Implementierung in `packages/bots`                          |
-| Anderer Verbindungsweg         | Weitere Implementierung von `HostTransport`/`ClientTransport`             |
-| Android                        | PWA, später ggf. Hülle (Capacitor/Tauri) um `apps/web`                    |
+| Vorhaben                       | Wo                                                                         |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| Neue Spielart (z. B. Hochzeit) | Name in `CONTRACT_KINDS` an seinem Rang + Eintrag in `MODES` (siehe unten) |
+| „Alle weiter“ (Ramsch, Stock)  | `AllPassedRule` + Eintrag in `ALL_PASSED`, Auswahl in Lobby                |
+| Faktor (Kontra/Re, Bock)       | Quelle in `factorsFor` (`scoring.ts`), Zustand in `HandState`/`HandCarry`  |
+| Neue Tischregel sonst          | Feld in `RuleSet` + `parseRuleOptions`, Auswahl in Lobby                   |
+| Kurzes Blatt / 3 Spieler       | `RuleSet.deck` / `RuleSet.players` (im Kern schon parametrisiert)          |
+| Anderes Kartenset              | Weiteres `CardTheme`                                                       |
+| Stärkerer Bot                  | Weitere `Bot`-Implementierung in `packages/bots`                           |
+| Anderer Verbindungsweg         | Weitere Implementierung von `HostTransport`/`ClientTransport`              |
+| Android                        | PWA, später ggf. Hülle (Capacitor/Tauri) um `apps/web`                     |
+
+Die Erweiterungspunkte für Sonderspiele (Entwurf: [entwurf-sonderspiele.md](entwurf-sonderspiele.md),
+eingezogen mit K3a). Jede Variante soll **ein Eintrag oder ein Hook** sein, kein Sonderfall in
+`hand.ts` oder `scoring.ts`:
+
+1. **Rangfolge als Liste.** `CONTRACT_KINDS` führt die Spielarten in Rangfolge; `BID_ORDER` sind
+   davon die ansagbaren (`biddable`). `bidValue` ist der Index in `BID_ORDER` (+ 1, + 100 für
+   Tout). Eine neue Spielart wird an ihrer Stelle eingefügt, ohne andere umzunummerieren.
+   Oberfläche (Ansage, Lobby, Regelübersicht) und Bots lesen `BID_ORDER`.
+2. **`ModeDefinition`.** `parties` (`alone`, `calledAce`, `prelude`, `everyone`) sagt, wer mit wem
+   spielt – `partyOf`, `startPlay` und die Sichtbarkeit des Partners lesen nur das. `tariff`
+   wählt den Grundtarif aus `RuleSet.tariff`. `trumps(contract, trick)` liefert die Trümpfe für
+   den Stich mit Index `trick`; alle Aufrufer (Kern, Bots, Hand-Sortierung) geben den Index
+   ausdrücklich mit (`orderFor(contract, trick)`, in Sichten `tricksPlayed(view)`).
+   `laufendeTrumps` (Laufende über andere Karten als die Trümpfe), `eligible` (Bedingung ans
+   Blatt) und `outcome` (eigene Auswertung, z. B. Ramsch) sind optionale Hooks.
+3. **Vorspiel** (Hochzeit) – noch nicht eingezogen, kommt mit K5 (Entwurf §4).
+4. **„Alle weiter“ als Registry.** `applyBid` ruft nur `ALL_PASSED[rules.allPassed](state)` und
+   führt den Schritt aus (heute nur `finish`, Eintrag `zusammenwerfen`).
+5. **Abrechnung in Stufen.** `scoreHand` = `outcomeOf` (Stufe 1: `MODES[kind].outcome` oder
+   `partyOutcome`; Gewinner, Verlierer, Spielwert mit Bestandteilen `parts`) → `factorsFor`
+   (Stufe 2) → `settleOutcome` (Stufe 3: Zahlungen, Pott). `HandResult` = `kind`, `outcome`,
+   `factors`, `payments`, `potDelta`; die Einzelheiten (Augen, Schneider, Laufende …) stehen in
+   `outcome.details`. Immer gilt `Summe(payments) + potDelta = 0`.
+6. **Übertrag Tisch ↔ Spiel.** `HandCarry` (`pot`, `factor`) gibt `startHand` an `dealHand` und ins
+   `HandLog`; `TableState.pot` hält den Stock, `settle` bucht `payments` und `potDelta`. Immer gilt
+   `Summe(balances) + pot = 0` (geprüft auch in `parseHostSnapshot`).
+
+Der Umbau ist gegen Verhaltensänderungen abgesichert: `packages/core/test/reference.test.ts` spielt
+500 Zufallsspiele und vergleicht Ansage, Spieler und Zahlungen mit `reference-games.json` vom Stand
+vor dem Umbau.
 
 ## Mischen (Seed und Generator)
 

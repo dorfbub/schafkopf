@@ -1,10 +1,10 @@
-import { CONTRACT_KINDS, LAUFENDE_KINDS, type RuleSet } from '@schafkopf/core';
+import { BID_ORDER, LAUFENDE_KINDS, type RuleSet } from '@schafkopf/core';
 import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
 
 /** Die Tischregeln zum Lesen – für Gäste in der Lobby und im Info-Dialog am Tisch. */
 export function RulesSummary({ rules }: { rules: RuleSet }) {
   const yesNo = (b: boolean) => (b ? T.yes : T.no);
-  const kinds = CONTRACT_KINDS.filter((k) => rules.contracts.includes(k));
+  const kinds = BID_ORDER.filter((k) => rules.contracts.includes(k));
   return (
     <dl className="regeln">
       <dt>{T.contracts}</dt>

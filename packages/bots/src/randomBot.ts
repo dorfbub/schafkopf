@@ -20,7 +20,7 @@ export function createRandomBot(seed: SeedInput, minTrumps = 5): Bot {
   const rng: Rng = createRng(seed);
 
   function wantsSauspiel(view: HandView): boolean {
-    const trumps = MODES.sauspiel.trumps({ kind: 'sauspiel' });
+    const trumps = MODES.sauspiel.trumps({ kind: 'sauspiel' }, 0);
     const trumpCount = view.hand.filter((c) => trumps.includes(c)).length;
     const callable = MODES.sauspiel.suitChoices?.(view.hand) ?? [];
     return trumpCount >= minTrumps && callable.length > 0;

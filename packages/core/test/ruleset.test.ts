@@ -5,9 +5,11 @@ import {
   type Contract,
   type HandState,
   type RuleSet,
-  CONTRACT_KINDS,
+  BID_ORDER,
   DEFAULT_RULES,
+  MODES,
   allContracts,
+  bidValue,
   dealHand,
   parseRuleOptions,
   scoreHand,
@@ -68,7 +70,7 @@ const MIT_SIE: Card[][] = [
 function value(state: HandState) {
   const r = scoreHand(state);
   if (r.kind !== 'played') throw new Error('nicht gespielt');
-  return r;
+  return { ...r.outcome!.details, value: r.outcome!.value, payments: r.payments };
 }
 
 describe('DEFAULT_RULES', () => {
@@ -81,7 +83,14 @@ describe('DEFAULT_RULES', () => {
       geier: 2,
       farbwenz: 3,
     });
-    expect(DEFAULT_RULES.contracts).toEqual([...CONTRACT_KINDS]);
+    expect(DEFAULT_RULES.contracts).toEqual([
+      'sauspiel',
+      'bettel',
+      'geier',
+      'farbwenz',
+      'wenz',
+      'solo',
+    ]);
     expect(DEFAULT_RULES.allowTout && DEFAULT_RULES.sie && DEFAULT_RULES.davonlaufen).toBe(true);
     const sau = value(finished(DEFAULT_RULES, { kind: 'sauspiel', suit: 'gras' }, NEUTRAL, 91, 6));
     expect(sau).toMatchObject({ value: 20, laufende: 0, payments: [20, -20, 20, -20] });
@@ -197,5 +206,19 @@ describe('Regeln prüfen', () => {
 
   it('lehnt Nicht-Objekte ab', () => {
     for (const v of [null, 5, 'x', [], undefined]) expect(parseRuleOptions(v)).toBeNull();
+  });
+});
+
+describe('Rangfolge', () => {
+  it('BID_ORDER enthält die ansagbaren Spielarten, niedrigste zuerst', () => {
+    expect(BID_ORDER).toEqual(['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo']);
+    expect(BID_ORDER.every((k) => MODES[k].biddable)).toBe(true);
+  });
+
+  it('der Rang folgt BID_ORDER; Tout schlägt jede Ansage ohne Tout', () => {
+    const values = BID_ORDER.map((kind) => bidValue({ kind }));
+    expect([...values].sort((a, b) => a - b)).toEqual(values);
+    expect(values[0]).toBeGreaterThan(0); // 0 heißt „noch nichts genannt“
+    expect(bidValue({ kind: 'sauspiel', tout: true })).toBeGreaterThan(bidValue({ kind: 'solo' }));
   });
 });

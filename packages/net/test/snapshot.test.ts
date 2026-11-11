@@ -154,6 +154,29 @@ describe('Speicherstand des Hosts', () => {
         'Kontostände ergeben nicht null',
         (s) => ({ ...s, table: { ...table(s), balances: [10, 0, 0, 0] } }),
       ],
+      [
+        'Kontostände und Pott ergeben nicht null',
+        (s) => ({ ...s, table: { ...table(s), pot: 10 } }),
+      ],
+      [
+        'Pott negativ',
+        (s) => ({ ...s, table: { ...table(s), pot: -10, balances: [10, 0, 0, 0] } }),
+      ],
+      ['Pott fehlt (ältere Version)', (s) => ({ ...s, table: { ...table(s), pot: undefined } })],
+      [
+        'unbekannte Regel für „alle weiter“',
+        (s) => ({
+          ...s,
+          table: { ...table(s), rules: { ...(table(s).rules as object), allPassed: 'toString' } },
+        }),
+      ],
+      [
+        'Übertrag im Spiel kaputt',
+        (s) => ({
+          ...s,
+          table: { ...table(s), hand: { ...hand(s), carry: { pot: -1, factor: 1 } } },
+        }),
+      ],
       ['Geber außerhalb', (s) => ({ ...s, table: { ...table(s), dealer: 9 } })],
       [
         'unbekannte Karte',
@@ -179,6 +202,13 @@ describe('Speicherstand des Hosts', () => {
 
     it('der unveränderte Stand ist gültig', () => {
       expect(parseHostSnapshot(good())).not.toBeNull();
+    });
+
+    it('ein Pott zählt zur Kontosumme: Summe(balances) + pot = 0', () => {
+      const s = good();
+      const t = table(s);
+      const balances = (t.balances as number[]).map((b, i) => (i === 0 ? b - 40 : b));
+      expect(parseHostSnapshot({ ...s, table: { ...t, balances, pot: 40 } })).not.toBeNull();
     });
 
     it.each(cases)('%s', (_name, damage) => {

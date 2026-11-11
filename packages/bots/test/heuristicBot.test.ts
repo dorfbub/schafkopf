@@ -124,7 +124,7 @@ describe('Heuristik-Bot: Kartenspiel', () => {
     const action = decideFor(state);
     if (action.type !== 'play') throw new Error('Karte erwartet');
     expect(pointsOf(action.card)).toBeGreaterThanOrEqual(10);
-    expect(isTrump(action.card, orderFor({ kind: 'solo', suit: 'herz' }))).toBe(false);
+    expect(isTrump(action.card, orderFor({ kind: 'solo', suit: 'herz' }, 0))).toBe(false);
   });
 
   it('zieht als Solospieler Trumpf von oben', () => {

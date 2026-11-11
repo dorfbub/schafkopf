@@ -1,15 +1,23 @@
 /**
  * Spielarten ("Modes"). Jede Spielart ist eine deklarative `ModeDefinition`.
  * Eine neue Spielart (z. B. Hochzeit, Ramsch) hinzufügen heißt:
- *   1. `ContractKind` erweitern,
+ *   1. den Namen in `CONTRACT_KINDS` an der Stelle seines Rangs einfügen,
  *   2. einen Eintrag in `MODES` anlegen,
  *   3. Tests in `packages/core/test` ergänzen.
- * Stichlogik, Ansage und Abrechnung lesen nur diese Definitionen.
+ * Stichlogik, Ansage und Abrechnung lesen nur diese Definitionen
+ * (siehe docs/entwurf-sonderspiele.md, §2–§3).
  */
 
 import { type Card, type Rank, type Suit, RANKS, SUITS, card, rankOf, suitOf } from './cards';
+import type { HandState } from './hand';
+import type { Tariff } from './rules';
+import type { Outcome } from './scoring';
 import { type CardOrder, effectiveSuit } from './trick';
 
+/**
+ * Alle Spielarten, die ansagbaren in ihrer Rangfolge (niedrigste zuerst). Nicht ansagbare
+ * Spielarten (später Ramsch) stehen am Ende; maßgeblich für den Rang ist `BID_ORDER`.
+ */
 export const CONTRACT_KINDS = ['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo'] as const;
 export type ContractKind = (typeof CONTRACT_KINDS)[number];
 
@@ -34,27 +42,52 @@ export interface LegalContext {
   davonlaufen: boolean;
 }
 
+/** Wer spielt mit wem. */
+export type Parties =
+  /** Ansager gegen alle. */
+  | 'alone'
+  /** Partner ist der Besitzer der Rufsau, verdeckt bis die Sau fällt. */
+  | 'calledAce'
+  /** Partner ergibt sich aus dem Vorspiel und ist sofort bekannt (Hochzeit, K5). */
+  | 'prelude'
+  /** Jeder für sich, kein Ansager (Ramsch, K3b). */
+  | 'everyone';
+
+/** Tarifklasse einer Spielart: welcher Grundtarif aus `RuleSet.tariff` gilt. */
+export type TariffClass = Exclude<keyof Tariff, 'extra'>;
+
 export interface ModeDefinition {
   kind: ContractKind;
-  /** Rangfolge bei der Ansage: höherer Wert überbietet niedrigeren. */
-  rank: number;
+  /** false = entsteht nur durch eine Tischregel (Ramsch), nie durch Ansage. */
+  biddable: boolean;
   /** Bedeutung von `Contract.suit`. */
   suitRole: 'none' | 'called' | 'trump';
-  /** Spielt der Ansager allein gegen alle? (false = Partnerspiel) */
-  alone: boolean;
+  /** Wer spielt mit wem. */
+  parties: Parties;
+  /** Welcher Grundtarif gilt. */
+  tariff: TariffClass;
   canTout: boolean;
   /** 'points' = 61 Augen nötig; 'noTricks' = Ansager darf keinen Stich machen. */
   goal: 'points' | 'noTricks';
   /** Gibt es Laufende? Die Schwelle steht im `RuleSet` (`laufende`). */
   hasLaufende: boolean;
-  /** Alle Trümpfe (volles Blatt), höchster zuerst. */
-  trumps(contract: Contract): Card[];
+  /**
+   * Trümpfe (volles Blatt) für den Stich mit Index `trick` (0-basiert), höchster zuerst.
+   * Ein Stich liegt immer ganz in einer Phase; der Index hat bewusst keinen Standardwert.
+   */
+  trumps(contract: Contract, trick: number): Card[];
+  /** Trümpfe, über die Laufende zählen (Standard: `trumps(contract, 0)`). */
+  laufendeTrumps?(contract: Contract): Card[];
   /** Abweichende Rang-Reihenfolge der Farbkarten (Standard: `RANKS`). */
   rankOrder?: readonly Rank[];
+  /** Darf dieses Blatt die Spielart überhaupt ansagen? (Standard: ja; Hochzeit: genau ein Trumpf) */
+  eligible?(hand: readonly Card[]): boolean;
   /** Welche Farben darf ein Spieler mit dieser Hand ansagen? (Standard: alle) */
   suitChoices?(hand: readonly Card[]): Suit[];
   /** Sonderregeln, die die bedienbaren Karten weiter einschränken (z. B. Rufsau). */
   restrictLegal?(ctx: LegalContext, candidates: Card[]): Card[];
+  /** Eigene Auswertung statt der Partei-Abrechnung (Stufe 1, z. B. Ramsch). */
+  outcome?(state: HandState): Outcome;
 }
 
 const OBER: Card[] = SUITS.map((s) => card(s, 'O'));
@@ -101,9 +134,10 @@ function restrictRufsau(ctx: LegalContext, candidates: Card[]): Card[] {
 export const MODES: Record<ContractKind, ModeDefinition> = {
   sauspiel: {
     kind: 'sauspiel',
-    rank: 1,
+    biddable: true,
     suitRole: 'called',
-    alone: false,
+    parties: 'calledAce',
+    tariff: 'sauspiel',
     canTout: false,
     goal: 'points',
     hasLaufende: true,
@@ -120,9 +154,10 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   },
   bettel: {
     kind: 'bettel',
-    rank: 2,
+    biddable: true,
     suitRole: 'none',
-    alone: true,
+    parties: 'alone',
+    tariff: 'solo',
     canTout: false,
     goal: 'noTricks',
     hasLaufende: false,
@@ -132,9 +167,10 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   },
   geier: {
     kind: 'geier',
-    rank: 3,
+    biddable: true,
     suitRole: 'none',
-    alone: true,
+    parties: 'alone',
+    tariff: 'solo',
     canTout: true,
     goal: 'points',
     hasLaufende: true,
@@ -142,9 +178,10 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   },
   farbwenz: {
     kind: 'farbwenz',
-    rank: 4,
+    biddable: true,
     suitRole: 'trump',
-    alone: true,
+    parties: 'alone',
+    tariff: 'solo',
     canTout: true,
     goal: 'points',
     hasLaufende: true,
@@ -152,9 +189,10 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   },
   wenz: {
     kind: 'wenz',
-    rank: 5,
+    biddable: true,
     suitRole: 'none',
-    alone: true,
+    parties: 'alone',
+    tariff: 'solo',
     canTout: true,
     goal: 'points',
     hasLaufende: true,
@@ -162,9 +200,10 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   },
   solo: {
     kind: 'solo',
-    rank: 6,
+    biddable: true,
     suitRole: 'trump',
-    alone: true,
+    parties: 'alone',
+    tariff: 'solo',
     canTout: true,
     goal: 'points',
     hasLaufende: true,
@@ -172,14 +211,26 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   },
 };
 
-export function orderFor(contract: Contract): CardOrder {
+/** Ansagbare Spielarten, niedrigste zuerst. Einzige Quelle für den Rang. */
+export const BID_ORDER: readonly ContractKind[] = CONTRACT_KINDS.filter((k) => MODES[k].biddable);
+
+/** Stich- und Bedienordnung für den Stich mit Index `trick` (0-basiert). */
+export function orderFor(contract: Contract, trick: number): CardOrder {
   const mode = MODES[contract.kind];
-  return { trumps: mode.trumps(contract), rankOrder: mode.rankOrder ?? RANKS };
+  return { trumps: mode.trumps(contract, trick), rankOrder: mode.rankOrder ?? RANKS };
 }
 
-/** Wert einer Ansage zum Überbieten; Tout schlägt jede Ansage ohne Tout. */
-export function bidValue(contract: Contract): number {
-  return MODES[contract.kind].rank + (contract.tout ? 100 : 0);
+/** Trümpfe, über die Laufende zählen. */
+export function laufendeTrumpsFor(contract: Contract): Card[] {
+  const mode = MODES[contract.kind];
+  return mode.laufendeTrumps?.(contract) ?? mode.trumps(contract, 0);
+}
+
+/** Wert einer Ansage zum Überbieten (Rang in `BID_ORDER`); Tout schlägt jede Ansage ohne Tout. */
+export function bidValue(level: { kind: ContractKind; tout?: boolean }): number {
+  const rank = BID_ORDER.indexOf(level.kind);
+  if (rank < 0) throw new Error(`Spielart ${level.kind} ist nicht ansagbar`);
+  return rank + 1 + (level.tout ? 100 : 0);
 }
 
 export function sameContract(a: Contract, b: Contract): boolean {

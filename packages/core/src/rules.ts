@@ -4,9 +4,12 @@
  */
 
 import type { DeckKind } from './cards';
-import { CONTRACT_KINDS, type ContractKind } from './modes';
+import { BID_ORDER, type ContractKind } from './modes';
 
-/** Was passiert, wenn alle "weiter" sagen. Geplant: 'ramsch' | 'stock' | 'muss'. */
+/**
+ * Was passiert, wenn alle "weiter" sagen. Umgesetzt in der Registry `ALL_PASSED`
+ * (`allPassed.ts`). Geplant: 'ramsch' | 'stock' | 'muss' (K3b–K3d).
+ */
 export type AllPassedRule = 'zusammenwerfen';
 
 export interface Tariff {
@@ -32,7 +35,7 @@ export interface RuleSet {
   /** Anzahl Spieler. Aktuell nur 4; 3 ist für den Dreier-Modus mit kurzem Blatt vorgesehen. */
   players: number;
   deck: DeckKind;
-  /** Erlaubte Spielarten. */
+  /** Erlaubte Spielarten (nur ansagbare, in der Reihenfolge von `BID_ORDER`). */
   contracts: ContractKind[];
   allowTout: boolean;
   allPassed: AllPassedRule;
@@ -48,7 +51,9 @@ export interface RuleSet {
 export const DEFAULT_RULES: RuleSet = {
   players: 4,
   deck: 'lang',
-  contracts: [...CONTRACT_KINDS],
+  // Ausdrücklich aufgezählt: Spielarten, die später hinzukommen (Hausregeln), sind
+  // standardmäßig aus.
+  contracts: ['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo'],
   allowTout: true,
   allPassed: 'zusammenwerfen',
   tariff: { sauspiel: 10, solo: 50, extra: 10 },
@@ -78,7 +83,7 @@ function isInt(v: unknown, min: number, max: number): v is number {
 export function parseRuleOptions(raw: unknown): RuleOptions | null {
   if (!isObj(raw)) return null;
   const { contracts, allowTout, tariff, laufende, sie, davonlaufen } = raw;
-  if (!Array.isArray(contracts) || !contracts.every((k) => CONTRACT_KINDS.includes(k))) return null;
+  if (!Array.isArray(contracts) || !contracts.every((k) => BID_ORDER.includes(k))) return null;
   const kinds = new Set(contracts as ContractKind[]);
   if (!kinds.has('sauspiel')) return null;
   if (typeof allowTout !== 'boolean' || typeof sie !== 'boolean') return null;
@@ -94,7 +99,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
     run[kind] = n;
   }
   return {
-    contracts: CONTRACT_KINDS.filter((k) => kinds.has(k)),
+    contracts: BID_ORDER.filter((k) => kinds.has(k)),
     allowTout,
     tariff: { sauspiel: tariff.sauspiel, solo: tariff.solo, extra: tariff.extra },
     laufende: run,

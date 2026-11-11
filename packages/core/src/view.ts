@@ -54,6 +54,8 @@ export interface TableView {
   rules: RuleSet;
   seats: (PlayerInfo | null)[];
   balances: number[];
+  /** Stock in Cent. */
+  pot: number;
   dealer: Seat;
   handNo: number;
   hand: HandView | null;
@@ -64,9 +66,16 @@ export interface TableView {
 function partnerVisible(state: HandState, viewer: Seat | null): boolean {
   if (state.partner === null || !state.contract) return false;
   if (state.phase === 'finished' || viewer === state.partner) return true;
-  if (MODES[state.contract.kind].suitRole !== 'called') return false;
+  const parties = MODES[state.contract.kind].parties;
+  if (parties === 'prelude') return true; // aus dem Vorspiel bekannt
+  if (parties !== 'calledAce') return false;
   const sau = card(state.contract.suit!, 'A');
   return state.currentTrick.cards.includes(sau) || state.tricks.some((t) => t.cards.includes(sau));
+}
+
+/** Zahl der fertigen Stiche – der Index des laufenden Stichs für `orderFor`. */
+export function tricksPlayed(view: Pick<HandView, 'tricksWon'>): number {
+  return view.tricksWon.reduce((a, b) => a + b, 0);
 }
 
 export function handViewFor(state: HandState, viewer: Seat | null): HandView {
@@ -100,6 +109,7 @@ export function tableViewFor(table: TableState, viewer: Seat | null): TableView 
     rules: table.rules,
     seats: table.seats,
     balances: table.balances,
+    pot: table.pot,
     dealer: table.dealer,
     handNo: table.handNo,
     hand: table.hand ? handViewFor(table.hand, viewer) : null,

@@ -78,7 +78,7 @@ alle den Kern und laufen **nacheinander** in der Reihenfolge aus §11 des Entwur
 `PROTOCOL_VERSION` und `HOST_SNAPSHOT_VERSION`, wenn es Sicht, Zustand oder `RuleSet` ändert, und
 streicht „(geplant)“ bzw. „noch nicht umgesetzt“ für seinen Teil in REGELN.md.
 
-### K3a · Umbau des Kerns für Sonderspiele (ohne Verhaltensänderung)
+### K3a · Umbau des Kerns für Sonderspiele (ohne Verhaltensänderung) (erledigt)
 
 Die sechs Erweiterungspunkte aus dem Entwurf einziehen, ohne dass sich ein Spiel anders verhält:
 `BID_ORDER` statt `rank`; `parties`/`tariff`/`biddable` statt `alone`; `trumps(contract, trick)`

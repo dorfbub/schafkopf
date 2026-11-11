@@ -33,9 +33,9 @@ describe('Blatt', () => {
 });
 
 describe('Stichgewinner', () => {
-  const sauspiel = orderFor({ kind: 'sauspiel', suit: 'eichel' });
-  const wenz = orderFor({ kind: 'wenz' });
-  const bettel = orderFor({ kind: 'bettel' });
+  const sauspiel = orderFor({ kind: 'sauspiel', suit: 'eichel' }, 0);
+  const wenz = orderFor({ kind: 'wenz' }, 0);
+  const bettel = orderFor({ kind: 'bettel' }, 0);
 
   const cases: [string, typeof sauspiel, Card[], number][] = [
     ['höchste Farbkarte gewinnt', sauspiel, ['E9', 'EA', 'E10', 'EK'], 1],
@@ -57,7 +57,7 @@ describe('Stichgewinner', () => {
 });
 
 describe('Bedienpflicht', () => {
-  const order = orderFor({ kind: 'sauspiel', suit: 'gras' });
+  const order = orderFor({ kind: 'sauspiel', suit: 'gras' }, 0);
   const hand: Card[] = ['EO', 'HK', 'EA', 'E7', 'S9'];
 
   it('beim Anspielen ist alles erlaubt', () => {

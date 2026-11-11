@@ -6,7 +6,7 @@ import {
   type HandView,
   type Suit,
   type TableView,
-  CONTRACT_KINDS,
+  BID_ORDER,
   MODES,
   SUITS,
   sameContract,
@@ -97,7 +97,7 @@ function KindChoice({
   available: (k: ContractKind) => boolean;
   onChoose: (k: ContractKind) => void;
 }) {
-  const kinds = CONTRACT_KINDS.filter((k) => view.rules.contracts.includes(k));
+  const kinds = BID_ORDER.filter((k) => view.rules.contracts.includes(k));
   return (
     <fieldset className="ansage__gruppe">
       <legend className="ansage__label">{TABLE_TEXT.bidKind}</legend>

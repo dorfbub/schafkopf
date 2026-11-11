@@ -1,5 +1,11 @@
 /**
- * Abrechnung eines fertig gespielten Spiels.
+ * Abrechnung eines fertig gespielten Spiels, in drei Stufen
+ * (siehe docs/entwurf-sonderspiele.md, §6):
+ *
+ *  1. `Outcome` – wer hat gewonnen, was ist das Spiel wert (ohne Faktoren). Hängt als
+ *     einzige Stufe an der Spielart: `MODES[kind].outcome` oder `partyOutcome`.
+ *  2. `Factor`s – Verdopplungen von außen (Kontra/Re, Bock, Jungfrau; noch keine aktiv).
+ *  3. Zahlungen und Pott – für alle Spielarten dieselbe Formel.
  *
  * Tarif (siehe RuleSet.tariff): Grundtarif + Schneider + Schwarz + Laufende.
  * Tout: (Grundtarif + Laufende) × 2, ohne Schneider/Schwarz. Sie: Grundtarif × 4.
@@ -8,34 +14,74 @@
 
 import { type Card, createDeck } from './cards';
 import type { HandState, Seat } from './hand';
-import { type Contract, MODES } from './modes';
+import { type Contract, MODES, laufendeTrumpsFor } from './modes';
 import type { LaufendeKind } from './rules';
 
-export type HandResult =
-  | {
-      /** Alle haben "weiter" gesagt. */
-      kind: 'passed';
-      payments: number[];
-    }
-  | {
-      kind: 'played';
-      contract: Contract;
-      declarer: Seat;
-      /** Spielerpartei (Ansager, im Sauspiel plus Mitspieler). */
-      party: Seat[];
-      partyPoints: number;
-      partyTricks: number;
-      /** Hat die Spielerpartei gewonnen? */
-      won: boolean;
-      schneider: boolean;
-      schwarz: boolean;
-      laufende: number;
-      sie: boolean;
-      /** Spielwert: Betrag, der zwischen je einem Gegenspieler und der Spielerpartei fließt. */
-      value: number;
-      /** Saldo je Sitz; Summe ist immer 0. */
-      payments: number[];
-    };
+/** Bestandteile des Spielwerts, für die Anzeige (U4). */
+export type ValuePart = 'grundtarif' | 'schneider' | 'schwarz' | 'laufende' | 'tout' | 'sie';
+
+/** Einzelheiten eines Spiels „Spielerpartei gegen Rest“. */
+export interface PartyDetails {
+  type: 'party';
+  contract: Contract;
+  declarer: Seat;
+  /** Spielerpartei (Ansager, im Sauspiel plus Mitspieler). */
+  party: Seat[];
+  partyPoints: number;
+  partyTricks: number;
+  /** Hat die Spielerpartei gewonnen? */
+  won: boolean;
+  schneider: boolean;
+  schwarz: boolean;
+  laufende: number;
+  sie: boolean;
+}
+
+/** Stufe 1 – wer hat gewonnen und was ist das Spiel wert (ohne Faktoren). */
+export interface Outcome {
+  winners: Seat[];
+  losers: Seat[];
+  /**
+   * Spielwert: Jeder auf der größeren Seite zahlt bzw. bekommt diesen Betrag, die kleinere
+   * Seite teilt sich die Gegensumme (2:2 je `value`, 1:3 dreifach für den Einzelnen).
+   */
+  value: number;
+  /** `value` aufgeschlüsselt; die Beträge ergeben zusammen `value`. */
+  parts: { label: ValuePart; amount: number }[];
+  /** Hat die Spielerpartei gewonnen? `null`, wenn es keine gibt (Ramsch). */
+  declarerWon: boolean | null;
+  details: PartyDetails;
+}
+
+/** Stufe 2 – ein Faktor auf den Spielwert. Die Reihenfolge ist egal. */
+export interface Factor {
+  reason: 'kontra' | 're' | 'jungfrau' | 'bock';
+  factor: number;
+}
+
+/** Stufe 3 – Ergebnis eines Spiels mit Zahlungen und Pott. */
+export interface HandResult {
+  /** 'passed' = alle haben „weiter“ gesagt und es wurde nicht gespielt. */
+  kind: 'passed' | 'played';
+  /** `null` bei 'passed'. */
+  outcome: Outcome | null;
+  factors: Factor[];
+  /** Saldo je Sitz. */
+  payments: number[];
+  /** Änderung des Potts (Stock). Immer gilt: Summe(payments) + potDelta = 0. */
+  potDelta: number;
+}
+
+/** Ergebnis ohne Spiel und ohne Zahlungen (Zusammenwerfen). */
+export function passedResult(players: number): HandResult {
+  return {
+    kind: 'passed',
+    outcome: null,
+    factors: [],
+    payments: Array.from({ length: players }, () => 0),
+    potDelta: 0,
+  };
+}
 
 export function partyOf(state: Pick<HandState, 'declarer' | 'partner'>): Seat[] {
   if (state.declarer === null) return [];
@@ -64,7 +110,8 @@ export function countLaufende(
   return count;
 }
 
-export function scoreHand(state: HandState): HandResult {
+/** Stufe 1 für alle Spiele „Spielerpartei gegen Rest“. */
+export function partyOutcome(state: HandState): Outcome {
   const { contract, declarer, rules } = state;
   if (!contract || declarer === null) throw new Error('Abrechnung ohne Ansage');
   const mode = MODES[contract.kind];
@@ -77,7 +124,7 @@ export function scoreHand(state: HandState): HandResult {
   const totalTricks = state.tricks.length;
 
   const deck = createDeck(rules.deck);
-  const trumps = mode.trumps(contract).filter((c) => deck.includes(c));
+  const trumps = laufendeTrumpsFor(contract).filter((c) => deck.includes(c));
   const ober = deck.filter((c) => c.endsWith('O'));
   const unter = deck.filter((c) => c.endsWith('U'));
   const sie =
@@ -90,8 +137,9 @@ export function scoreHand(state: HandState): HandResult {
   let schneider = false;
   let schwarz = false;
   let laufende = 0;
-  const base = mode.alone ? rules.tariff.solo : rules.tariff.sauspiel;
-  let value = base;
+  const base = rules.tariff[mode.tariff];
+  const extra = rules.tariff.extra;
+  let parts: Outcome['parts'] = [{ label: 'grundtarif', amount: base }];
 
   if (mode.goal === 'noTricks') {
     won = partyTricks.length === 0;
@@ -103,43 +151,93 @@ export function scoreHand(state: HandState): HandResult {
     if (sie) {
       won = true;
       laufende = 0;
-      value = base * 4;
+      parts.push({ label: 'sie', amount: base * 3 });
     } else if (contract.tout) {
       won = partyTricks.length === totalTricks;
-      value = (base + laufende * rules.tariff.extra) * 2;
+      if (laufende > 0) parts.push({ label: 'laufende', amount: laufende * extra });
+      const single = parts.reduce((sum, p) => sum + p.amount, 0);
+      parts.push({ label: 'tout', amount: single });
     } else {
       won = partyPoints >= 61;
       const loserTricks = won ? totalTricks - partyTricks.length : partyTricks.length;
       schwarz = loserTricks === 0;
       // Schneider frei: Gegner ab 30 Augen, Spielerpartei ab 31.
       schneider = schwarz || (won ? 120 - partyPoints < 30 : partyPoints < 31);
-      value += (schneider ? 1 : 0) * rules.tariff.extra;
-      value += (schwarz ? 1 : 0) * rules.tariff.extra;
-      value += laufende * rules.tariff.extra;
+      if (schneider) parts.push({ label: 'schneider', amount: extra });
+      if (schwarz) parts.push({ label: 'schwarz', amount: extra });
+      if (laufende > 0) parts.push({ label: 'laufende', amount: laufende * extra });
     }
   }
+  parts = parts.filter((p) => p.amount !== 0 || p.label === 'grundtarif');
 
-  // Jeder Gegenspieler zahlt oder bekommt `value`; die Spielerpartei teilt sich die
-  // Gegensumme (Sauspiel: je `value`, Einzelspiel: dreifach für den Ansager).
-  const sign = won ? 1 : -1;
-  const opponents = players - party.length;
-  const payments = Array.from({ length: players }, (_, s) =>
-    inParty(s) ? (sign * value * opponents) / party.length : -sign * value,
-  );
+  const opponents = Array.from({ length: players }, (_, s) => s).filter((s) => !inParty(s));
+  return {
+    winners: won ? party : opponents,
+    losers: won ? opponents : party,
+    value: parts.reduce((sum, p) => sum + p.amount, 0),
+    parts,
+    declarerWon: won,
+    details: {
+      type: 'party',
+      contract,
+      declarer,
+      party,
+      partyPoints,
+      partyTricks: partyTricks.length,
+      won,
+      schneider,
+      schwarz,
+      laufende,
+      sie,
+    },
+  };
+}
 
+/** Stufe 1: die Auswertung der Spielart, sonst die Partei-Abrechnung. */
+export function outcomeOf(state: HandState): Outcome {
+  if (!state.contract) throw new Error('Abrechnung ohne Ansage');
+  return MODES[state.contract.kind].outcome?.(state) ?? partyOutcome(state);
+}
+
+/** Stufe 2: Faktoren von außen. Heute nur der Übertrag vom Tisch (Bock, K4; sonst 1). */
+export function factorsFor(state: HandState): Factor[] {
+  const factors: Factor[] = [];
+  if (state.carry.factor !== 1) factors.push({ reason: 'bock', factor: state.carry.factor });
+  return factors;
+}
+
+/**
+ * Stufe 3: Zahlungen. Jeder auf der größeren Seite zahlt bzw. bekommt `value × Faktoren`,
+ * die kleinere Seite teilt sich die Gegensumme – bei 2:2, 1:3 und 3:1 dieselbe Formel.
+ * Gewinnt die Spielerpartei, bekommt sie den Pott zu gleichen Teilen.
+ */
+export function settleOutcome(
+  outcome: Outcome,
+  factors: readonly Factor[],
+  players: number,
+  pot: number,
+): Pick<HandResult, 'payments' | 'potDelta'> {
+  const { winners, losers } = outcome;
+  const amount = factors.reduce((v, f) => v * f.factor, outcome.value);
+  const larger = Math.max(winners.length, losers.length);
+  const total = amount * larger;
+  const potWon = outcome.declarerWon === true && pot > 0 ? pot : 0;
+  const payments = Array.from({ length: players }, (_, s) => {
+    if (winners.includes(s)) return (total + potWon) / winners.length;
+    if (losers.includes(s)) return -total / losers.length;
+    return 0;
+  });
+  return { payments, potDelta: potWon > 0 ? -potWon : 0 };
+}
+
+/** Rechnet ein fertig gespieltes Spiel ab: alle drei Stufen. */
+export function scoreHand(state: HandState): HandResult {
+  const outcome = outcomeOf(state);
+  const factors = factorsFor(state);
   return {
     kind: 'played',
-    contract,
-    declarer,
-    party,
-    partyPoints,
-    partyTricks: partyTricks.length,
-    won,
-    schneider,
-    schwarz,
-    laufende,
-    sie,
-    value,
-    payments,
+    outcome,
+    factors,
+    ...settleOutcome(outcome, factors, state.rules.players, state.carry.pot),
   };
 }

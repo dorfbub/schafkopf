@@ -65,7 +65,7 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
     </table>
   );
 
-  if (result.kind === 'passed') {
+  if (result.kind === 'passed' || !result.outcome) {
     return (
       <Dialog className="ergebnis" title={TABLE_TEXT.passedTitle} actions={actions}>
         {table}
@@ -73,24 +73,26 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
     );
   }
 
-  const names = result.party.map(seats.nameOf).join(TABLE_TEXT.and);
+  const { value } = result.outcome;
+  const details = result.outcome.details;
+  const names = details.party.map(seats.nameOf).join(TABLE_TEXT.and);
   const extras = [
-    TABLE_TEXT.extras.tricks(result.partyTricks),
-    result.schwarz ? TABLE_TEXT.extras.schwarz : result.schneider && TABLE_TEXT.extras.schneider,
-    result.sie && TABLE_TEXT.extras.sie,
-    result.laufende > 0 && TABLE_TEXT.extras.laufende(result.laufende),
+    TABLE_TEXT.extras.tricks(details.partyTricks),
+    details.schwarz ? TABLE_TEXT.extras.schwarz : details.schneider && TABLE_TEXT.extras.schneider,
+    details.sie && TABLE_TEXT.extras.sie,
+    details.laufende > 0 && TABLE_TEXT.extras.laufende(details.laufende),
   ].filter(Boolean);
-  const share = Math.round((result.partyPoints / 120) * 100);
+  const share = Math.round((details.partyPoints / 120) * 100);
 
   return (
     <Dialog
-      className={`ergebnis${result.won ? ' ergebnis--gewonnen' : ''}`}
-      title={TABLE_TEXT.resultTitle(names, result.party.length > 1, result.won)}
+      className={`ergebnis${details.won ? ' ergebnis--gewonnen' : ''}`}
+      title={TABLE_TEXT.resultTitle(names, details.party.length > 1, details.won)}
       actions={actions}
     >
-      <p className="ergebnis__spiel">{contractLabel(result.contract)}</p>
+      <p className="ergebnis__spiel">{contractLabel(details.contract)}</p>
       <div className="augen">
-        <span className="augen__zahl">{result.partyPoints}</span>
+        <span className="augen__zahl">{details.partyPoints}</span>
         <span className="augen__wort">{TABLE_TEXT.points}</span>
         <span className="augen__zusatz">{extras.join(' · ')}</span>
       </div>
@@ -99,14 +101,14 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
         role="meter"
         aria-valuemin={0}
         aria-valuemax={120}
-        aria-valuenow={result.partyPoints}
-        aria-label={TABLE_TEXT.pointsOf(result.partyPoints)}
+        aria-valuenow={details.partyPoints}
+        aria-label={TABLE_TEXT.pointsOf(details.partyPoints)}
       >
         <span style={{ width: `${share}%` }} />
       </div>
       <p className="ergebnis__wert">
         <span>{TABLE_TEXT.valuePerPlayer}</span>
-        <span className="num">{money(result.value).replace(/^[+−]/, '')}</span>
+        <span className="num">{money(value).replace(/^[+−]/, '')}</span>
       </p>
       {table}
     </Dialog>

@@ -6,6 +6,7 @@ import {
   type ContractKind,
   type HandState,
   type RuleSet,
+  ALL_PASSED,
   DEFAULT_RULES,
   applyAction,
   createRng,
@@ -100,7 +101,13 @@ describe('Ansage', () => {
   it('alle weiter: Spiel endet ohne Zahlung (zusammenwerfen)', () => {
     const state = callAll(handWith(HANDS), [PASS, PASS, PASS, PASS]);
     expect(state.phase).toBe('finished');
-    expect(state.result).toEqual({ kind: 'passed', payments: [0, 0, 0, 0] });
+    expect(state.result).toEqual({
+      kind: 'passed',
+      outcome: null,
+      factors: [],
+      payments: [0, 0, 0, 0],
+      potDelta: 0,
+    });
   });
 
   it('will nur einer, nennt er gleich sein Spiel – jedes erlaubte', () => {
@@ -333,6 +340,14 @@ describe('Spielablauf', () => {
     });
   });
 
+  it('alle weiter: die Registry ALL_PASSED entscheidet', () => {
+    const state = dealHand(DEFAULT_RULES, 3, 1);
+    expect(ALL_PASSED[DEFAULT_RULES.allPassed](state)).toEqual({
+      type: 'finish',
+      result: { kind: 'passed', outcome: null, factors: [], payments: [0, 0, 0, 0], potDelta: 0 },
+    });
+  });
+
   it('der Zustand wird nie verändert, sondern kopiert', () => {
     const state = bidAll(handWith(HANDS), [GRAS, null, null, null]);
     const frozen = JSON.stringify(state);
@@ -373,7 +388,7 @@ describe('Spielablauf', () => {
         expect(state.tricks).toHaveLength(8);
         expect(state.tricks.reduce((sum, t) => sum + t.points, 0)).toBe(120);
         expect(state.hands.every((h) => h.length === 0)).toBe(true);
-        expect(sameContract(result.contract, state.contract!)).toBe(true);
+        expect(sameContract(result.outcome!.details.contract, state.contract!)).toBe(true);
       }
     }
   });

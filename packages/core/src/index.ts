@@ -4,6 +4,7 @@ export * from './trick';
 export * from './modes';
 export * from './rules';
 export * from './hand';
+export * from './allPassed';
 export * from './scoring';
 export * from './log';
 export * from './table';
