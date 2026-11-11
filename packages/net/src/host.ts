@@ -13,6 +13,7 @@ import {
   type Seat,
   type TableState,
   applyTableAction,
+  canDouble,
   createTable,
   handViewFor,
   isCard,
@@ -52,7 +53,14 @@ export interface HostOptions {
   standInDelayMs?: number;
   /** Uhr für die Restzeit bis zur Vertretung; in Tests ersetzbar. Standard: `Date.now`. */
   now?: () => number;
+  /**
+   * Kontra-Fenster (K4) in Millisekunden: So lange wartet ein Bot mindestens mit der ersten
+   * Karte, solange ein Mensch noch Kontra oder Re sagen darf. Standard 3 s.
+   */
+  kontraWindowMs?: number;
 }
+
+export const DEFAULT_KONTRA_WINDOW_MS = 3_000;
 
 export const DEFAULT_STAND_IN_DELAY_MS = 30_000;
 
@@ -112,6 +120,7 @@ export class HostSession {
   private readonly schedule: (fn: () => void, ms: number) => void;
   private readonly standInDelayMs: number;
   private readonly now: () => number;
+  private readonly kontraWindowMs: number;
   readonly roomId: string | null;
 
   constructor(options: HostOptions) {
@@ -124,6 +133,7 @@ export class HostSession {
     this.schedule = options.schedule ?? ((fn, ms) => void setTimeout(fn, ms));
     this.standInDelayMs = options.standInDelayMs ?? DEFAULT_STAND_IN_DELAY_MS;
     this.now = options.now ?? Date.now;
+    this.kontraWindowMs = options.kontraWindowMs ?? DEFAULT_KONTRA_WINDOW_MS;
   }
 
   /**
@@ -581,6 +591,12 @@ export class HostSession {
     const bot = this.botFor(seat);
     if (!bot) return;
 
+    // Darf ein Mensch noch Kontra oder Re sagen, bekommt er Zeit dafür, bevor die erste Karte
+    // fällt. Ändert sich Kontra/Re in der Zwischenzeit, beginnt die Wartezeit neu (Fenster für Re).
+    const { kontra, re } = hand.doubling;
+    const delay = this.humanMayDouble()
+      ? Math.max(this.botDelayMs, this.kontraWindowMs)
+      : this.botDelayMs;
     this.botPending = true;
     this.schedule(() => {
       this.botPending = false;
@@ -590,6 +606,8 @@ export class HostSession {
         !current ||
         current.phase === 'finished' ||
         current.turn !== seat ||
+        current.doubling.kontra !== kontra ||
+        current.doubling.re !== re ||
         this.botFor(seat) !== bot // Spieler ist zurück und zieht selbst
       ) {
         return this.driveBots();
@@ -609,7 +627,16 @@ export class HostSession {
             : { type: 'play', card: view.legalCards[0]! };
         this.apply(seat, fallback);
       }
-    }, this.botDelayMs);
+    }, delay);
+  }
+
+  /** Darf ein Mensch (kein Bot, keine Vertretung) im laufenden Spiel gerade Kontra oder Re sagen? */
+  private humanMayDouble(): boolean {
+    const hand = this.table.hand;
+    if (!hand) return false;
+    return this.table.seats.some(
+      (player, seat) => player?.kind === 'human' && !this.botFor(seat) && canDouble(hand, seat),
+    );
   }
 }
 
@@ -617,6 +644,7 @@ function isWellFormed(action: unknown): action is PlayerAction {
   if (typeof action !== 'object' || action === null) return false;
   const a = action as { type?: unknown; card?: unknown; call?: unknown };
   if (a.type === 'play') return isCard(a.card);
+  if (a.type === 'double') return true;
   if (a.type === 'bid') return isWellFormedCall(a.call);
   return false;
 }

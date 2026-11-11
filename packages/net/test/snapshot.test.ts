@@ -177,6 +177,28 @@ describe('Speicherstand des Hosts', () => {
           table: { ...table(s), hand: { ...hand(s), carry: { pot: -1, factor: 1 } } },
         }),
       ],
+      [
+        'Re ohne Kontra',
+        (s) => ({
+          ...s,
+          table: { ...table(s), hand: { ...hand(s), doubling: { kontra: null, re: 0 } } },
+        }),
+      ],
+      [
+        'Kontra durch unbekannten Platz',
+        (s) => ({
+          ...s,
+          table: { ...table(s), hand: { ...hand(s), doubling: { kontra: 7, re: null } } },
+        }),
+      ],
+      [
+        'Regel Kontra fehlt (ältere Version)',
+        (s) => {
+          const rules = { ...(table(s).rules as Record<string, unknown>) };
+          delete rules.kontra;
+          return { ...s, table: { ...table(s), rules } };
+        },
+      ],
       ['Geber außerhalb', (s) => ({ ...s, table: { ...table(s), dealer: 9 } })],
       [
         'unbekannte Karte',

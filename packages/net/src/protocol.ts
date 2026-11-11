@@ -11,7 +11,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * 6: Umbau für Sonderspiele (K3a): `HandResult` in Stufen (`outcome`, `factors`, `potDelta`),
  * `TableView.pot`.
  */
-export const PROTOCOL_VERSION = 6;
+/** 7: Kontra und Re (K4): Aktion `double`, `HandView.doubling`/`canDouble`, `RuleSet.kontra`. */
+export const PROTOCOL_VERSION = 7;
 
 export type ClientMessage =
   | {
@@ -35,6 +36,7 @@ export type HostErrorCode =
   | 'not_your_turn'
   | 'illegal_bid'
   | 'illegal_card'
+  | 'illegal_double'
   | 'no_hand'
   | 'seat_taken';
 

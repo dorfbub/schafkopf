@@ -56,6 +56,8 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   { fg: '--color-accent', bg: '--color-paper', use: 'Akzent auf Papier', min: 4.5 },
   { fg: '--color-on-accent', bg: '--color-accent', use: 'Hauptknopf', min: 4.5 },
   { fg: '--color-on-accent', bg: '--color-accent-hover', use: 'Hauptknopf, Hover', min: 4.5 },
+  { fg: '--color-on-accent', bg: '--color-accent', use: 'Marke Kontra/Re', min: 4.5 },
+  { fg: '--color-on-felt', bg: '--color-felt', use: 'Rand Marke Kontra/Re auf Filz', min: 3 },
   { fg: '--color-on-paper', bg: '--color-paper-raised', use: 'Eingabe', min: 4.5 },
   {
     fg: '--color-paper-control',

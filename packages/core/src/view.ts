@@ -10,10 +10,12 @@ import {
   type Bid,
   type BidCall,
   type CompletedTrick,
+  type Doubling,
   type HandPhase,
   type HandState,
   type Seat,
   type Trick,
+  canDouble,
   legalCalls,
   legalCards,
 } from './hand';
@@ -45,6 +47,10 @@ export interface HandView {
   /** Nur gefüllt, wenn man selbst an der Reihe ist. */
   legalCards: Card[];
   legalCalls: BidCall[];
+  /** Kontra und Re (K4) – laut gesagt, für alle sichtbar. */
+  doubling: Doubling;
+  /** Darf man selbst jetzt Kontra bzw. Re sagen? */
+  canDouble: boolean;
   result: HandResult | null;
 }
 
@@ -66,6 +72,7 @@ export interface TableView {
 function partnerVisible(state: HandState, viewer: Seat | null): boolean {
   if (state.partner === null || !state.contract) return false;
   if (state.phase === 'finished' || viewer === state.partner) return true;
+  if (state.doubling.re === state.partner) return true; // mit Re verraten (Annahme 21)
   const parties = MODES[state.contract.kind].parties;
   if (parties === 'prelude') return true; // aus dem Vorspiel bekannt
   if (parties !== 'calledAce') return false;
@@ -99,6 +106,8 @@ export function handViewFor(state: HandState, viewer: Seat | null): HandView {
     ),
     legalCards: viewer === null ? [] : legalCards(state, viewer),
     legalCalls: viewer === null ? [] : legalCalls(state, viewer),
+    doubling: state.doubling,
+    canDouble: viewer === null ? false : canDouble(state, viewer),
     result: state.result,
   };
 }

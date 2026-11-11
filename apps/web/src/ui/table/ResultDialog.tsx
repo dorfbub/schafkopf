@@ -83,6 +83,15 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
     details.laufende > 0 && TABLE_TEXT.extras.laufende(details.laufende),
   ].filter(Boolean);
   const share = Math.round((details.partyPoints / 120) * 100);
+  // Kontra/Re (K4): wer es gesagt hat und der Faktor auf den Spielwert.
+  const doubling = hand.doubling;
+  const said = [
+    doubling.kontra !== null &&
+      TABLE_TEXT.doublingSaid(seats.nameOf(doubling.kontra), TABLE_TEXT.kontra),
+    doubling.re !== null && TABLE_TEXT.doublingSaid(seats.nameOf(doubling.re), TABLE_TEXT.re),
+  ].filter((x): x is string => Boolean(x));
+  const factor = result.factors.reduce((f, x) => f * x.factor, 1);
+  const unsigned = (cents: number) => money(cents).replace(/^[+−]/, '');
 
   return (
     <Dialog
@@ -106,9 +115,21 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
       >
         <span style={{ width: `${share}%` }} />
       </div>
+      {said.length > 0 && (
+        <p className="ergebnis__kontra">
+          <span className="marke marke--kontra">
+            {doubling.re !== null ? TABLE_TEXT.markRe : TABLE_TEXT.markKontra}
+          </span>{' '}
+          {TABLE_TEXT.factorLine(said, factor)}
+        </p>
+      )}
       <p className="ergebnis__wert">
         <span>{TABLE_TEXT.valuePerPlayer}</span>
-        <span className="num">{money(value).replace(/^[+−]/, '')}</span>
+        <span className="num">
+          {factor === 1
+            ? unsigned(value)
+            : `${TABLE_TEXT.valueTimes(unsigned(value), factor)} = ${unsigned(value * factor)}`}
+        </span>
       </p>
       {table}
     </Dialog>

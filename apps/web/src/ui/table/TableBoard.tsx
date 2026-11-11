@@ -18,6 +18,8 @@ export interface TableBoardProps {
   view: TableView;
   onBid: (call: BidCall) => void;
   onPlay: (card: Card) => void;
+  /** Kontra bzw. Re sagen (K4). */
+  onDouble?: () => void;
   /** Nur der Gastgeber gibt das nächste Spiel. */
   onNext: (() => void) | null;
   onLeave: () => void;
@@ -36,6 +38,7 @@ export function TableBoard({
   view,
   onBid,
   onPlay,
+  onDouble = () => {},
   onNext,
   onLeave,
   absent = [],
@@ -134,7 +137,7 @@ export function TableBoard({
           />
         )}
       </div>
-      <OwnSeat view={view} hand={hand} seats={seats} onPlay={play} />
+      <OwnSeat view={view} hand={hand} seats={seats} onPlay={play} onDouble={onDouble} />
     </main>
   );
 }

@@ -198,6 +198,8 @@ describe('Regeln prüfen', () => {
     ['Schwelle fehlt', (r) => delete r.laufende.geier],
     ['Tout kein Wahrheitswert', (r) => (r.allowTout = 1)],
     ['Sie fehlt', (r) => delete r.sie],
+    ['Kontra fehlt', (r) => delete r.kontra],
+    ['Kontra kein Wahrheitswert', (r) => (r.kontra = 'ja')],
   ])('lehnt ab: %s', (_name, mutate) => {
     const raw = ok();
     mutate(raw);

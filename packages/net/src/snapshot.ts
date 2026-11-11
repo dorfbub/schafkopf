@@ -34,7 +34,8 @@ import {
  * 6: Umbau für Sonderspiele (K3a): `TableState.pot`, `HandState.carry`, `HandLog.carry`,
  * `HandResult` in Stufen.
  */
-export const HOST_SNAPSHOT_VERSION = 6;
+/** 7: Kontra und Re (K4): `RuleSet.kontra`, `HandState.doubling`. */
+export const HOST_SNAPSHOT_VERSION = 7;
 
 export interface HostSnapshot {
   v: number;
@@ -129,6 +130,7 @@ function check(raw: unknown): HostSnapshot | null {
     if (!isCardRows(hand.hands, players) || !isCardRows(hand.initialHands, players)) return null;
     if (!Array.isArray(hand.bids) || !Array.isArray(hand.tricks)) return null;
     if (!isCarry(hand.carry)) return null;
+    if (!isDoubling(hand.doubling, last)) return null;
   }
 
   if (
@@ -213,6 +215,14 @@ function checkLogs(
 /** Ist der Wert eine bekannte Regel für „alle weiter“? */
 function isRuleKey(value: unknown): boolean {
   return typeof value === 'string' && Object.hasOwn(ALL_PASSED, value);
+}
+
+/** Kontra und Re: je ein Sitz oder `null`; Re nur nach Kontra. */
+function isDoubling(value: unknown, last: number): boolean {
+  if (!isObj(value)) return false;
+  const { kontra, re } = value;
+  const seatOrNull = (s: unknown) => s === null || isInt(s, 0, last);
+  return seatOrNull(kontra) && seatOrNull(re) && (re === null || kontra !== null);
 }
 
 /** Übertrag vom Tisch: Pott ≥ 0, Faktor ≥ 1. */

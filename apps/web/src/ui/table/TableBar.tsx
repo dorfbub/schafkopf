@@ -42,6 +42,12 @@ export function TableBar({
       <>
         <span className="tisch-leiste__wer">{seats.nameOf(hand.declarer)}</span> {TABLE_TEXT.plays}{' '}
         <b className="tisch-leiste__spiel">{contractLabel(hand.contract)}</b>
+        {hand.doubling.kontra !== null && (
+          <span className="marke marke--kontra tisch-leiste__kontra">{TABLE_TEXT.markKontra}</span>
+        )}
+        {hand.doubling.re !== null && (
+          <span className="marke marke--kontra tisch-leiste__kontra">{TABLE_TEXT.markRe}</span>
+        )}
       </>
     );
   } else if (hand.phase === 'bidding') {
