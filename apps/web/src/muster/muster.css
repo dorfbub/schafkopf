@@ -1,0 +1,224 @@
+/* Musterseite (nur Entwicklung). Nur Variablen aus tokens.css. */
+
+.muster {
+  max-width: calc(var(--content-width) * 2);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-7);
+}
+
+.muster code {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.muster a {
+  color: var(--color-brass);
+}
+
+.muster__head {
+  margin-bottom: var(--space-6);
+}
+
+.muster__section {
+  margin-bottom: var(--space-7);
+}
+
+.muster__section > h2 {
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
+  border-bottom: var(--border-thin) solid var(--color-felt-line);
+}
+
+.muster__group {
+  margin-bottom: var(--space-5);
+}
+
+.muster__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.muster__row--stretch {
+  align-items: stretch;
+}
+
+.muster__row--stretch > * {
+  flex: 1 1 calc(var(--space-7) * 5);
+}
+
+.muster__row > .muster__group {
+  flex: 1 1 calc(var(--space-7) * 5);
+}
+
+.muster__scroll {
+  overflow-x: auto;
+}
+
+.muster__swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-7) * 3), 1fr));
+  gap: var(--space-3);
+}
+
+.swatch {
+  margin: 0;
+}
+
+.swatch__color {
+  display: block;
+  height: var(--space-7);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-felt-line);
+}
+
+.swatch figcaption {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.contrast {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.contrast th,
+.contrast td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: var(--border-thin) solid var(--color-felt-line);
+  text-align: left;
+}
+
+.contrast .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.contrast__sample {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.type-sample {
+  margin-bottom: var(--space-2);
+  line-height: var(--leading-tight);
+}
+
+.type-sample--display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+}
+
+.type-sample code {
+  font-family: var(--font-body);
+}
+
+.w-semibold {
+  font-weight: var(--weight-semibold);
+}
+
+.scale {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.scale__row {
+  display: grid;
+  grid-template-columns: calc(var(--space-7) * 2) 1fr;
+  align-items: center;
+}
+
+.scale__bar {
+  display: block;
+  height: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-brass);
+}
+
+.muster__tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  width: calc(var(--space-7) * 2);
+  height: calc(var(--space-7) * 1.5);
+  background: var(--color-paper);
+}
+
+.tile code {
+  color: var(--color-on-paper-muted);
+}
+
+.muster__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--space-7) * 5), 1fr));
+  gap: var(--space-4) var(--space-5);
+}
+
+/* Filz-Bühne mit Holzrand, wie die Tischplatte */
+.muster__felt {
+  position: relative;
+  margin: var(--rim-width) var(--rim-width) var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--color-felt-light) 0%, transparent 65%),
+    linear-gradient(var(--color-felt), var(--color-felt-deep));
+  box-shadow: var(--shadow-rim), var(--shadow-felt-inset);
+  color: var(--color-on-felt);
+}
+
+.muster__felt--dialog {
+  display: grid;
+  place-items: center;
+  padding: var(--space-6) var(--space-3);
+}
+
+.muster__seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-7) * 2.5), 1fr));
+  gap: var(--space-6) var(--space-4);
+  justify-items: center;
+}
+
+.muster__seats .player-seat {
+  max-width: none;
+}
+
+.muster__cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  justify-content: center;
+}
+
+.muster__cards figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.muster__hand {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--space-3) var(--space-5);
+}
+
+/* Hand als Fächer: Karten überlappen um ein Viertel */
+.muster__hand .card + .card {
+  margin-left: calc(var(--card-w) * -0.25);
+}

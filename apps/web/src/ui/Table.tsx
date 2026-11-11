@@ -106,7 +106,7 @@ export function Table({ view, client, host, onLeave }: Props) {
                 key={card}
                 className={`trick__card trick__card--${position(seat)}${won ? ' trick__card--won' : ''}`}
               >
-                <CardView card={card} />
+                <CardView card={card} state={won ? 'won' : undefined} />
               </div>
             );
           })}
@@ -145,7 +145,7 @@ export function Table({ view, client, host, onLeave }: Props) {
               <CardView
                 key={card}
                 card={card}
-                dimmed={hand.phase === 'playing' && myTurn && !legal}
+                state={hand.phase === 'playing' && myTurn && !legal ? 'locked' : undefined}
                 onPlay={legal ? () => client.play(card) : undefined}
               />
             );

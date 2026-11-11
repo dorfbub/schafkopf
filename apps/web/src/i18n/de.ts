@@ -53,3 +53,11 @@ export function money(cents: number): string {
   const sign = cents > 0 ? '+' : cents < 0 ? '−' : '';
   return `${sign}${(Math.abs(cents) / 100).toFixed(2).replace('.', ',')} €`;
 }
+
+/** Texte der Grundbausteine (src/ui/kit). */
+export const UI_TEXT = {
+  seatTurn: 'am Zug',
+  seatDealer: 'Geber',
+  seatDealerShort: 'G',
+  seatDisconnected: 'getrennt',
+};
