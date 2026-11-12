@@ -415,7 +415,7 @@ Codes offline durchprobieren, bei 49 Bit ist das unpraktisch.
 **Was er nicht schützt:** Der Code ist ein Geheimnis, das man weitergibt. Wer ihn hat (Link in
 einem Gruppenchat, Bildschirmfoto, Browserverlauf), sitzt ohne Rückfrage am Tisch, und die
 Beitrittsanfragen (SDP) sind nicht mit dem Code verschlüsselt. Der Host prüft Nachrichten, aber
-nicht, *wer* beitritt. Abhilfe wäre die Bestätigung neuer Mitspieler (Paket N6).
+nicht, _wer_ beitritt. Abhilfe wäre die Bestätigung neuer Mitspieler (Paket N6).
 Der Broadcast-Transport (nur E2E und Tests) hat keinerlei Schutz.
 
 ## Bekannte Grenzen des Grundgerüsts
