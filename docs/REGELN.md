@@ -281,7 +281,10 @@ vorgeschlagen. **Von Lukas am 11.11.2026 bestätigt** – sie gelten damit als f
 12. **Stock, Einsatz:** eigener Tarifwert, Standard gleich dem Sauspiel-Tarif. Kontra/Re
     verdoppeln den Pott nicht.
 13. **Stock am Ende des Abends:** Ein stehengebliebener Pott wird in der Endabrechnung zu gleichen
-    Teilen zurückgezahlt.
+    Teilen zurückgezahlt. Geht er nicht in ganzen Cent auf, bekommen die übrigen Cent die Spieler
+    mit dem niedrigsten Stand (je einer, bei Gleichstand der niedrigere Sitz). Danach gleichen
+    möglichst wenige Überweisungen die Stände aus (`settleUp`); die Überweisungen sind ein
+    Vorschlag – bezahlt wird außerhalb der App.
 14. **Muss:** keine Sonderabrechnung (kein „gewonnen mit 60“, kein doppelter Tarif). Wer den
     Eichel-Ober hat, wird dadurch bekannt.
 15. **Hochzeit, Tausch:** Der Annehmende wählt die Karte, die er zurückgibt, selbst; hat er nur

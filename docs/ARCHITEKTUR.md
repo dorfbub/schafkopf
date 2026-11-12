@@ -24,22 +24,23 @@ Abhängigkeiten zeigen nur in Pfeilrichtung. `core` hängt von nichts ab.
 
 ### packages/core – Spielregeln
 
-| Datei          | Inhalt                                                                                                                        |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `cards.ts`     | Karten als Strings (`"EA"`, `"HO"`), Augen, Blatt (lang/kurz)                                                                 |
-| `log.ts`       | Spielprotokoll `HandLog` (mit `carry`), `replay`, `HandSummary`                                                               |
-| `rng.ts`       | Seed-basierter Zufall und Mischen                                                                                             |
-| `trick.ts`     | Bedienpflicht und Stichgewinner – allgemein, über eine `CardOrder`                                                            |
-| `modes.ts`     | Spielarten als `ModeDefinition` (Parteien, Tarifklasse, Trümpfe je Stich, Hooks); `BID_ORDER` als einzige Quelle für den Rang |
-| `rules.ts`     | `RuleSet`: alles, was am Tisch einstellbar ist (Blatt, Spielarten, Tarif, „alle weiter“, …)                                   |
-| `hand.ts`      | Ein Spiel: `dealHand` (mit `HandCarry`), `applyAction`, `legalCards`, `legalContracts`                                        |
-| `allPassed.ts` | Registry `ALL_PASSED`: was bei „alle weiter“ geschieht, je `RuleSet.allPassed`                                                |
-| `prelude.ts`   | Vorspiel-Hook: `PreludeDefinition`, `PreludeState`, `weddingPrelude(n)` für die Hochzeit                                      |
-| `ramsch.ts`    | `ramschOutcome`: Stufe 1 der Abrechnung im Ramsch (Verlierer nach Augen, Gleichstand, Durchmarsch, Jungfrauen)                |
-| `scoring.ts`   | Abrechnung in drei Stufen: `Outcome` (Spielart), `Factor`s, Zahlungen und Pott (`HandResult`)                                 |
-| `table.ts`     | Der Tisch: Plätze, Kontostände, Pott, Geberwechsel; `settle` als einzige Stelle, an der ein Ergebnis auf den Tisch wirkt      |
-| `view.ts`      | Sichten je Spieler (`HandView`, `TableView`)                                                                                  |
-| `bot.ts`       | Schnittstelle `Bot`                                                                                                           |
+| Datei           | Inhalt                                                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cards.ts`      | Karten als Strings (`"EA"`, `"HO"`), Augen, Blatt (lang/kurz)                                                                                   |
+| `log.ts`        | Spielprotokoll `HandLog` (mit `carry`), `replay`, `HandSummary`                                                                                 |
+| `rng.ts`        | Seed-basierter Zufall und Mischen                                                                                                               |
+| `trick.ts`      | Bedienpflicht und Stichgewinner – allgemein, über eine `CardOrder`                                                                              |
+| `modes.ts`      | Spielarten als `ModeDefinition` (Parteien, Tarifklasse, Trümpfe je Stich, Hooks); `BID_ORDER` als einzige Quelle für den Rang                   |
+| `rules.ts`      | `RuleSet`: alles, was am Tisch einstellbar ist (Blatt, Spielarten, Tarif, „alle weiter“, …)                                                     |
+| `hand.ts`       | Ein Spiel: `dealHand` (mit `HandCarry`), `applyAction`, `legalCards`, `legalContracts`                                                          |
+| `allPassed.ts`  | Registry `ALL_PASSED`: was bei „alle weiter“ geschieht, je `RuleSet.allPassed`                                                                  |
+| `prelude.ts`    | Vorspiel-Hook: `PreludeDefinition`, `PreludeState`, `weddingPrelude(n)` für die Hochzeit                                                        |
+| `ramsch.ts`     | `ramschOutcome`: Stufe 1 der Abrechnung im Ramsch (Verlierer nach Augen, Gleichstand, Durchmarsch, Jungfrauen)                                  |
+| `scoring.ts`    | Abrechnung in drei Stufen: `Outcome` (Spielart), `Factor`s, Zahlungen und Pott (`HandResult`)                                                   |
+| `table.ts`      | Der Tisch: Plätze, Kontostände, Pott, Geberwechsel; `settle` als einzige Stelle, an der ein Ergebnis auf den Tisch wirkt                        |
+| `settlement.ts` | Abrechnung über Spiele hinweg: `breakdownOf` (Aufschlüsselung), `ledgerOf` (Tabelle des Abends), `settleUp` (Pott zurück, wenige Überweisungen) |
+| `view.ts`       | Sichten je Spieler (`HandView`, `TableView`)                                                                                                    |
+| `bot.ts`        | Schnittstelle `Bot`                                                                                                                             |
 
 Zentrale Signatur:
 
@@ -280,7 +281,9 @@ Bot-Vertretung (N3) – und vergleichen.
   Ansage, Spieler, Augen, Ergebnis, Zahlungen). Die Zusammenfassungen bleiben dauerhaft.
 - **Beim Host:** Protokolle enthalten über den Seed alle Karten und verlassen den Host nie.
   `TableView.history` trägt nur die Zusammenfassungen _fertiger_ Spiele – ohne Karten, für alle
-  Plätze gleich. Daraus baut U4 die Verlaufstabelle.
+  Plätze gleich. Daraus baut `ledgerOf` (`settlement.ts`) die Tabelle des Abends mit laufendem
+  Stand; `settleUp` rechnet die Endabrechnung. Beides sind reine Funktionen auf `TableView`-Daten
+  (Dialog „Der Abend“, `EveningDialog.tsx`).
 - **Spielverlauf eines Spiels:** `HandView.tricks` trägt nach Spielende alle Stiche (Ausspieler,
   Karten in Reihenfolge, Gewinner, Augen) an alle Plätze und Zuschauer, während des Spiels ist es
   `null` (Protokoll 7). Die gespielten Karten waren ohnehin offen; ältere Stiche als der letzte

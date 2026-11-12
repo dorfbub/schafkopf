@@ -1062,6 +1062,7 @@
       'titel tabelle'
       'augen tabelle'
       'kontra tabelle'
+      'wert tabelle'
       'verlauf verlauf'
       'knoepfe knoepfe';
     align-content: start;
@@ -1498,4 +1499,221 @@
 
 .tisch-leiste__kontra + .tisch-leiste__kontra {
   margin-left: var(--space-1);
+}
+
+/* ---------- Aufschlüsselung im Ergebnis (U4) ---------- */
+
+.aufschluesselung {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-1) 0 0;
+  border-top: var(--border-thin) solid var(--color-paper-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.aufschluesselung__zeile {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 2px 0;
+  font-size: var(--text-sm);
+}
+
+.aufschluesselung dt,
+.aufschluesselung dd {
+  margin: 0;
+}
+
+.aufschluesselung__summe {
+  border-top: var(--border-thin) solid var(--color-paper-line);
+  font-weight: var(--weight-semibold);
+}
+
+.aufschluesselung__faktor {
+  color: var(--color-accent);
+}
+
+.aufschluesselung__ergebnis {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: var(--border-thin) solid var(--color-paper-line);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------- Tabelle des Abends und Endabrechnung (U4) ---------- */
+
+.abend {
+  width: min(calc(var(--dialog-width) * 1.5), 94cqw);
+  max-height: 92cqh;
+  overflow-y: auto;
+}
+
+.abend__leer,
+.abrechnung__leer {
+  margin: var(--space-2) 0;
+  color: var(--color-on-paper-muted);
+}
+
+.abend__rolle {
+  overflow-x: auto;
+  margin-top: var(--space-2);
+}
+
+.abend__tabelle {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.abend__tabelle th,
+.abend__tabelle td {
+  padding: var(--space-1);
+  border-bottom: var(--border-thin) solid var(--color-paper-line);
+  text-align: right;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.abend__tabelle thead th {
+  max-width: 4.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-on-paper-muted);
+}
+
+th.abend__nr,
+.abend__tabelle thead th:nth-child(2),
+.abend__tabelle .abend__spiel {
+  text-align: left;
+}
+
+.abend__tabelle .abend__nr {
+  padding-left: 0;
+  font-weight: var(--weight-regular);
+  color: var(--color-on-paper-muted);
+}
+
+.abend__tabelle .abend__spiel {
+  min-width: 5.5rem;
+  white-space: normal;
+}
+
+.abend__ausgang {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-on-paper-muted);
+}
+
+.abend__ausgang--won {
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+}
+
+.abend__stand {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-on-paper-muted);
+}
+
+.abend__stand .text-negative {
+  color: inherit;
+}
+
+.abend__tabelle .ist-du {
+  font-weight: var(--weight-bold);
+}
+
+.abend__tabelle tfoot th,
+.abend__tabelle tfoot td {
+  border-bottom: 0;
+  border-top: var(--border-thick, 2px) solid var(--color-paper-line);
+  font-weight: var(--weight-bold);
+}
+
+.abrechnung {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: var(--border-thin) solid var(--color-paper-line);
+}
+
+.abrechnung__titel {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+}
+
+.abrechnung__pott {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-on-paper-muted);
+}
+
+.abrechnung__liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.abrechnung__liste li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  border-bottom: var(--border-thin) solid var(--color-paper-line);
+}
+
+.abrechnung__liste .ist-du {
+  font-weight: var(--weight-bold);
+}
+
+.abend .dialog__actions {
+  justify-content: space-between;
+}
+
+/* Niedrig (Handy quer): Aufschlüsselung kompakt links neben der Tabelle. */
+@container tisch (max-height: 18rem) {
+  .ergebnis .aufschluesselung {
+    grid-area: wert;
+    align-self: start;
+    margin-top: var(--space-1);
+  }
+
+  .ergebnis .aufschluesselung__zeile {
+    font-size: var(--text-xs);
+  }
+}
+
+/* Schmal (Handy hochkant): Tabelle des Abends enger, damit alle vier Spalten passen. */
+@container tisch (max-width: 26rem) {
+  .abend__tabelle {
+    font-size: var(--text-xs);
+  }
+
+  .abend__tabelle th,
+  .abend__tabelle td {
+    padding-inline: 2px;
+  }
+
+  .abend__tabelle .abend__stand {
+    font-size: 0.7rem;
+  }
+
+  .abend__tabelle .abend__spiel {
+    min-width: 3.2rem;
+  }
+
+  /* Ein Stück in den Innenabstand des Dialogs hinein, damit nichts abgeschnitten wird. */
+  .abend__rolle {
+    margin-inline: calc(var(--space-2) * -1);
+  }
+
+  .abend__tabelle thead th {
+    max-width: 3.6rem;
+  }
 }

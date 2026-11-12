@@ -10,6 +10,7 @@ interface Props {
   seats: SeatInfo;
   rulesOpen: boolean;
   onRules: () => void;
+  onEvening: () => void;
   onLeave: () => void;
 }
 
@@ -17,7 +18,7 @@ interface Props {
  * Leiste über dem Tisch: Spielnummer, was gespielt wird, Regeln, Verlassen. Der letzte Stich
  * liegt seit dem Spielabend als Stapel auf dem Filz (`LastTrickPile`).
  */
-export function TableBar({ view, hand, seats, rulesOpen, onRules, onLeave }: Props) {
+export function TableBar({ view, hand, seats, rulesOpen, onRules, onEvening, onLeave }: Props) {
   // Noch nicht gelegte Karten plus die im laufenden Stich ergeben die offenen Stiche.
   const cardsLeft = hand.handSizes.reduce((a, b) => a + b, 0) + hand.currentTrick.cards.length;
   const tricksDone = hand.tricksWon.reduce((a, b) => a + b, 0);
@@ -87,6 +88,9 @@ export function TableBar({ view, hand, seats, rulesOpen, onRules, onLeave }: Pro
       <div className="tisch-leiste__knoepfe">
         <Button variant="secondary" size="small" aria-expanded={rulesOpen} onClick={onRules}>
           {RULES_TEXT.info}
+        </Button>
+        <Button variant="secondary" size="small" onClick={onEvening}>
+          {TABLE_TEXT.evening}
         </Button>
         <Button variant="secondary" size="small" onClick={onLeave}>
           {TABLE_TEXT.leave}

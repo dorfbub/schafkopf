@@ -316,6 +316,26 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
   bei „Bewegung reduzieren“); der Dialog scrollt, die Knöpfe bleiben unten stehen (`sticky`).
   Quer steht er über die ganze Breite unter Ergebnis und Tabelle; dort ist nur etwa ein Stich auf
   einmal zu sehen.
+- **Abrechnung und Abend** (U4; Lukas soll noch bestätigen):
+  - _Aufschlüsselung_ (`Breakdown.tsx`) im Ergebnis-Dialog und im Ramsch: eine Liste auf Papier
+    unter den Augen – je Bestandteil eine Zeile (Grundtarif, Schneider, Schwarz, Laufende, Tout,
+    Sie; Beträge tabellarisch rechts), dann „Spielwert“ als Summe (fett, Linie darüber), die
+    Faktoren (Kontra, Re, Jungfrau, Bock) in Akzentfarbe als „× 2“, zuletzt „je Gegenspieler“
+    bzw. „je Mitspieler“ fett. Der Pott steht darunter wie bisher (`PotNote`). Quer nur
+    kompakt (`--text-xs`) links neben der Tabelle.
+  - _Tabelle_: Knopf „Tabelle“ in der Leiste neben „Regeln“ und „Verlassen“ öffnet den Dialog
+    „Der Abend“ (`EveningDialog.tsx`, Klasse `abend`, bis 1,5-fache Dialogbreite). Je Spiel eine
+    Zeile: Nr., wer was gespielt hat mit „gewonnen“/„verloren“ als Wort (Akzentfarbe nur für
+    gewonnen), je Spieler der Betrag und klein darunter der Stand danach; Fußzeile mit dem
+    Stand. Wer man selbst ist, steht fett. Hochkant ist die Schrift klein und die Spalte „Spiel“
+    schmal, damit alle vier Spieler passen; reicht es nicht, rollt die Tabelle waagerecht (der
+    Dialog nicht). Der Ergebnis-Dialog weicht der Tabelle, solange sie offen ist.
+  - _Endabrechnung_: unter der Tabelle „Wer zahlt wem“ als Liste („Sepp zahlt Hanni – 3,20 €“),
+    eigene Zeilen fett; steht ein Pott, erklärt eine Zeile die Rückzahlung. „Verlassen“ öffnet
+    den Dialog zuerst als „Abrechnung vor dem Gehen“ mit „Zurück zum Tisch“ und „Tisch
+    verlassen“ (Hauptknopf); ohne gespielte Spiele geht es sofort. Escape schließt.
+  - Bilder: `bilder/u4-ergebnis-*.png`, `u4-abend-*.png`, `u4-verlassen-*.png` (hochkant,
+    quer, Desktop).
 - **Letzter Stich** (Punkt vom Spielabend: der Knopf oben rechts wurde übersehen; Lukas soll noch
   bestätigen): liegt als kleiner **Stapel unten rechts auf dem Filz** (`LastTrickPile.tsx`), sobald
   der erste Stich fertig ist – die vier Karten leicht gefächert (`--trick-card-w` × 0,55), die
