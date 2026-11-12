@@ -2,6 +2,7 @@ import type { BidCall, Card, PreludeMove, Seat, TableView } from '@schafkopf/cor
 import type { AbsentSeatInfo } from '@schafkopf/net';
 import { useCallback, useState } from 'react';
 import { TABLE_TEXT } from '../../i18n/de';
+import { CardThemeContext, cardTheme } from '../cardTheme';
 import { Button, Dialog } from '../kit';
 import { BidDialog } from './BidDialog';
 import { EveningDialog } from './EveningDialog';
@@ -82,102 +83,105 @@ export function TableBoard({
     onPlay(card);
   };
 
+  const theme = cardTheme(view.rules.cardSet);
   return (
-    <main className={`tisch tisch--${hand.phase}`}>
-      <TableBar
-        view={view}
-        hand={hand}
-        seats={seats}
-        rulesOpen={rulesOpen}
-        onRules={() => setRulesOpen((open) => !open)}
-        onEvening={() => setEvening((open) => (open === 'show' ? null : 'show'))}
-        // Mit gespielten Spielen erst die Abrechnung zeigen.
-        onLeave={() => (view.history.length > 0 ? setEvening('leave') : onLeave())}
-      />
-      <div className="tisch__raum">
-        <div className="tisch__platte" aria-hidden="true" />
-        <Seats view={view} hand={hand} seats={seats} absent={absent} hostActions={hostActions} />
-        <TrickArea
-          trick={shown.trick}
-          completed={shown.completed}
-          sweeping={shown.sweeping}
+    <CardThemeContext value={theme}>
+      <main className={`tisch tisch--${hand.phase}`} data-kartenbild={theme.id}>
+        <TableBar
+          view={view}
+          hand={hand}
           seats={seats}
+          rulesOpen={rulesOpen}
+          onRules={() => setRulesOpen((open) => !open)}
+          onEvening={() => setEvening((open) => (open === 'show' ? null : 'show'))}
+          // Mit gespielten Spielen erst die Abrechnung zeigen.
+          onLeave={() => (view.history.length > 0 ? setEvening('leave') : onLeave())}
         />
-        {/* Bleibt auch liegen, während der fertige Stich noch in der Mitte liegt – sonst ginge
+        <div className="tisch__raum">
+          <div className="tisch__platte" aria-hidden="true" />
+          <Seats view={view} hand={hand} seats={seats} absent={absent} hostActions={hostActions} />
+          <TrickArea
+            trick={shown.trick}
+            completed={shown.completed}
+            sweeping={shown.sweeping}
+            seats={seats}
+          />
+          {/* Bleibt auch liegen, während der fertige Stich noch in der Mitte liegt – sonst ginge
             der Fokus verloren, wenn man gerade auf dem Stapel steht. */}
-        {hand.lastTrick && (
-          <LastTrickPile
-            trick={hand.lastTrick}
-            seats={seats}
-            open={lastOpen}
-            onToggle={() => setLastOpen((open) => !open)}
-          />
-        )}
-        {/* Trainer (nur allein gegen Bots): liegt über dem Filz und verschiebt nichts. */}
-        <TutorCorner hand={hand} seats={seats} />
-        {hand.phase === 'bidding' && myTurn && (
-          <BidDialog
-            key={`${view.handNo}-${hand.bids.length}`}
-            view={view}
-            hand={hand}
-            seats={seats}
-            onBid={onBid}
-          />
-        )}
-        {hand.phase === 'prelude' && myTurn && (
-          <PreludeDialog
-            key={`${view.handNo}-${hand.prelude?.step}`}
-            view={view}
-            hand={hand}
-            seats={seats}
-            onMove={onPrelude}
-          />
-        )}
-        {showResult && (
-          <ResultDialog
-            view={view}
-            hand={hand}
-            seats={seats}
-            onNext={onNext}
-            onLastTrick={toggleLast}
-          />
-        )}
-        {lastOpen && hand.lastTrick && (
-          <LastTrickDialog trick={hand.lastTrick} seats={seats} onClose={closeLast} />
-        )}
-        {evening !== null && (
-          <EveningDialog
-            view={view}
-            seats={seats}
-            leaving={evening === 'leave'}
-            onClose={closeEvening}
-            onLeave={onLeave}
-          />
-        )}
-        {rulesOpen && <RulesDialog rules={view.rules} onClose={closeRules} />}
-        {removingSeat !== null && onReplaceWithBot && (
-          <Dialog
-            title={TABLE_TEXT.absentRemoveTitle(seats.nameOf(removingSeat))}
-            hint={TABLE_TEXT.absentRemoveHint(seats.nameOf(removingSeat))}
-            actions={
-              <>
-                <Button variant="secondary" onClick={() => setRemoving(null)}>
-                  {TABLE_TEXT.absentRemoveCancel}
-                </Button>
-                <Button
-                  onClick={() => {
-                    onReplaceWithBot(removingSeat);
-                    setRemoving(null);
-                  }}
-                >
-                  {TABLE_TEXT.absentRemoveConfirm}
-                </Button>
-              </>
-            }
-          />
-        )}
-      </div>
-      <OwnSeat view={view} hand={hand} seats={seats} onPlay={play} onDouble={onDouble} />
-    </main>
+          {hand.lastTrick && (
+            <LastTrickPile
+              trick={hand.lastTrick}
+              seats={seats}
+              open={lastOpen}
+              onToggle={() => setLastOpen((open) => !open)}
+            />
+          )}
+          {/* Trainer (nur allein gegen Bots): liegt über dem Filz und verschiebt nichts. */}
+          <TutorCorner hand={hand} seats={seats} />
+          {hand.phase === 'bidding' && myTurn && (
+            <BidDialog
+              key={`${view.handNo}-${hand.bids.length}`}
+              view={view}
+              hand={hand}
+              seats={seats}
+              onBid={onBid}
+            />
+          )}
+          {hand.phase === 'prelude' && myTurn && (
+            <PreludeDialog
+              key={`${view.handNo}-${hand.prelude?.step}`}
+              view={view}
+              hand={hand}
+              seats={seats}
+              onMove={onPrelude}
+            />
+          )}
+          {showResult && (
+            <ResultDialog
+              view={view}
+              hand={hand}
+              seats={seats}
+              onNext={onNext}
+              onLastTrick={toggleLast}
+            />
+          )}
+          {lastOpen && hand.lastTrick && (
+            <LastTrickDialog trick={hand.lastTrick} seats={seats} onClose={closeLast} />
+          )}
+          {evening !== null && (
+            <EveningDialog
+              view={view}
+              seats={seats}
+              leaving={evening === 'leave'}
+              onClose={closeEvening}
+              onLeave={onLeave}
+            />
+          )}
+          {rulesOpen && <RulesDialog rules={view.rules} onClose={closeRules} />}
+          {removingSeat !== null && onReplaceWithBot && (
+            <Dialog
+              title={TABLE_TEXT.absentRemoveTitle(seats.nameOf(removingSeat))}
+              hint={TABLE_TEXT.absentRemoveHint(seats.nameOf(removingSeat))}
+              actions={
+                <>
+                  <Button variant="secondary" onClick={() => setRemoving(null)}>
+                    {TABLE_TEXT.absentRemoveCancel}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      onReplaceWithBot(removingSeat);
+                      setRemoving(null);
+                    }}
+                  >
+                    {TABLE_TEXT.absentRemoveConfirm}
+                  </Button>
+                </>
+              }
+            />
+          )}
+        </div>
+        <OwnSeat view={view} hand={hand} seats={seats} onPlay={play} onDouble={onDouble} />
+      </main>
+    </CardThemeContext>
   );
 }

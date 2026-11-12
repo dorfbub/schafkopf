@@ -3,6 +3,7 @@ import { createRandomBot } from '@schafkopf/bots';
 import {
   ClientSession,
   HostSession,
+  PROTOCOL_VERSION,
   type ClientMessage,
   type HostMessage,
   createLoopbackPair,
@@ -220,7 +221,7 @@ describe('Neue Mitspieler bestätigen', () => {
     const { host } = tableWithAnna();
     const bene = join(host, 'Bene', 'id-bene');
     bene.got.length = 0;
-    sendRaw(bene.client, { t: 'hello', v: 18, clientId: OWNER, name: 'Anna' });
+    sendRaw(bene.client, { t: 'hello', v: PROTOCOL_VERSION, clientId: OWNER, name: 'Anna' });
     expect(bene.got).toEqual([{ t: 'error', code: 'bad_message' }]);
     expect(host.getJoinRequests()).toHaveLength(1);
   });

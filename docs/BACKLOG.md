@@ -30,6 +30,9 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 Beim Eröffnen des Tisches das Blatt wählen: bayerisch, Salzburger, ggf. weitere (fränkisch,
 württembergisch, französisch).
 
+**In Arbeit als U9** ([ARBEITSPAKETE.md](ARBEITSPAKETE.md)): Grundlage und Salzburger Entwurf
+stehen, Haltepunkt bei Lukas.
+
 - **Passt zur Architektur:** Kartenbilder laufen über `CardTheme` (`apps/web/src/ui/cardTheme.tsx`).
   Ein neues Set ist ein weiteres Theme; die Regeln merken davon nichts.
 - **Zu entscheiden:** Wählt der Gastgeber das Set für alle (dann gehört die Wahl in den

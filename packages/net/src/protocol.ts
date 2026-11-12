@@ -32,7 +32,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * 18: Neue Mitspieler bestätigen (N6): Nachrichten `waiting` und `rejected`, Fehler `not_admitted`,
  * `LobbyInfo.requireApproval`.
  */
-export const PROTOCOL_VERSION = 18;
+/** 19: Mehrere Kartensets (U9): `RuleSet.cardSet`. */
+export const PROTOCOL_VERSION = 19;
 
 export type ClientMessage =
   | {

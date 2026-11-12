@@ -22,7 +22,7 @@ import {
   contractLabel,
   levelLabel,
 } from '../../i18n/de';
-import { bayerischTheme } from '../cardTheme';
+import { useCardTheme } from '../cardTheme';
 import { useTutor } from '../../tutor/context';
 import { Button, Dialog } from '../kit';
 import type { SeatInfo } from './layout';
@@ -148,6 +148,7 @@ function SuitChoice({
   onChoose: (s: Suit) => void;
   tip?: Suit | null;
 }) {
+  const theme = useCardTheme();
   return (
     <fieldset className="ansage__gruppe">
       <legend className="ansage__label">{legend}</legend>
@@ -161,7 +162,7 @@ function SuitChoice({
             tip={tip === s}
           >
             <span className="wahl__zeichen" aria-hidden="true">
-              {bayerischTheme.suit(s)}
+              {theme.suit(s)}
             </span>
             {SUIT_NAME[s]}
           </Choice>

@@ -395,3 +395,11 @@
   top: calc(var(--card-w) * -5 / 115);
   pointer-events: none;
 }
+
+/* Fremdes Kartenbild ohne Rand (Kartensets, U9): füllt die Karte, schneidet notfalls ab. */
+.face-img--cover {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -10,7 +10,7 @@ import {
   tricksPlayed,
 } from '@schafkopf/core';
 import { KIND_NAME, SUIT_NAME, TABLE_TEXT, contractLabel } from '../../i18n/de';
-import { bayerischTheme } from '../cardTheme';
+import { useCardTheme } from '../cardTheme';
 
 /** Zeichen auf dem Schild: Farbzeichen (Rufsau bzw. Trumpf) oder Eckbuchstabe (Wenz, Geier). */
 export type SignSymbol = { suit: Suit } | { letter: string } | null;
@@ -75,10 +75,11 @@ export function gameSign(hand: HandView): GameSignInfo | null {
 
 /** Das Zeichen allein, z. B. für das Schild oder den Spielverlauf. */
 export function SignMark({ symbol }: { symbol: SignSymbol }) {
+  const theme = useCardTheme();
   if (!symbol) return null;
   return (
     <span className="spielschild__zeichen" aria-hidden="true">
-      {'suit' in symbol ? bayerischTheme.suit(symbol.suit) : symbol.letter}
+      {'suit' in symbol ? theme.suit(symbol.suit) : symbol.letter}
     </span>
   );
 }

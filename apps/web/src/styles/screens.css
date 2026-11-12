@@ -775,6 +775,30 @@
   font-weight: var(--weight-semibold);
 }
 
+/* Kartenbild (U9): Wahl mit kleiner Vorschau */
+.kartenbild {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.kartenbild__wahl {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.kartenbild__wahl > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.kartenbild__vorschau {
+  --card-w: var(--card-w-preview);
+  display: flex;
+  gap: var(--space-1);
+}
+
 .regeln-einstellung__zahl {
   display: grid;
   gap: var(--space-1);

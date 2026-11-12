@@ -2,7 +2,7 @@ import type { Card, HandView, PreludeMove, TableView } from '@schafkopf/core';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { KIND_NAME, TABLE_TEXT, preludeMoveLabel } from '../../i18n/de';
 import { cardLabel } from '../CardView';
-import { bayerischTheme } from '../cardTheme';
+import { useCardTheme } from '../cardTheme';
 import { Button, Dialog } from '../kit';
 import { type SeatInfo, sortHand } from './layout';
 
@@ -92,6 +92,7 @@ function ExchangeStep({
   declarer: string;
   onMove: (move: PreludeMove) => void;
 }) {
+  const theme = useCardTheme();
   const gives = hand.legalMoves.flatMap((m) => (m.type === 'give' ? [m.cards] : []));
   const count = gives[0]?.length ?? 1;
   const allowed = new Set(gives.flat());
@@ -131,7 +132,7 @@ function ExchangeStep({
               disabled={!usable}
               onClick={() => toggle(card)}
             >
-              {bayerischTheme.face(card)}
+              {theme.face(card)}
             </button>
           );
         })}

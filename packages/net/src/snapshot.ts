@@ -47,7 +47,8 @@ import {
 /** 15: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Tische mit drei Plätzen. */
 /** 16: Spielstärken (B2): `RuleSet.botStrength`. */
 /** 17: Neue Mitspieler bestätigen (N6): `requireApproval`, `known`. */
-export const HOST_SNAPSHOT_VERSION = 17;
+/** 18: Mehrere Kartensets (U9): `RuleSet.cardSet`. */
+export const HOST_SNAPSHOT_VERSION = 18;
 
 export interface HostSnapshot {
   v: number;

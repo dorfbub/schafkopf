@@ -23,7 +23,7 @@ import { TableBoard } from '../ui/table/TableBoard';
  * dich), nennen (du nennst dein Spiel, mindestens Wenz), warten (andere sagen an), stich
  * (laufender Stich, du bist dran), letzter (achter Stich, du legst die letzte Karte), ergebnis
  * (Spiel beendet), wenz (du spielst einen Wenz), tout (Resi spielt ein Solo Tout), zuschauer. Mit `&auto=1` spielen
- * die anderen weiter.
+ * die anderen weiter. `&karten=salzburger` wählt das Kartenbild (U9), `&seed=5285` die Verteilung.
  * Beispielnamen stehen deshalb hier und nicht in i18n/de.ts.
  */
 
@@ -116,16 +116,16 @@ function advance(
   return t;
 }
 
-function scene(name: string): TableState {
+function scene(name: string, cardSet: string, seed: number): TableState {
   let table: TableState = {
-    ...createTable(DEFAULT_RULES),
+    ...createTable({ ...DEFAULT_RULES, cardSet }),
     seats: NAMES.map((n, i) => ({ name: n, kind: i === ME ? 'human' : 'bot', connected: true })),
     balances: [120, -40, -60, -20],
     dealer: 1,
     handNo: 6,
   };
   table = { ...table, hand: null };
-  const started = startHand(table, 4711);
+  const started = startHand(table, seed);
   if (!started.ok) throw new Error(started.error);
   table = started.table;
 
@@ -180,7 +180,9 @@ export function Tischprobe() {
   const name = params.get('szene') ?? 'stich';
   const auto = params.get('auto') === '1';
   const viewer: Seat | null = name === 'zuschauer' ? null : ME;
-  const [table, setTable] = useState(() => scene(name));
+  const cardSet = params.get('karten') ?? DEFAULT_RULES.cardSet;
+  const seed = Number(params.get('seed') ?? 4711);
+  const [table, setTable] = useState(() => scene(name, cardSet, seed));
   const [step, setStep] = useState(0);
 
   const hand = table.hand!;

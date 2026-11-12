@@ -500,6 +500,25 @@ Vier kleine Funde, die zusammen ein Paket ergeben.
 
 ---
 
+### U9 · Mehrere Kartensets (Haltepunkt)
+
+Der Gastgeber wählt beim Eröffnen bzw. in der Lobby das Kartenbild für alle (Backlog „Mehrere
+Kartensets“). Erster weiterer Satz: das Salzburger Bild (Tiroler Wattkarten).
+
+- **Stand:** Grundlage umgesetzt (12.11.2026): `RuleSet.cardSet` (Kern prüft nur die Form der
+  Kennung; Protokoll 18, Speicherstand 17), Registry `apps/web/src/ui/cardTheme.tsx` mit Rückfall
+  auf bayerisch, `CardThemeContext` am Tisch, Lobby-Auswahl mit Vorschau, Anzeige in der
+  Regel-Tafel. Salzburger Satz als eigene Vektorzeichnung (36 Karten samt Weli,
+  `apps/web/scripts/karten/salzburger.mjs`). Tests: `packages/core/test/ruleset.test.ts`,
+  `packages/net/test/lobby.test.ts`, `apps/web/src/ui/cardTheme.test.ts`, `e2e/kartensets.spec.ts`.
+  Bilder: `docs/bilder/kartensets/`.
+- **Haltepunkt:** Lukas begutachtet den Salzburger Entwurf (DESIGN.md, „Mehrere Kartensets“).
+  Danach: Feinarbeit an Figuren und Szenen, Eckzeichen ja/nein, Rücken, Name ohne „(Entwurf)“.
+- **Abnahme:** Wahl reist mit Sicht, Protokoll und Speicherstand und wird vom Host geprüft; ein
+  weiterer Satz braucht keinen Eingriff in die Spiellogik; alle Karten liegen vor; `check`,
+  `build`, `e2e` sauber.
+- **Modell:** Opus.
+
 ## B – Bots (`packages/bots`)
 
 ### B1 · Bot, der vernünftig spielt (erledigt)

@@ -1,6 +1,6 @@
 import { type Card, rankOf, suitOf } from '@schafkopf/core';
 import { RANK_NAME, SUIT_NAME } from '../i18n/de';
-import { type CardTheme, bayerischTheme } from './cardTheme';
+import { type CardTheme, useCardTheme } from './cardTheme';
 
 /**
  * Zustand einer offenen Karte:
@@ -16,6 +16,7 @@ interface Props {
   /** Wenn gesetzt, ist die Karte spielbar (Zustand `playable`). */
   onPlay?: () => void;
   state?: CardState;
+  /** Ohne Angabe das Kartenbild des Tisches (`CardThemeContext`). */
   theme?: CardTheme;
 }
 
@@ -24,7 +25,9 @@ export function cardLabel(card: Card): string {
   return `${SUIT_NAME[suitOf(card)]}-${RANK_NAME[rankOf(card)]}`;
 }
 
-export function CardView({ card, onPlay, state, theme = bayerischTheme }: Props) {
+export function CardView({ card, onPlay, state, theme: given }: Props) {
+  const tableTheme = useCardTheme();
+  const theme = given ?? tableTheme;
   const label = cardLabel(card);
   const face = theme.face(card);
   const shown = state ?? (onPlay ? 'playable' : 'open');
@@ -43,6 +46,8 @@ export function CardView({ card, onPlay, state, theme = bayerischTheme }: Props)
   );
 }
 
-export function CardBack({ theme = bayerischTheme }: { theme?: CardTheme }) {
+export function CardBack({ theme: given }: { theme?: CardTheme }) {
+  const tableTheme = useCardTheme();
+  const theme = given ?? tableTheme;
   return <span className="card card--back">{theme.back()}</span>;
 }

@@ -1,10 +1,13 @@
 import { LAUFENDE_KINDS, type RuleSet, availableKinds, davonlaufenAb } from '@schafkopf/core';
 import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
+import { cardTheme } from './cardTheme';
+import { CardSetPreview } from './CardSetPreview';
 
 /** Die Tischregeln zum Lesen – für Gäste in der Lobby und im Info-Dialog am Tisch. */
 export function RulesSummary({ rules }: { rules: RuleSet }) {
   const yesNo = (b: boolean) => (b ? T.yes : T.no);
   const kinds = availableKinds(rules);
+  const theme = cardTheme(rules.cardSet);
   return (
     <dl className="regeln">
       <dt>{T.setup}</dt>
@@ -45,6 +48,11 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
       <dd>{yesNo(rules.kontra)}</dd>
       <dt>{T.botStrength}</dt>
       <dd>{T.botStrengthName[rules.botStrength]}</dd>
+      <dt>{T.cardSet}</dt>
+      <dd className="kartenbild__wahl">
+        {theme.label}
+        <CardSetPreview theme={theme} />
+      </dd>
     </dl>
   );
 }

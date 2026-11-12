@@ -338,6 +338,37 @@ describe('Lobby: Tischregeln', () => {
     },
   );
 
+  it('Kartenbild (U9): der Gastgeber wählt für alle, Gäste sehen es, der Speicherstand behält es', () => {
+    const host = createHost();
+    const anna = join(host, 'Anna');
+    expect(anna.getSnapshot().view!.rules.cardSet).toBe('bayerisch');
+    expect(host.setRules({ ...custom(), cardSet: 'salzburger' })).toBe(true);
+    expect(anna.getSnapshot().view!.rules.cardSet).toBe('salzburger');
+    const saved = parseHostSnapshot(JSON.parse(JSON.stringify(host.exportSnapshot())))!;
+    expect(saved.table.rules.cardSet).toBe('salzburger');
+    const restored = HostSession.restore(saved, {
+      createBot: (seat) => createRandomBot(seat),
+      seed: () => 1,
+      schedule: () => {},
+    });
+    expect(restored.getTable().rules.cardSet).toBe('salzburger');
+  });
+
+  it.each([[''], ['Salzburger'], ['../ruecken'], ['<img>'], [null], [undefined], [3]])(
+    'Kartenbild mit ungültiger Kennung %j wird abgewiesen',
+    (cardSet) => {
+      const host = createHost();
+      expect(host.setRules({ ...custom(), cardSet })).toBe(false);
+      expect(host.getTable().rules.cardSet).toBe('bayerisch');
+    },
+  );
+
+  it('ein Speicherstand mit ungültiger Kartenbild-Kennung wird verworfen', () => {
+    const snap = JSON.parse(JSON.stringify(createHost().exportSnapshot()));
+    snap.table.rules.cardSet = 'Nicht Gültig';
+    expect(parseHostSnapshot(snap)).toBeNull();
+  });
+
   it('ein Speicherstand mit ungültigen Regeln wird verworfen', () => {
     const snap = JSON.parse(JSON.stringify(createHost().exportSnapshot()));
     snap.table.rules.laufende.wenz = 99;
