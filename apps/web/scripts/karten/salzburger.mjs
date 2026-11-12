@@ -66,6 +66,12 @@ function glied(pts, fill, extra = '') {
   return P(glatt([first.slice(0, 2), ...L, last.slice(0, 2), ...R.reverse()]), fill, extra);
 }
 
+/** Schuh unter dem Knöchel bei x; s = -1 links, 1 rechts (Spitze nach außen, spiegelgleich). */
+function schuh(x, s) {
+  const X = (v) => f(x + s * v);
+  return `M${X(-4)} 175C${X(-5)} 181 ${X(8)} 182 ${X(9)} 179.6C${X(6)} 177 ${X(3)} 175 ${X(-4)} 175Z`;
+}
+
 const hand = (x, y, r = 2.3) => ellipse(x, y, r, r * 0.9, C.haut, 0.4);
 
 /** Boden unter Figuren und Szenen. */
@@ -286,10 +292,9 @@ function stehend(o) {
   const rock = o.rock,
     aermel = o.aermel ?? rock;
 
-  if (o.pose === 'saebel' || o.pose === 'schild' || o.pose === 'floete')
-    g += scheide(72, 104, 96, 152);
-  if (o.pose === 'hieb' || o.pose === 'hellebarde' || o.pose === 'trommel')
-    g += scheide(53, 104, 30, 150);
+  // Säbel in der Scheide nur, wo er nicht gezogen in der Hand ist (hieb, schild)
+  if (o.pose === 'saebel' || o.pose === 'floete') g += scheide(72, 104, 96, 152);
+  if (o.pose === 'hellebarde' || o.pose === 'trommel') g += scheide(53, 104, 30, 150);
   if (o.pose === 'hellebarde') g += hellebarde(88, 20, 182);
 
   // Beine: Strümpfe, Schuhe, Kniehosen
@@ -305,10 +310,7 @@ function stehend(o) {
       C.weiss,
     );
     g += fein(`M${f(kx - 2)} 146l1 6M${f(kx + 2)} 147l-0.6 6`, 0.22);
-    g += P(
-      `M${f(fx - 4 + s)} 175C${f(fx - 5 + s * 2)} 181 ${f(fx + s * 8)} 182 ${f(fx + s * 9)} 179.6C${f(fx + s * 6)} 177 ${f(fx + 3)} 175 ${f(fx - 4 + s)} 175Z`,
-      C.schwarz,
-    );
+    g += P(schuh(fx, s), C.schwarz);
     g += glied(
       [
         [cx + s * 6, 108, 12.6],
@@ -493,10 +495,7 @@ function sitzend(o) {
       ],
       C.weiss,
     );
-    g += P(
-      `M${f(kx + s * 2 - 4)} 175C${f(kx + s * 2 - 5)} 181 ${f(kx + s * 10)} 182 ${f(kx + s * 10)} 179.6C${f(kx + s * 7)} 177 ${f(kx + 3)} 175 ${f(kx + s * 2 - 4)} 175Z`,
-      C.schwarz,
-    );
+    g += P(schuh(kx + s * 2, s), C.schwarz);
     g += glied(
       [
         [cx + s * 6, 124, 14],
@@ -1176,10 +1175,10 @@ function sauKarte(farbe) {
 
 const pipBreite = (farbe) => (farbe === 'eichel' ? 13 : 17);
 const pipOben = (farbe) => ({ farbe, x: 14, y: 13, w: pipBreite(farbe) });
-const pipUnten = (farbe, x) => ({
+const pipUnten = (farbe) => ({
   farbe,
-  x,
-  y: 166 - pipHoehe(farbe, pipBreite(farbe)),
+  x: 14,
+  y: 176 - pipHoehe(farbe, pipBreite(farbe)),
   w: pipBreite(farbe),
 });
 
@@ -1208,7 +1207,7 @@ const BILD = {
       hose: C.blau,
       kragen: 'krause',
       schnurr: true,
-      pip: pipUnten('herz', 20),
+      pip: pipUnten('herz'),
     }),
   'herz-K': () =>
     sitzend({
@@ -1246,7 +1245,7 @@ const BILD = {
       haar: C.haarH,
       schnurr: true,
       epauletten: true,
-      pip: pipUnten('eichel', 52),
+      pip: pipUnten('eichel'),
     }),
   'eichel-K': () =>
     sitzend({
@@ -1281,7 +1280,7 @@ const BILD = {
       hose: C.rot,
       band: C.gelb,
       schnurr: true,
-      pip: pipUnten('schellen', 70),
+      pip: pipUnten('schellen'),
     }),
   'schellen-K': () =>
     sitzend({
@@ -1318,7 +1317,7 @@ const BILD = {
       hose: C.rot,
       band: C.gelb,
       schnurr: true,
-      pip: pipUnten('gras', 20),
+      pip: pipUnten('gras'),
     }),
   'gras-K': () =>
     sitzend({
