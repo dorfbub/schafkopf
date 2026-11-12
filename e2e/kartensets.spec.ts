@@ -13,8 +13,8 @@ test('Kartenbild: der Gastgeber wählt Salzburger, der Gast sieht es in der Lobb
   const ober = cardSet.getByRole('img', { name: 'Herz-Ober' }).locator('img');
   const bayerischOber = await ober.getAttribute('src');
 
-  await table.host.getByRole('radio', { name: 'Salzburger (Entwurf)' }).check();
-  await expect(cardSet).toContainText('Salzburger (Entwurf)');
+  await table.host.getByRole('radio', { name: 'Salzburger' }).check();
+  await expect(cardSet).toContainText('Salzburger');
   // Die Vorschau des Gasts zeigt jetzt den Salzburger Herz-Ober.
   await expect(ober).not.toHaveAttribute('src', bayerischOber ?? '');
 

@@ -582,7 +582,8 @@ dazu `*-0-automatik.png`, wenn sich Max von selbst gemeldet hat, und `*-5-hinter
 - **Stelle:** Desktop unten links über der Figur, mit Spitze zu ihr; so breit, dass sie neben dem
   Ansage- und Ergebnis-Dialog bleibt (höchstens 24rem). Hochkant **oben über den Plätzen** in
   voller Breite, weil unten der Ansage-Dialog liegt – dort verdeckt sie für den Moment die Namen
-  der anderen. Quer rechts neben der Figur oben links; dort verdeckt sie einen Teil des Filzes.
+  der anderen (so von Lukas abgenommen, 12.11.2026). Quer rechts neben der Figur oben links; dort
+  verdeckt sie einen Teil des Filzes.
 - **Lange Antworten** scrollen in der Blase; die Knöpfe bleiben unten stehen.
 - **Inhalt:**
   - _Auswahlfragen_ als Liste heller Knöpfe („Welche Karte ist sinnvoll, und welche Strategie steckt
@@ -625,7 +626,7 @@ Nur am Tisch gegen die Bots: Tafel „Trainer“ mit „Max Weber schaut mir üb
 „Allein gegen Bots“ wählt, übt meist; Max drängt sich nicht auf (von selbst nur bei hohem
 Einsatz, höchstens einmal je Stich) und ist mit einem Klick aus. Die Wahl merkt sich das Gerät.
 
-## Mehrere Kartensets (U9, Haltepunkt: Lukas entscheidet)
+## Mehrere Kartensets (U9)
 
 Der Gastgeber wählt in der Lobby das Kartenbild für alle am Tisch (`RuleSet.cardSet`, Standard
 „bayerisch“). Gäste sehen die Wahl in der Regel-Tafel. Die Sätze stehen in der Registry
@@ -634,7 +635,7 @@ Fehlendes kommt vom bayerischen Bild. Namen der Farben und Ränge sowie die Eckb
 Spielschilds gelten für alle Sätze. Zusatzkarten außerhalb des Schafkopfs (Sechser, Weli) trägt ein
 Satz unter `extras`.
 
-### Salzburger Bild (Entwurf vom 12.11.2026)
+### Salzburger Bild (12.11.2026, von Lukas abgenommen)
 
 Gemeint ist das Salzburger bzw. einfachdeutsche Bild der Tiroler Wattkarten (Lukas, 12.11.2026):
 einfachbildig, ganze Figuren, Zahlkarten mit kleinen Szenen, Weli als Schellen-Sechs.
@@ -660,16 +661,9 @@ Schellen-Sechs), zusammen etwa 260 kB.
 `vergleich-bayerisch-salzburger.webp` (Karte neben Karte), `tisch-{hochkant,quer,desktop}.webp`,
 `lobby-{hochkant,quer,desktop}.webp`.
 
-**Offene Punkte für Lukas:**
-
-- Gefällt die Richtung, und wie nah soll sie an der modernen Vorlage sein? Die Figuren sind
-  einfacher als im Wirtshausblatt (weniger Ornamente, schlichtere Gesichter).
-- Die Könige stehen vor dem Thron mehr, als dass sie sitzen; Haltungen und Szenen lassen sich je
-  Karte verfeinern.
-- Ohne Eckzeichen erkennt man Zahlkarten in der überlappten Hand schlechter. Die Zehner tragen ein
-  „X“, die anderen nur die Zeichen. Bleibt es so, oder kommen kleine Eckzeichen dazu?
-- Eigener Rücken für das Salzburger Bild oder der bayerische?
-- Name in der Lobby: bisher „Salzburger (Entwurf)“.
+**Entscheidung (Lukas, 12.11.2026):** Der Satz bleibt vorerst, wie er ist: vereinfachter Stil,
+Könige vor dem Thron, Zahlkarten ohne Eckzeichen (Zehner mit „X“), bayerischer Rücken. In der
+Lobby heißt er „Salzburger“.
 
 ## Verworfene Richtungen
 

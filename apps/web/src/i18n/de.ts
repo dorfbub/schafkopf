@@ -478,7 +478,7 @@ export const LOBBY_TEXT = {
 /** Namen der Kartenbilder (U9) in der Lobby; die Sätze selbst stehen in `ui/cardTheme.tsx`. */
 export const CARD_SET_NAME = {
   bayerisch: 'Bayerisch',
-  salzburger: 'Salzburger (Entwurf)',
+  salzburger: 'Salzburger',
 };
 
 export const RULES_TEXT = {
