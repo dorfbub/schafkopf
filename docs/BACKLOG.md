@@ -13,14 +13,15 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 „Letzten Stich besser zeigen“, „Spielverlauf nach dem Spiel“ – beschrieben in
 [DESIGN.md](DESIGN.md), Abschnitt „Spieltisch“.
 
-| Thema                | Größe                     | Klären                               |
-| -------------------- | ------------------------- | ------------------------------------ |
-| Mehrere Kartensets   | mittel                    | Welche Sets zuerst; Lizenzen         |
-| Watten               | groß                      | Variante(n); integrieren oder forken |
-| Android-App          | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Weitere Hausregeln   | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Kopfzeile bricht um  | klein                     | –                                    |
-| Lebendige Bildkarten | mittel                    | Welche Momente; wie viel Bewegung    |
+| Thema                | Größe                     | Klären                                                                      |
+| -------------------- | ------------------------- | --------------------------------------------------------------------------- |
+| Mehrere Kartensets   | mittel                    | Welche Sets zuerst; Lizenzen                                                |
+| Watten               | groß                      | Variante(n); integrieren oder forken                                        |
+| Android-App          | klein bis mittel          | Reicht die installierbare Web-App?                                          |
+| Weitere Hausregeln   | je Regel klein bis mittel | Genaue Regeln aufschreiben                                                  |
+| Kopfzeile bricht um  | klein                     | –                                                                           |
+| Lebendige Bildkarten | mittel                    | Welche Momente; wie viel Bewegung                                           |
+| Schafkopf-Trainer    | groß                      | Nur gegen Bots oder auch in der Runde; vorher raten oder hinterher bewerten |
 
 ---
 
@@ -113,3 +114,26 @@ Säue) bewegen sich in passenden Momenten. Beispiel: Wird die Eichel-Sau gerufen
   nur kurz und selten, damit es nicht nervt; „Bewegung reduzieren“ schaltet alles ab.
 - **Ohne Ton:** U6 (Töne, Sprüche) ist gestrichen, das Spiel bleibt tonlos und einfach. Animationen
   deshalb sparsam halten.
+
+## Schafkopf-Trainer
+
+Idee vom 12.11.2026: ein Modus, in dem ein Tutor zeigt, welcher Zug gerade sinnvoll wäre und
+warum. Zielgruppe sind Leute, die Schafkopf schon können und besser werden wollen; Regeln
+erklärt er nicht. Der Tutor sitzt mit einer Sprechblase am Tisch und kommentiert Ansage und
+Kartenspiel, etwa „Trumpf ziehen: Du hast fünf Trümpfe und beide Alten“ oder „Schmier deinem
+Partner den Zehner, er sticht sicher“.
+
+- **Zuerst Strategien sammeln:** Was spielen die Bots schon (Heuristik aus B1/B3, Monte-Carlo-Suche
+  „Stark“ aus B2)? Dazu online recherchieren, welche Strategien und Faustregeln es gibt
+  (Ansagen, Trumpf ziehen, Schmieren, Rufsau suchen, Davonlaufen, Abwerfen, Ramsch …). Daraus
+  eine Liste von Regeln mit Begründungstext machen, die der Tutor erkennen und benennen kann.
+- **Passt zur Architektur:** Der Tutor sieht nur die eigene Sicht (`HandView`) wie ein Bot.
+  Vorschlag und Bewertung kann der starke Bot liefern (er bewertet jede erlaubte Karte), das
+  „Warum“ die Faustregeln der Heuristik. Er läuft im eigenen Browser, nicht über den Host, damit
+  die Mitspieler nichts davon sehen.
+- **Darstellung:** Sprechblase an einer Tutor-Figur am Tisch, ruhig und abschaltbar. Möglich auch
+  „nach dem Zug bewerten“ statt vorher raten, und im Verlauf „So wurde gespielt“ markieren, wo ein
+  anderer Zug besser gewesen wäre.
+- **Zu klären:** nur allein gegen Bots oder auch in der Runde mit Freunden (dann nur für einen
+  selbst sichtbar, ggf. vom Gastgeber erlaubt); vorher raten oder hinterher bewerten; wie oft er
+  sich meldet.
