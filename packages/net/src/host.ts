@@ -36,8 +36,11 @@ import { HOST_SNAPSHOT_VERSION, type HostSnapshot } from './snapshot';
 
 export interface HostOptions {
   rules?: RuleSet;
-  /** Erzeugt den Bot für einen freien Platz. */
-  createBot: (seat: Seat) => Bot;
+  /**
+   * Erzeugt den Bot für einen freien Platz bzw. eine Vertretung. `rules` sind die Tischregeln
+   * beim Erzeugen; daraus kommt die Spielstärke (`rules.botStrength`, B2).
+   */
+  createBot: (seat: Seat, rules: RuleSet) => Bot;
   botNames?: string[];
   /** Bedenkzeit der Bots in Millisekunden. */
   botDelayMs?: number;
@@ -117,7 +120,7 @@ export class HostSession {
   private watching = new Set<string>();
   private spectatorsWelcome = false;
 
-  private readonly createBot: (seat: Seat) => Bot;
+  private readonly makeBot: (seat: Seat, rules: RuleSet) => Bot;
   private readonly botNames: string[];
   private readonly botDelayMs: number;
   private readonly seed: () => SeedInput;
@@ -130,7 +133,7 @@ export class HostSession {
   constructor(options: HostOptions) {
     this.table = createTable(options.rules);
     this.roomId = options.roomId ?? null;
-    this.createBot = options.createBot;
+    this.makeBot = options.createBot;
     this.botNames = options.botNames ?? DEFAULT_BOT_NAMES;
     this.botDelayMs = options.botDelayMs ?? 800;
     this.seed = options.seed ?? cryptoSeed;
@@ -374,6 +377,11 @@ export class HostSession {
   private activateStandIn(seat: Seat, absence: Absence): void {
     this.absences.set(seat, { ...absence, standIn: this.createBot(seat) });
     this.changed();
+  }
+
+  /** Bot in der eingestellten Stärke; die Regeln ändern sich nur in der Lobby, vor den Bots. */
+  private createBot(seat: Seat): Bot {
+    return this.makeBot(seat, this.table.rules);
   }
 
   private botName(seat: Seat): string {

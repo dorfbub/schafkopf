@@ -28,20 +28,20 @@ von allein, damit ein laufender Tisch nicht abbricht.
 Spielbar: Tisch eröffnen, Freunde per Link einladen, ansagen, Stiche spielen, abrechnen, nächstes
 Spiel. Die Ausbaupakete stehen in [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md).
 
-| Bereich       | Stand                                                                                                                                                                        |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel, Hochzeit; Tout und „Sie“ (einstellbar); Hausregeln Eisenbahner, Hawaii-Habicht, Arabische Hochzeit (Lobby, Standard aus) |
-| Besetzung     | Zu viert mit langer oder kurzer Karte, zu dritt mit kurzer Karte (nur Einzelspiele); in der Lobby wählbar                                                                    |
-| Tischregeln   | In der Lobby einstellbar: zu viert/zu dritt, lange/kurze Karte, Spielarten, Tout, Tarif, Laufende, „Sie“, Davonlaufen, alle „weiter“, Kontra und Re                          |
-| Abrechnung    | Grundtarif, Schneider, Schwarz, Laufende, Kontra/Re; Aufschlüsselung, Tabelle des Abends, „wer zahlt wem“                                                                    |
-| Alle „weiter“ | Tischregel: Zusammenwerfen, Ramsch, Stock oder Muss                                                                                                                          |
-| Netz          | WebRTC über Trystero; Tischcode mit 10 Zeichen; Platz wird nach Verbindungsabbruch wiedergefunden; Gastgeber-Tisch übersteht Neuladen (Zustand im Browser)                   |
-| Ausfall       | Getrennte Spieler werden nach 30 s durch einen Bot vertreten, bei Rückkehr übernommen; der Gastgeber kann Spieler vom Tisch nehmen                                           |
-| Lobby         | Platzwahl, Zuschauer, Umbenennen, Tischeinstellungen                                                                                                                         |
-| Bots          | Heuristik-Bot: sagt nach Blattstärke an, spielt Partner-/Gegner-Taktik; gegen den Zufalls-Bot getestet                                                                       |
-| App           | Installierbar (Manifest, Symbole), Offline-Start, Hinweis bei neuer Version                                                                                                  |
-| Tests         | Unit-Tests für Kern, Netz und Bots; Ende-zu-Ende-Tests mit Playwright                                                                                                        |
-| Oberfläche    | Gestaltung „Kartentisch“ (grüner Filz, Holzrahmen), eigenes bayerisches Kartenbild, Spielschild, letzter Stich, Spielverlauf                                                 |
+| Bereich       | Stand                                                                                                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel, Hochzeit; Tout und „Sie“ (einstellbar); Hausregeln Eisenbahner, Hawaii-Habicht, Arabische Hochzeit (Lobby, Standard aus)       |
+| Besetzung     | Zu viert mit langer oder kurzer Karte, zu dritt mit kurzer Karte (nur Einzelspiele); in der Lobby wählbar                                                                          |
+| Tischregeln   | In der Lobby einstellbar: zu viert/zu dritt, lange/kurze Karte, Spielarten, Tout, Tarif, Laufende, „Sie“, Davonlaufen, alle „weiter“, Kontra und Re                                |
+| Abrechnung    | Grundtarif, Schneider, Schwarz, Laufende, Kontra/Re; Aufschlüsselung, Tabelle des Abends, „wer zahlt wem“                                                                          |
+| Alle „weiter“ | Tischregel: Zusammenwerfen, Ramsch, Stock oder Muss                                                                                                                                |
+| Netz          | WebRTC über Trystero; Tischcode mit 10 Zeichen; Platz wird nach Verbindungsabbruch wiedergefunden; Gastgeber-Tisch übersteht Neuladen (Zustand im Browser)                         |
+| Ausfall       | Getrennte Spieler werden nach 30 s durch einen Bot vertreten, bei Rückkehr übernommen; der Gastgeber kann Spieler vom Tisch nehmen                                                 |
+| Lobby         | Platzwahl, Zuschauer, Umbenennen, Tischeinstellungen                                                                                                                               |
+| Bots          | Drei Spielstärken (Lobby): Anfänger, Normal (Heuristik), Stark (Monte-Carlo-Suche über Kartenverteilungen); sagt auch Hausregeln und Hochzeiten an; Stärke und Regeltreue getestet |
+| App           | Installierbar (Manifest, Symbole), Offline-Start, Hinweis bei neuer Version                                                                                                        |
+| Tests         | Unit-Tests für Kern, Netz und Bots; Ende-zu-Ende-Tests mit Playwright                                                                                                              |
+| Oberfläche    | Gestaltung „Kartentisch“ (grüner Filz, Holzrahmen), eigenes bayerisches Kartenbild, Spielschild, letzter Stich, Spielverlauf                                                       |
 
 Die genauen Regeln und alle getroffenen Annahmen stehen in [docs/REGELN.md](docs/REGELN.md).
 

@@ -498,9 +498,23 @@ Heuristik-Bot: sagt nach Blattstärke an (Trumpfzahl, Laufende, freie Farben), s
 - **Abnahme:** Gewinnt über 1000 Spiele (fester Seed-Satz) deutlich gegen `createRandomBot`;
   die Quote steht als Test mit Schwelle im Repo. Entscheidet in unter 50 ms.
 
-### B2 · Spielstärken
+### B2 · Spielstärken (erledigt)
 
 Mehrere Stufen wählbar; optional Suchverfahren (Monte-Carlo über mögliche Kartenverteilungen).
+
+- **Stand:** Drei Stufen, in der Lobby für alle Bots wählbar (`RuleSet.botStrength`, Standard
+  „Normal“; Protokoll 15, Speicherstand 14): „Anfänger“ (`createBeginnerBot`: zählt nicht mit, 40 %
+  Fehlgriffe, überreizt knappe Sauspiele), „Normal“ (`createHeuristicBot` aus B1, unverändert) und
+  „Stark“ (`createStrongBot`: Monte-Carlo-Suche über Kartenverteilungen aus der eigenen Sicht,
+  Heuristik als Ausspielstrategie, beim Ansagen knapper Blätter ebenfalls simuliert). Feste Budgets
+  in simulierten Karten, eine Uhr nur von außen (Web: 200 ms). Gemessen (gepaart, gleiche Karten):
+  Stark ≈ +9,5 ct je Spiel gegenüber Normal (1200 Spiele, Standardfehler 1,6), Anfänger ≈ −7,7 ct (4000 Spiele, 0,9). Entscheidungszeit „Stark“ auf dem Entwicklerrechner im Schnitt ≈ 16 ms, höchstens
+  ≈ 65 ms. Tests: `packages/bots/test/strength.test.ts`, `strengthBeginner.test.ts`, `strengthLegality.test.ts`; große Läufe mit
+  `BOTS_FULL=1`. Offen: Vertretungen spielen in der Tischstärke (auch „Anfänger“); „Stark“ sagt
+  Sonderspiele mit Vorspiel und Hausregeln nicht selbst an (B3) und spielt nach dem Neuladen das
+  laufende Spiel wie „Normal“ zu Ende.
+- **Abnahme:** Stark schlägt Normal, Normal schlägt Anfänger deutlich (Schwellen als Test);
+  Regeltreue aller Stufen über viele Spiele; Laufzeit-Test; `check`, `build`, `e2e` sauber.
 
 ### B3 · Bots für Sonderspiele und Hausregeln
 

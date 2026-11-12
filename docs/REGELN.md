@@ -269,6 +269,7 @@ Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
 | `kontra`              | Kontra und Re erlaubt                                | aus              | an/aus                                      |
 | `players`             | Zahl der Spieler                                     | 4                | 3 oder 4                                    |
 | `deck`                | Lange oder kurze Karte                               | `lang`           | `lang` (nur zu viert), `kurz`               |
+| `botStrength`         | Spielstärke aller Bots (keine Spielregel, B2)        | `normal`         | `anfaenger`, `normal`, `stark`              |
 
 Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz, Hochzeit →
 3, 3, 2, 2, 3, 3; dazu `eisenbahner` 2 und `arabischeHochzeit` 3. Die klassischen sechs Spielarten sind Sauspiel, Bettel, Geier, Farbwenz, Wenz

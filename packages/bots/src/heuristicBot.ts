@@ -67,7 +67,8 @@ export function createHeuristicBot(seed: number): Bot {
 // ---------------------------------------------------------------------------
 // Gedächtnis
 
-interface Memory {
+/** Gedächtnis des Heuristik-Bots; öffentlich nur für die Suche des starken Bots (B2). */
+export interface Memory {
   /** Alle Karten, die in diesem Spiel schon gefallen sind (auch eigene). */
   played: Set<Card>;
   /**
@@ -85,7 +86,7 @@ interface Memory {
   deck: readonly Card[];
 }
 
-function createMemory(): Memory {
+export function createMemory(): Memory {
   return { played: new Set(), absent: [], tricksSeen: 0, deckSize: 32, deck: createDeck('lang') };
 }
 
@@ -108,10 +109,15 @@ function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: numb
   trick.cards.forEach((c, i) => {
     memory.played.add(c);
     if (i > 0 && effectiveSuit(c, order) !== leadSuit) {
-      const absent = memory.absent[(trick.leader + i) % players]!;
-      for (const d of memory.deck) if (effectiveSuit(d, order) === leadSuit) absent.add(d);
+      markVoid(memory, (trick.leader + i) % players, leadSuit, order);
     }
   });
+}
+
+/** Merkt sich: `seat` hat keine Karte der Farbe `suit` (nach der Ordnung `order`). */
+export function markVoid(memory: Memory, seat: Seat, suit: EffectiveSuit, order: CardOrder): void {
+  const absent = memory.absent[seat]!;
+  for (const d of memory.deck) if (effectiveSuit(d, order) === suit) absent.add(d);
 }
 
 /** Hat `seat` sicher keine Karte der Farbe `suit` (nach der Ordnung `order`)? */
@@ -122,7 +128,7 @@ function isVoid(memory: Memory, seat: Seat, suit: EffectiveSuit, order: CardOrde
   return cards.length > 0 && cards.every((c) => absent.has(c));
 }
 
-function updateMemory(memory: Memory, view: HandView): void {
+export function updateMemory(memory: Memory, view: HandView): void {
   const completed = tricksPlayed(view);
   // Neues Spiel: Ansage läuft, oder es sind weniger Stiche gespielt als zuletzt gesehen.
   if (
@@ -422,6 +428,14 @@ function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
   }
 
   return { view, memory, rng, me, players, contract, order, declarerSide, unseen, sideOf };
+}
+
+/**
+ * Kartenwahl des Heuristik-Bots mit einem schon nachgeführten Gedächtnis. Der starke Bot (B2)
+ * nutzt sie als Ausspielstrategie in seinen Probespielen.
+ */
+export function heuristicCard(view: HandView, memory: Memory, rng: Rng): Card {
+  return play(view, memory, rng);
 }
 
 function play(view: HandView, memory: Memory, rng: Rng): Card {

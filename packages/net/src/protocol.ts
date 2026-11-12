@@ -27,7 +27,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * 16: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Sichten mit drei Plätzen,
  * Davonlaufen mit kurzer Karte ab drei Karten.
  */
-export const PROTOCOL_VERSION = 16;
+/** 17: Spielstärken (B2): `RuleSet.botStrength`. */
+export const PROTOCOL_VERSION = 17;
 
 export type ClientMessage =
   | {

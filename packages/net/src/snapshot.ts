@@ -45,7 +45,8 @@ import {
 /** 13: Arabische Hochzeit (H3): `RuleSet.laufende.arabischeHochzeit`. */
 /** 14: Hawaii-Habicht (H2): `Contract.suit2`, `RuleSet.laufende.hawaii`. */
 /** 15: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Tische mit drei Plätzen. */
-export const HOST_SNAPSHOT_VERSION = 15;
+/** 16: Spielstärken (B2): `RuleSet.botStrength`. */
+export const HOST_SNAPSHOT_VERSION = 16;
 
 export interface HostSnapshot {
   v: number;

@@ -294,6 +294,50 @@ describe('Lobby: Tischregeln', () => {
     expect(saved?.table.rules.tariff.solo).toBe(60);
   });
 
+  it('Spielstärke der Bots: gilt für alle Bots am Tisch und übersteht den Speicherstand', () => {
+    const made: [number, string][] = [];
+    const host = new HostSession({
+      createBot: (seat, rules) => {
+        made.push([seat, rules.botStrength]);
+        return createRandomBot(seat);
+      },
+      seed: () => 1,
+      schedule: () => {},
+    });
+    const anna = join(host, 'Anna');
+    expect(anna.getSnapshot().view!.rules.botStrength).toBe('normal');
+    expect(host.setRules({ ...custom(), botStrength: 'stark' })).toBe(true);
+    expect(anna.getSnapshot().view!.rules.botStrength).toBe('stark');
+    host.start();
+    expect(made).toEqual([
+      [1, 'stark'],
+      [2, 'stark'],
+      [3, 'stark'],
+    ]);
+    // Nach dem Neuladen entstehen die Bots wieder in derselben Stärke.
+    const saved = parseHostSnapshot(JSON.parse(JSON.stringify(host.exportSnapshot())))!;
+    expect(saved.table.rules.botStrength).toBe('stark');
+    made.length = 0;
+    HostSession.restore(saved, {
+      createBot: (seat, rules) => {
+        made.push([seat, rules.botStrength]);
+        return createRandomBot(seat);
+      },
+      seed: () => 1,
+      schedule: () => {},
+    });
+    expect(made.map(([, strength]) => strength)).toEqual(['stark', 'stark', 'stark']);
+  });
+
+  it.each([['meister'], [''], [null], [undefined], [2]])(
+    'unbekannte Spielstärke %j wird abgewiesen',
+    (botStrength) => {
+      const host = createHost();
+      expect(host.setRules({ ...custom(), botStrength })).toBe(false);
+      expect(host.getTable().rules.botStrength).toBe('normal');
+    },
+  );
+
   it('ein Speicherstand mit ungültigen Regeln wird verworfen', () => {
     const snap = JSON.parse(JSON.stringify(createHost().exportSnapshot()));
     snap.table.rules.laufende.wenz = 99;

@@ -116,7 +116,18 @@ describe('DEFAULT_RULES', () => {
     expect(parseRuleOptions(JSON.parse(JSON.stringify(DEFAULT_RULES)))).toMatchObject({
       contracts: DEFAULT_RULES.contracts,
       tariff: DEFAULT_RULES.tariff,
+      botStrength: 'normal',
     });
+  });
+
+  it('parseRuleOptions prüft die Spielstärke der Bots (B2)', () => {
+    const raw = JSON.parse(JSON.stringify(DEFAULT_RULES));
+    for (const strength of ['anfaenger', 'normal', 'stark']) {
+      expect(parseRuleOptions({ ...raw, botStrength: strength })?.botStrength).toBe(strength);
+    }
+    expect(parseRuleOptions({ ...raw, botStrength: 'profi' })).toBeNull();
+    delete raw.botStrength;
+    expect(parseRuleOptions(raw)).toBeNull();
   });
 });
 

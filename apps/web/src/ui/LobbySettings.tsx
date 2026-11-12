@@ -1,6 +1,7 @@
 import {
   ALL_PASSED_RULES,
   BID_ORDER,
+  BOT_STRENGTHS,
   CLASSIC_CONTRACTS,
   LAUFENDE_KINDS,
   TABLE_SETUPS,
@@ -24,6 +25,7 @@ function options(view: TableView): RuleOptions {
   const { players, deck } = view.rules;
   const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     view.rules;
+  const { botStrength } = view.rules;
   return {
     players,
     deck,
@@ -36,6 +38,7 @@ function options(view: TableView): RuleOptions {
     sie,
     davonlaufen,
     kontra,
+    botStrength,
   };
 }
 
@@ -44,6 +47,7 @@ export function LobbySettings({ view, host }: Props) {
   const current = options(view);
   const allPassedGroup = useId();
   const setupGroup = useId();
+  const strengthGroup = useId();
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
   const three = current.players === 3;
   const available = availableKinds(current);
@@ -239,6 +243,25 @@ export function LobbySettings({ view, host }: Props) {
             </label>
           </div>
         )}
+      </fieldset>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.botStrength}</legend>
+        <div className="row">
+          {BOT_STRENGTHS.map((strength) => (
+            <label key={strength} className="check">
+              <input
+                type="radio"
+                name={strengthGroup}
+                value={strength}
+                checked={current.botStrength === strength}
+                onChange={() => change({ botStrength: strength })}
+              />
+              {T.botStrengthName[strength]}
+            </label>
+          ))}
+        </div>
+        <p className="hint">{T.botStrengthHint[current.botStrength]}</p>
       </fieldset>
 
       <fieldset className="regeln-einstellung__gruppe">

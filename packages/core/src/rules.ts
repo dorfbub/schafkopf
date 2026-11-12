@@ -48,6 +48,13 @@ export const LAUFENDE_KINDS: readonly LaufendeKind[] = [
   'hawaii',
 ];
 
+/**
+ * Spielstärke der Bots am Tisch (B2). Keine Spielregel, aber eine Einstellung des Gastgebers,
+ * die mit den Regeln in Sicht und Speicherstand reist; der Kern selbst wertet sie nicht aus.
+ */
+export const BOT_STRENGTHS = ['anfaenger', 'normal', 'stark'] as const;
+export type BotStrength = (typeof BOT_STRENGTHS)[number];
+
 export interface RuleSet {
   /** Anzahl Spieler: 4 oder 3 (Dreier, nur mit kurzer Karte; siehe `TABLE_SETUPS`). */
   players: number;
@@ -69,6 +76,8 @@ export interface RuleSet {
   davonlaufen: boolean;
   /** Kontra und Re erlaubt (K4). */
   kontra: boolean;
+  /** Spielstärke aller Bots am Tisch (B2). */
+  botStrength: BotStrength;
 }
 
 export const DEFAULT_RULES: RuleSet = {
@@ -95,6 +104,7 @@ export const DEFAULT_RULES: RuleSet = {
   sie: true,
   davonlaufen: true,
   kontra: false,
+  botStrength: 'normal',
 };
 
 /** Erlaubte Besetzungen: Spielerzahl und Blatt (REGELN.md, „Kurze Karte und Dreier“). */
@@ -142,6 +152,7 @@ export type RuleOptions = Pick<
   | 'sie'
   | 'davonlaufen'
   | 'kontra'
+  | 'botStrength'
 >;
 
 function isObj(v: unknown): v is Record<string, unknown> {
@@ -161,6 +172,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
   const { players, deck } = raw;
   const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     raw;
+  const { botStrength } = raw;
   const setup = TABLE_SETUPS.find((s) => s.players === players && s.deck === deck);
   if (!setup) return null;
   if (!Array.isArray(contracts) || !contracts.every((k) => BID_ORDER.includes(k))) return null;
@@ -172,6 +184,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
   // Zu dritt: kein Muss (ohne Sauspiel kein Pflichtspiel) und mindestens ein Einzelspiel.
   if (setup.players < 4 && allPassed === 'muss') return null;
   if (availableKinds({ ...setup, contracts: [...kinds] }).length === 0) return null;
+  if (!BOT_STRENGTHS.includes(botStrength as BotStrength)) return null;
   if (!isObj(tariff) || !isObj(laufende) || !isObj(ramsch)) return null;
   const MAX_TARIFF = 100_000;
   if (!isInt(tariff.sauspiel, 0, MAX_TARIFF)) return null;
@@ -202,6 +215,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
     sie,
     davonlaufen,
     kontra,
+    botStrength: botStrength as BotStrength,
   };
 }
 

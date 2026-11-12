@@ -42,4 +42,16 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Bots entscheiden reproduzierbar: Zufall nur über den Seed, Zeit nur über eine übergebene Uhr.
+    files: ['packages/bots/src/**/*.ts'],
+    rules: {
+      'no-restricted-globals': ['error', 'performance', 'setTimeout', 'setInterval'],
+      'no-restricted-properties': [
+        'error',
+        { object: 'Math', property: 'random', message: 'Bots nutzen nur den Seed.' },
+        { object: 'Date', property: 'now', message: 'Bots bekommen eine Uhr übergeben.' },
+      ],
+    },
+  },
 );
