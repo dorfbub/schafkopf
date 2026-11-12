@@ -283,4 +283,21 @@ describe('Bots im Vorspiel', () => {
       }),
     ).toEqual({ type: 'give', cards: ['H7'] });
   });
+
+  it('geben bei der arabischen Hochzeit die zwei niedrigsten erlaubten Karten zurück', () => {
+    const base = { contract: { kind: 'arabischeHochzeit' as const } } as HandView;
+    expect(
+      preludeMove({
+        ...base,
+        legalMoves: [
+          { type: 'give', cards: ['EA', 'G7'] },
+          { type: 'give', cards: ['G7', 'S7'] },
+          { type: 'give', cards: ['SK', 'S7'] },
+        ],
+      }),
+    ).toEqual({ type: 'give', cards: ['G7', 'S7'] });
+    expect(preludeMove({ ...base, legalMoves: [{ type: 'decline' }, { type: 'accept' }] })).toEqual(
+      { type: 'decline' },
+    );
+  });
 });

@@ -2,7 +2,7 @@
  * Vorspiel-Hook (siehe docs/entwurf-sonderspiele.md, §4): Abläufe zwischen Ansage und erstem
  * Stich. Der Kern kennt nur den Rahmen (Phase `prelude`, Aktion `prelude`); was passiert, steht in
  * der `PreludeDefinition` der Spielart. Umgesetzt ist `weddingPrelude(n)` für die Hochzeit
- * (n = 1, K5) und später die arabische Hochzeit (n = 2, H3).
+ * (n = 1, K5) und die arabische Hochzeit (n = 2, H3).
  */
 
 import type { Card } from './cards';

@@ -22,6 +22,7 @@ import { type CardOrder, effectiveSuit } from './trick';
  */
 export const CONTRACT_KINDS = [
   'sauspiel',
+  'arabischeHochzeit',
   'hochzeit',
   'bettel',
   'eisenbahner',
@@ -216,6 +217,20 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     trumps: () => sauspielTrumps(),
     eligible: (hand) => countSauspielTrumps(hand) === 1,
     prelude: weddingPrelude(1),
+  },
+  // Hausregel (H3): wie die Hochzeit, nur mit genau zwei Trümpfen und zwei Karten zurück.
+  arabischeHochzeit: {
+    kind: 'arabischeHochzeit',
+    biddable: true,
+    suitRole: 'none',
+    parties: 'prelude',
+    tariff: 'sauspiel',
+    canTout: false,
+    goal: 'points',
+    hasLaufende: true,
+    trumps: () => sauspielTrumps(),
+    eligible: (hand) => countSauspielTrumps(hand) === 2,
+    prelude: weddingPrelude(2),
   },
   bettel: {
     kind: 'bettel',

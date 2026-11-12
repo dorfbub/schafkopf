@@ -283,6 +283,7 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
     case 'hochzeit': // bietet der Bot nicht an (nicht in `KNOWN_KINDS`)
+    case 'arabischeHochzeit': // Hausregel: sagt der Bot nie an
     case 'eisenbahner': // Hausregel: sagt der Bot nie an (B3)
     case 'ramsch': // nicht ansagbar
       return -10;
