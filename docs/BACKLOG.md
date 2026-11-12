@@ -18,6 +18,7 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 | Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
 | Mischen wie am echten Tisch | klein                     | –                                    |
 | Kopfzeile bricht um         | klein                     | –                                    |
+| Lebendige Bildkarten        | mittel                    | Welche Momente; wie viel Bewegung    |
 
 ---
 
@@ -103,3 +104,15 @@ Zeilen um, „Zusammengeworfen“ nicht. Zwischen zwei Spielen wird die Tischfl�
 20 px kleiner oder größer. Seit dem Spielschild am Platz ist die Zeile doppelt; kürzen oder auf eine
 Zeile begrenzen. Gefunden beim Mergen am 11.11.2026 (E2E `layout.spec.ts` misst nur das gespielte
 Spiel).
+
+## Lebendige Bildkarten
+
+Idee vom Testabend (12.11.2026), eher für später: Die Figuren auf den Karten (Könige, Ober, Unter,
+Säue) bewegen sich in passenden Momenten. Beispiel: Wird die Eichel-Sau gerufen, winkt sie.
+
+- **Passt zur Architektur:** Die Kartenbilder sind selbst gezeichnete SVGs (U2, `CardTheme`).
+  Einzelne Teile (Arm, Krone, Schwanz) lassen sich als eigene Gruppen per CSS animieren, ohne
+  neue Abhängigkeit.
+- **Zu klären:** bei welchen Momenten (gerufene Sau, Stich mit dem Eichel-Ober, Laufende, Tout);
+  nur kurz und selten, damit es nicht nervt; „Bewegung reduzieren“ schaltet alles ab.
+- **Hängt zusammen mit U6 (Atmosphäre):** Töne und Animationen gemeinsam einstellbar machen.

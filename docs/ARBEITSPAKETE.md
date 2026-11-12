@@ -283,6 +283,22 @@ laufen direkt über `HostSession`, nicht über das Protokoll.
   Speicherstand 3). Tischregeln einstellen folgt mit K2; die Lobby hat dafür den Bereich
   „Einstellungen“.
 
+### N5 · Tischcode schwerer zu erraten
+
+Vom Testabend (12.11.2026): Die Tischcodes wirken leicht zu erraten. Stand: Der Code entsteht schon
+kryptografisch zufällig (`crypto.getRandomValues` in `apps/web/src/connection.ts`), ist aber nur
+6 Zeichen aus 31 lang (rund 30 Bit, etwa eine Milliarde Möglichkeiten) und durch `b % 31` leicht
+ungleich verteilt. Wer einen Code errät, sitzt ohne Rückfrage am Tisch.
+
+- **Modell:** Sonnet.
+- **Umfang:** Code auf mindestens 10 Zeichen verlängern (rund 50 Bit) und ohne Modulo-Verzerrung
+  ziehen (Rejection Sampling); lesbar in Gruppen anzeigen (z. B. `k7mq-x2pd-hn`). Alte, kurze Links
+  dürfen ungültig werden. Prüfen, ob der Raumname bei den öffentlichen Relays im Klartext steht;
+  falls ja, nur einen Hash davon verwenden. Optional: Der Gastgeber lässt neue Mitspieler erst nach
+  Bestätigung an den Tisch (Einstellung in der Lobby).
+- **Abnahme:** Test für Länge, Alphabet und Gleichverteilung des Codes; Einladungslink und E2E
+  funktionieren weiter; ARCHITEKTUR.md beschreibt, was der Code schützt und was nicht.
+
 ---
 
 ## D – Gestaltung (`apps/web`)
@@ -371,6 +387,24 @@ Töne (Karte legen, Stich), kurze Sprüche/Emotes an den Tisch, Einstellungen da
 ### U7 · Mehrsprachigkeit
 
 `i18n/de.ts` zu austauschbaren Sprachdateien ausbauen (Hochdeutsch, Bairisch, Englisch).
+
+### U8 · Kleinigkeiten vom Testabend (12.11.2026)
+
+Drei kleine Funde, die zusammen ein Paket ergeben.
+
+- **Bot-Namen:** Die Bots heißen „Saller Wolfe“, „Lengschwendtner Sepp“ und „Ziegler Fritz“
+  (bisher `DEFAULT_BOT_NAMES` in `packages/net/src/host.ts`), der vierte (nur für den Fall ohne
+  Menschen am Tisch) „Weber Max“. Lange Namen müssen am Platz
+  und in der Tabelle sauber kürzen.
+- **„Am Zug“ zentrieren:** Die Marke „am Zug“ sitzt beim Spielerplatz nicht mittig unter dem
+  Namen bzw. Bild. In allen drei Größen (hochkant, quer, Desktop) prüfen.
+- **Spielverlauf auch im Ramsch:** Nach einem Ramsch fehlt „So wurde gespielt“; den Verlauf
+  (`GameHistory.tsx`) auch in `RamschResult.tsx` zeigen. Hängt mit U4 zusammen, das dieselben
+  Dialoge anfasst – nach U4 umsetzen oder dort mitnehmen.
+
+- **Modell:** Sonnet.
+- **Abnahme:** Bot-Namen in Lobby, Tisch und Ergebnis; E2E prüft den Verlauf nach einem Ramsch;
+  Bildschirmfotos der Marke „am Zug“ in drei Größen.
 
 ---
 
