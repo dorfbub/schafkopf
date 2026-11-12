@@ -117,7 +117,7 @@ export function TableBoard({
             />
           )}
           {/* Trainer (nur allein gegen Bots): liegt über dem Filz und verschiebt nichts. */}
-          <TutorCorner hand={hand} seats={seats} />
+          <TutorCorner hand={hand} seats={seats} settled={shown.completed === null} />
           {hand.phase === 'bidding' && myTurn && (
             <BidDialog
               key={`${view.handNo}-${hand.bids.length}`}

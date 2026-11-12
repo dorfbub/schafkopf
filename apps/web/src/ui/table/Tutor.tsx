@@ -11,6 +11,8 @@ import type { SeatInfo } from './layout';
 interface Props {
   hand: HandView;
   seats: SeatInfo;
+  /** Zeigt der Tisch die aktuelle Lage? Solange ein fertiger Stich liegt, schweigt Max. */
+  settled: boolean;
 }
 
 /** Texte brauchen Namen statt Sitznummern; im Zweikampf auch den Gegner. */
@@ -56,8 +58,12 @@ export function TutorFigure({ place }: { place: 'eigen' | 'raum' }) {
  * über dem Filz – sie verschieben nichts, der Tisch springt beim Ein- und Ausblenden nicht.
  * Ohne Trainer (Tisch mit Freunden) rendert die Komponente nichts.
  */
-export function TutorCorner({ hand, seats }: Props) {
+export function TutorCorner({ hand, seats, settled }: Props) {
   const tutor = useTutor();
+  const tutorSession = tutor?.session;
+  useEffect(() => {
+    tutorSession?.setSettled(settled);
+  }, [tutorSession, settled]);
   const bubbleRef = useRef<HTMLElement>(null);
   const open = tutor?.snap.open ?? false;
   const bubbleKind = tutor?.snap.bubble?.kind;

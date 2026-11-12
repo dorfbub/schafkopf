@@ -129,6 +129,14 @@ export class TutorSession {
   private autoSlots = new Set<string>();
   private lastAutoRule: RuleId | null = null;
   private disposed = false;
+  /**
+   * Zeigt der Tisch schon die Lage, über die der Trainer spricht? Ein fertiger Stich bleibt noch
+   * kurz liegen (`TRICK_HOLD_MS`), während die Sicht schon den nächsten kennt – in dieser Zeit
+   * schweigt Max, sonst redet er über Karten, die man noch nicht sieht.
+   */
+  private settled = true;
+  /** Während des Liegenlassens gestellte Frage; beantwortet, sobald der Tisch die Lage zeigt. */
+  private pending: Question | null = null;
 
   constructor(
     private readonly engine: TutorEngine,
@@ -183,7 +191,22 @@ export class TutorSession {
       wedding: hand.phase === 'prelude' && hand.turn === view.you,
       finished: hand.phase === 'finished',
     });
-    if (changed) this.maybeAuto(input, situation);
+    if (changed && this.settled) this.maybeAuto(input, situation);
+  }
+
+  /** Der Tisch hält gerade einen fertigen Stich fest (`false`) bzw. zeigt wieder die Sicht. */
+  setSettled(settled: boolean): void {
+    if (settled === this.settled) return;
+    this.settled = settled;
+    if (!settled) return;
+    const input = this.input;
+    const pending = this.pending;
+    this.pending = null;
+    if (pending && this.snap.bubble?.kind === 'thinking') {
+      this.ask(pending);
+      return;
+    }
+    if (input) this.maybeAuto(input, this.situation);
   }
 
   /** Figur angetippt: Blase auf (Auswahlfragen) bzw. zu. */
@@ -225,6 +248,11 @@ export class TutorSession {
     if (!input) return;
     const situation = this.situation;
     this.set({ open: true, bubble: { kind: 'thinking', question } });
+    if (!this.settled) {
+      // Der Tisch zeigt noch den fertigen Stich: erst antworten, wenn man die Lage sieht.
+      this.pending = question;
+      return;
+    }
     void this.adviceFor(input, question.ask, situation).then(
       (advice) => {
         if (this.situation !== situation || this.snap.bubble?.kind !== 'thinking') return;
@@ -378,6 +406,7 @@ export class TutorSession {
     void this.adviceFor(input, ask, situation).then(
       (advice) => {
         if (!advice?.importance.auto || this.situation !== situation || !this.snap.auto) return;
+        if (!this.settled) return;
         if (this.autoSlots.has(slot) || this.busy()) return;
         const rule = advice.reasons[0]?.id ?? null;
         if (rule !== null && rule === this.lastAutoRule) return;

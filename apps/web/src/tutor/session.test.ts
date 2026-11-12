@@ -245,4 +245,37 @@ describe('Trainer am Tisch (T2)', () => {
     session.update(tableViewFor(advance(table(), myCardTurn), null));
     expect(session.getSnapshot().questions).toEqual([]);
   });
+
+  it('schweigt, solange der Tisch noch den fertigen Stich zeigt', async () => {
+    const { engine, inputs } = stubEngine({ auto: true });
+    const session = new TutorSession(engine, true);
+    const t = advance(table(), myCardTurn);
+    // Der vorige Stich liegt noch auf dem Tisch, die Sicht kennt schon den neuen.
+    session.setSettled(false);
+    session.update(view(t));
+    await flush();
+    // Von selbst meldet er sich nicht; eine Frage wartet („denkt nach“), statt zu antworten.
+    expect(session.getSnapshot().bubble).toBeNull();
+    session.ask({ id: 'frage.karte.welche', ask: 'card', params: {} });
+    await flush();
+    expect(session.getSnapshot().bubble?.kind).toBe('thinking');
+    // Der Stich ist weggeräumt: jetzt antwortet Max zu der Lage, die man sieht.
+    session.setSettled(true);
+    await flush();
+    expect(session.getSnapshot().bubble?.kind).toBe('advice');
+    expect(inputs.at(-1)!.view.currentTrick).toEqual(t.hand!.currentTrick);
+  });
+
+  it('meldet sich von selbst erst, wenn der fertige Stich weggeräumt ist', async () => {
+    const { engine } = stubEngine({ auto: true });
+    const session = new TutorSession(engine, true);
+    const t = advance(table(), myCardTurn);
+    session.setSettled(false);
+    session.update(view(t));
+    await flush();
+    expect(session.getSnapshot().bubble).toBeNull();
+    session.setSettled(true);
+    await flush();
+    expect(session.getSnapshot().bubble).toMatchObject({ kind: 'advice', auto: true });
+  });
 });
