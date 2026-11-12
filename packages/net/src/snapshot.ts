@@ -109,10 +109,11 @@ function check(raw: unknown): HostSnapshot | null {
 
   const rules = table.rules;
   if (!isObj(rules) || !hasKeys(rules, DEFAULT_RULES)) return null;
-  const players = rules.players;
-  if (!isInt(players, 2, 8)) return null;
-  // Prüft auch `allPassed` gegen die bekannten Regeln (`ALL_PASSED_RULES`).
-  if (!parseRuleOptions(rules)) return null;
+  // Prüft auch `allPassed` gegen die bekannten Regeln (`ALL_PASSED_RULES`) und die Besetzung
+  // gegen `TABLE_SETUPS`.
+  const parsedRules = parseRuleOptions(rules);
+  if (!parsedRules) return null;
+  const players = parsedRules.players;
   const last = players - 1;
 
   const { seats, balances, pot, dealer, handNo, hand, logs, history } = table;

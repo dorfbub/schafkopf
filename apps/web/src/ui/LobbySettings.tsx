@@ -46,6 +46,7 @@ export function LobbySettings({ view, host }: Props) {
   const setupGroup = useId();
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
   const three = current.players === 3;
+  const available = availableKinds(current);
   const seated = view.seats.filter((s) => s !== null).length;
 
   /**
@@ -73,6 +74,7 @@ export function LobbySettings({ view, host }: Props) {
   const contractChecks = (kinds: ContractKind[]) => (
     <div className="row">
       {kinds.map((kind) => {
+        // Eingeschaltet oder nicht: Passt die Spielart zu dieser Besetzung?
         const fits = availableKinds({ ...current, contracts: [kind] }).length > 0;
         return (
           <label key={kind} className="check">
@@ -110,13 +112,13 @@ export function LobbySettings({ view, host }: Props) {
                   disabled={full}
                   onChange={() => changeSetup(players, deck)}
                 />
-                {T.setupName[key]}
+                {T.setupName(players, deck)}
               </label>
             );
           })}
         </div>
         <p className="hint">
-          {T.setupHint[`${current.players}-${current.deck}`]}
+          {T.setupHint(current.players, current.deck)}
           {current.players > 3 && seated > 3 && ` ${T.setupFull}`}
         </p>
       </fieldset>
@@ -266,19 +268,17 @@ export function LobbySettings({ view, host }: Props) {
       <fieldset className="regeln-einstellung__gruppe">
         <legend>{T.laufende}</legend>
         <div className="row">
-          {LAUFENDE_KINDS.filter((k) => availableKinds(current).includes(k)).map(
-            (kind: LaufendeKind) => (
-              <NumberField
-                key={`${kind}-${current.laufende[kind]}`}
-                label={KIND_NAME[kind]}
-                value={current.laufende[kind]}
-                min={1}
-                max={8}
-                error={T.invalidRange}
-                onValid={(n) => change({ laufende: { ...current.laufende, [kind]: n } })}
-              />
-            ),
-          )}
+          {LAUFENDE_KINDS.filter((k) => available.includes(k)).map((kind: LaufendeKind) => (
+            <NumberField
+              key={`${kind}-${current.laufende[kind]}`}
+              label={KIND_NAME[kind]}
+              value={current.laufende[kind]}
+              min={1}
+              max={8}
+              error={T.invalidRange}
+              onValid={(n) => change({ laufende: { ...current.laufende, [kind]: n } })}
+            />
+          ))}
         </div>
         <p className="hint">{T.laufendeHint}</p>
       </fieldset>

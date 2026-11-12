@@ -18,7 +18,11 @@ async function startDreier(page: Page, seed?: number): Promise<void> {
   await openStart(page, seed === undefined ? E2E_QUERY : `${E2E_QUERY}&seed=${seed}`);
   await page.getByLabel('Dein Name').fill('Hanni');
   await page.getByRole('button', { name: 'Allein gegen Bots' }).click();
+  // Muss gibt es zu dritt nicht: Die Lobby stellt beim Wechsel auf Zusammenwerfen um.
+  await page.getByRole('radio', { name: 'Muss' }).check();
   await page.getByRole('radio', { name: 'Zu dritt, kurze Karte' }).check();
+  await expect(page.getByRole('radio', { name: 'Zu dritt, kurze Karte' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'Zusammenwerfen' })).toBeChecked();
   await expect(page.getByRole('button', { name: /Platz \d ist frei/ })).toHaveCount(2);
   await expect(page.getByRole('checkbox', { name: /Sauspiel/ })).toBeDisabled();
   await expect(page.getByRole('radio', { name: 'Muss' })).toBeDisabled();

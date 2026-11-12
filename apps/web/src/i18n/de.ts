@@ -9,6 +9,7 @@ import type {
   BidLevel,
   Contract,
   ContractKind,
+  DeckKind,
   PreludeMove,
   Rank,
   Suit,
@@ -454,17 +455,14 @@ export const RULES_TEXT = {
   notForThree: 'nicht zu dritt',
   notForShort: 'nicht mit kurzer Karte zu viert',
   setup: 'Spieler und Karten',
-  setupName: {
-    '4-lang': 'Zu viert, lange Karte',
-    '4-kurz': 'Zu viert, kurze Karte',
-    '3-kurz': 'Zu dritt, kurze Karte',
-  } as Record<string, string>,
-  setupHint: {
-    '4-lang': '32 Karten, acht für jeden.',
-    '4-kurz': 'Ohne 7er und 8er: 24 Karten, sechs für jeden. Davonlaufen schon mit drei Karten.',
-    '3-kurz':
-      'Ohne 7er und 8er: 24 Karten, acht für jeden. Nur Einzelspiele; der Spieler kassiert von zwei Gegnern.',
-  } as Record<string, string>,
+  setupName: (players: number, deck: DeckKind) =>
+    `Zu ${players === 3 ? 'dritt' : 'viert'}, ${deck === 'kurz' ? 'kurze' : 'lange'} Karte`,
+  setupHint: (players: number, deck: DeckKind) =>
+    deck === 'lang'
+      ? '32 Karten, acht für jeden.'
+      : players === 3
+        ? 'Ohne 7er und 8er: 24 Karten, acht für jeden. Nur Einzelspiele; der Spieler kassiert von zwei Gegnern.'
+        : 'Ohne 7er und 8er: 24 Karten, sechs für jeden. Davonlaufen schon mit drei Karten.',
   setupFull: 'Für drei Plätze sitzen schon zu viele am Tisch.',
   mussNotForThree: 'Muss gibt es zu dritt nicht.',
   houseRules: 'Hausregeln',

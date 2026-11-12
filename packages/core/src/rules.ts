@@ -3,7 +3,7 @@
  * können sollen, gehört hier hinein – nicht als Konstante in die Spiellogik.
  */
 
-import { type DeckKind, createDeck } from './cards';
+import type { DeckKind } from './cards';
 import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind, MODES, kindFitsPlayers } from './modes';
 
 /**
@@ -102,9 +102,12 @@ export const TABLE_SETUPS: readonly { players: number; deck: DeckKind }[] = [
   { players: 3, deck: 'kurz' },
 ];
 
+/** Kartenzahl je Blatt (wie `createDeck(deck).length`, ohne das Blatt zu bauen). */
+const DECK_SIZE: Record<DeckKind, number> = { lang: 32, kurz: 24 };
+
 /** Karten je Spieler: lang zu viert 8, kurz zu viert 6, kurz zu dritt 8. */
 export function cardsPerPlayer(rules: Pick<RuleSet, 'players' | 'deck'>): number {
-  return createDeck(rules.deck).length / rules.players;
+  return DECK_SIZE[rules.deck] / rules.players;
 }
 
 /**

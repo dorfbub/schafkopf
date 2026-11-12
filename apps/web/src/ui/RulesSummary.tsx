@@ -8,7 +8,7 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
   return (
     <dl className="regeln">
       <dt>{T.setup}</dt>
-      <dd>{T.setupName[`${rules.players}-${rules.deck}`]}</dd>
+      <dd>{T.setupName(rules.players, rules.deck)}</dd>
       <dt>{T.contracts}</dt>
       <dd>{kinds.map((k) => KIND_NAME[k]).join(', ')}</dd>
       <dt>{T.tout}</dt>
