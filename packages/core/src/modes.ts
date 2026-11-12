@@ -22,6 +22,7 @@ import { type CardOrder, effectiveSuit } from './trick';
 export const CONTRACT_KINDS = [
   'sauspiel',
   'bettel',
+  'eisenbahner',
   'geier',
   'farbwenz',
   'wenz',
@@ -120,6 +121,7 @@ export interface ModeDefinition {
 
 const OBER: Card[] = SUITS.map((s) => card(s, 'O'));
 const UNTER: Card[] = SUITS.map((s) => card(s, 'U'));
+const ZEHNER: Card[] = SUITS.map((s) => card(s, '10'));
 
 /** Karten einer Farbe ohne die genannten Ränge, hoch → niedrig. */
 function suitCards(suit: Suit, without: readonly Rank[]): Card[] {
@@ -203,6 +205,18 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     trumps: () => [],
     // Im Bettel gibt es keine Trümpfe; der Zehner reiht sich zwischen Unter und Neuner ein.
     rankOrder: ['A', 'K', 'O', 'U', '10', '9', '8', '7'],
+  },
+  // Hausregel (H1): wie der Wenz, nur mit den vier Zehnern als Trümpfen. Standardmäßig aus.
+  eisenbahner: {
+    kind: 'eisenbahner',
+    biddable: true,
+    suitRole: 'none',
+    parties: 'alone',
+    tariff: 'solo',
+    canTout: true,
+    goal: 'points',
+    hasLaufende: true,
+    trumps: () => [...ZEHNER],
   },
   geier: {
     kind: 'geier',

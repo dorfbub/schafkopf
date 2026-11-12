@@ -280,8 +280,9 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
     }
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
+    case 'eisenbahner':
     case 'ramsch':
-      return -10; // nicht ansagbar
+      return -10; // Hausregel bzw. nicht ansagbar: der Bot sagt es nie an
   }
 }
 

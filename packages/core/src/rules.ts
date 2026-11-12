@@ -42,6 +42,7 @@ export const LAUFENDE_KINDS: readonly LaufendeKind[] = [
   'wenz',
   'geier',
   'farbwenz',
+  'eisenbahner',
 ];
 
 export interface RuleSet {
@@ -74,7 +75,7 @@ export const DEFAULT_RULES: RuleSet = {
   allPassed: 'zusammenwerfen',
   tariff: { sauspiel: 10, solo: 50, extra: 10, ramsch: 10, stock: 10 },
   ramsch: { durchmarsch: true, jungfrau: true },
-  laufende: { sauspiel: 3, solo: 3, wenz: 2, geier: 2, farbwenz: 3 },
+  laufende: { sauspiel: 3, solo: 3, wenz: 2, geier: 2, farbwenz: 3, eisenbahner: 2 },
   sie: true,
   davonlaufen: true,
   kontra: false,

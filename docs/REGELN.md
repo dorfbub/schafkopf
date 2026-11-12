@@ -178,8 +178,8 @@ in den Pott; dann gibt der Nächste.
 
 ## Hausregeln (geplant)
 
-Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben, **noch nicht umgesetzt**
-(Pakete H1–H3). Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
+Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben. **Eisenbahner ist umgesetzt
+(Paket H1)**, Hawaii-Habicht und Arabische Hochzeit noch nicht (Pakete H2, H3). Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
 
 | Spielart           | Trümpfe (hoch → niedrig)                                      | Farbkarten (hoch → niedrig) | Allein | Tout | Laufende ab    |
 | ------------------ | ------------------------------------------------------------- | --------------------------- | ------ | ---- | -------------- |
@@ -190,7 +190,8 @@ Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben, **noch nicht 
 Zehner und Könige stechen untereinander wie Ober und Unter: Eichel, Gras, Herz, Schellen.
 
 **Eisenbahner.** Wie ein Wenz, nur sind die vier Zehner die Trümpfe statt der Unter.
-Einzelspiel-Tarif, Schneider, Schwarz, Laufende und Tout wie beim Wenz.
+Einzelspiel-Tarif, Schneider, Schwarz, Laufende und Tout wie beim Wenz. Umgesetzt (H1): in der
+Lobby unter „Hausregeln“ einschaltbar, Standard aus; Laufende ab 2 (`RuleSet.laufende.eisenbahner`).
 
 **Hawaii-Habicht.** Wie ein Farbwenz, nur mit den vier Königen statt der Unter – und mit zwei
 Trumpffarben: Der Spieler nennt beim Ansagen eine Trumpffarbe für die **Stiche 1–4** und eine
@@ -239,8 +240,8 @@ Die Unteroptionen für Ramsch gelten nur bei `allPassed: 'ramsch'`, der Stock-Ei
 `'stock'`; sie bleiben aber gespeichert.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Noch keine Optionen sind Hochzeit und die Hausregeln (siehe „Varianten“ und
-„Hausregeln“; Pakete K5, H1–H3). Fest bleiben die
+Noch keine Optionen sind Hochzeit und die übrigen Hausregeln (siehe „Varianten“ und
+„Hausregeln“; Pakete K5, H2, H3). Der Eisenbahner ist eine Option in `contracts`. Fest bleiben die
 Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
 
 ## Annahmen – bitte prüfen
@@ -301,6 +302,17 @@ gewählt. **Noch nicht von Lukas bestätigt.**
     Pott, erhält jeder den gleichen ganzen Cent-Betrag; ein Rest bleibt im Pott stehen. (Mit vier
     Spielern ist der Pott immer ein Vielfaches von vier Einsätzen und teilt sich glatt; die Regel
     greift erst, wenn sich Spielerzahl oder Einsatz einmal ändern können.)
+
+### Annahmen zum Eisenbahner (H1)
+
+Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
+
+31. **Eisenbahner, Farbkarten und Bedienen:** Die vier Zehner sind eine eigene Farbe beim Bedienen
+    (wer einen Zehner hat, muss ihn auf einen angespielten Zehner zugeben; ein Zehner bedient
+    keine Farbe). Ober und Unter sind gewöhnliche Farbkarten: A K O U 9 8 7. Laufende zählen
+    über die Zehner in der Reihenfolge Eichel, Gras, Herz, Schellen, mit oder gegen die Zehner.
+32. **Eisenbahner und Bots:** Die Bots sagen ihn von sich aus nie an (Paket B3), spielen ihn aber
+    regelgerecht mit.
 
 ### Annahmen zu Kontra und Re (K4)
 

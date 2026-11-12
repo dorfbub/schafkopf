@@ -23,7 +23,11 @@ export interface GameSignInfo {
 }
 
 /** Eckbuchstabe für Spielarten ohne Farbe, in denen eine Kartenart allein Trumpf ist. */
-const LETTER: Partial<Record<Contract['kind'], string>> = { wenz: 'U', geier: 'O' };
+const LETTER: Partial<Record<Contract['kind'], string>> = {
+  wenz: 'U',
+  geier: 'O',
+  eisenbahner: '10',
+};
 
 export function symbolFor(contract: Contract): SignSymbol {
   if (contract.suit && MODES[contract.kind].suitRole !== 'none') return { suit: contract.suit };

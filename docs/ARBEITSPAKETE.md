@@ -190,7 +190,7 @@ Spielarten aus Lukas' Runde; Regeln in [REGELN.md](REGELN.md), „Hausregeln“.
 Annahmen bestätigen, Versionen erhöhen). Weitere Hausregeln beschreibt Lukas zuerst in REGELN.md;
 passen sie in die sechs Erweiterungspunkte des Entwurfs, ist jede ein Paket nach dem Muster von H1.
 
-### H1 · Eisenbahner
+### H1 · Eisenbahner (erledigt)
 
 Eintrag `eisenbahner` in `MODES` (Trümpfe: vier Zehner), Platz in `BID_ORDER` zwischen Bettel und
 Geier, Laufende-Schwelle 2 in `RuleSet.laufende`, Bereich „Hausregeln“ in der Lobby, Texte.
@@ -201,6 +201,12 @@ Geier, Laufende-Schwelle 2 in `RuleSet.laufende`, Bereich „Hausregeln“ in de
   K3a trägt). Tests für: Zehner stechen in der Reihenfolge Eichel, Gras, Herz, Schellen und sind
   eigene Farbe beim Bedienen; Rang gegenüber Bettel und Geier im Zweikampf; Tout; Laufende ab 2;
   standardmäßig nicht ansagbar.
+- **Stand:** umgesetzt. Im Kern nur der Eintrag in `CONTRACT_KINDS`/`MODES` (`modes.ts`) und die
+  Schwelle in `RuleSet.laufende` (`rules.ts`, `LAUFENDE_KINDS`); `parseRuleOptions`, `bidValue`,
+  Abrechnung und Stichlogik blieben unverändert. Außerhalb des Kerns: Lobby-Bereich „Hausregeln“,
+  Texte, Schild-Buchstabe „10“, Bot bewertet ihn mit „nie ansagen“. `PROTOCOL_VERSION` 12,
+  `HOST_SNAPSHOT_VERSION` 11. Tests: `packages/core/test/eisenbahner.test.ts`,
+  Zufallsspiele über den Host in `packages/net/test/eisenbahner.test.ts`. Annahmen 31–32.
 
 ### H2 · Hawaii-Habicht
 

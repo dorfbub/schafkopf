@@ -1,6 +1,7 @@
 import {
   ALL_PASSED_RULES,
   BID_ORDER,
+  CLASSIC_CONTRACTS,
   LAUFENDE_KINDS,
   type ContractKind,
   type LaufendeKind,
@@ -45,24 +46,34 @@ export function LobbySettings({ view, host }: Props) {
     change({ contracts: BID_ORDER.filter((k) => set.has(k)) });
   };
 
+  const contractChecks = (kinds: ContractKind[]) => (
+    <div className="row">
+      {kinds.map((kind) => (
+        <label key={kind} className="check">
+          <input
+            type="checkbox"
+            checked={current.contracts.includes(kind)}
+            disabled={kind === 'sauspiel'}
+            onChange={(e) => toggleContract(kind, e.target.checked)}
+          />
+          {KIND_NAME[kind]}
+        </label>
+      ))}
+    </div>
+  );
+
   return (
     <div className="regeln-einstellung">
       <fieldset className="regeln-einstellung__gruppe">
         <legend>{T.contracts}</legend>
-        <div className="row">
-          {BID_ORDER.map((kind) => (
-            <label key={kind} className="check">
-              <input
-                type="checkbox"
-                checked={current.contracts.includes(kind)}
-                disabled={kind === 'sauspiel'}
-                onChange={(e) => toggleContract(kind, e.target.checked)}
-              />
-              {KIND_NAME[kind]}
-            </label>
-          ))}
-        </div>
+        {contractChecks(BID_ORDER.filter((k) => CLASSIC_CONTRACTS.includes(k)))}
         <p className="hint">{T.contractsHint}</p>
+      </fieldset>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.houseRules}</legend>
+        {contractChecks(BID_ORDER.filter((k) => !CLASSIC_CONTRACTS.includes(k)))}
+        <p className="hint">{T.houseRulesHint}</p>
       </fieldset>
 
       <div className="row">
