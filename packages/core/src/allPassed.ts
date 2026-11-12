@@ -39,6 +39,9 @@ export const ALL_PASSED: Record<AllPassedRule, (state: HandState) => AllPassedSt
   ramsch: () => ({ type: 'play', contract: { kind: 'ramsch' } }),
   stock: (state) => ({ type: 'finish', result: stockResult(state) }),
   muss: (state) => {
+    // Zu dritt gibt es kein Sauspiel und damit kein Muss (Annahme 53); der Host lässt die
+    // Einstellung gar nicht zu – Schutz für fremde Regelsätze.
+    if (state.rules.players < 4) return { type: 'fallback', rule: 'zusammenwerfen' };
     const seat = state.hands.findIndex((h) => h.includes('EO'));
     const hand = state.hands[seat];
     // Ohne Eichel-Ober (kurzes Blatt hat ihn immer; Schutz für fremde Blätter) oder ohne

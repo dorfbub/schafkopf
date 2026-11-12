@@ -14,15 +14,15 @@ import { ALL_PASSED } from './allPassed';
 import {
   type Contract,
   type ContractKind,
-  BID_ORDER,
   MODES,
   bidValue,
+  davonlaufenAb,
   orderFor,
   sameContract,
 } from './modes';
 import type { PreludeMove, PreludeState } from './prelude';
 import { createRng, shuffle, type SeedInput } from './rng';
-import type { AllPassedRule, RuleSet } from './rules';
+import { type AllPassedRule, type RuleSet, availableKinds } from './rules';
 import { type HandResult, scoreHand } from './scoring';
 import { followable, trickWinnerIndex } from './trick';
 
@@ -204,8 +204,7 @@ export function dealHand(
 /** Alle Ansagen, die die Tischregeln grundsätzlich zulassen (ohne Blick auf die Hand). */
 export function allContracts(rules: RuleSet): Contract[] {
   const out: Contract[] = [];
-  for (const kind of BID_ORDER) {
-    if (!rules.contracts.includes(kind)) continue;
+  for (const kind of availableKinds(rules)) {
     const mode = MODES[kind];
     const suits = mode.suitRole === 'none' ? [undefined] : SUITS;
     for (const suit of suits) {
@@ -346,6 +345,7 @@ export function legalCards(state: HandState, seat: Seat): Card[] {
       trick,
       completedTricks: state.tricks.map((t) => t.cards),
       davonlaufen: state.rules.davonlaufen,
+      davonlaufenAb: davonlaufenAb(state.rules.deck),
     },
     candidates,
   );

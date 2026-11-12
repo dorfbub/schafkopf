@@ -9,6 +9,7 @@ import type {
   BidLevel,
   Contract,
   ContractKind,
+  DeckKind,
   PreludeMove,
   Rank,
   Suit,
@@ -97,7 +98,7 @@ export const RESUME_TEXT = {
 /** Startbildschirm (D4). */
 export const START_TEXT = {
   brand: 'Schafkopf',
-  tagline: 'Zu viert am Tisch – ohne Anmeldung, direkt im Browser.',
+  tagline: 'Zu viert oder zu dritt am Tisch – ohne Anmeldung, direkt im Browser.',
   name: 'Dein Name',
   namePlaceholder: 'z. B. Lukas',
   nameHint: 'So sehen dich die anderen am Tisch.',
@@ -459,12 +460,27 @@ export const RULES_TEXT = {
   contracts: 'Spielarten',
   contractsHint:
     'Das Sauspiel ist immer dabei. Hochzeit: Wer genau einen Trumpf hat, sucht sich einen Partner, der ihn gegen eine andere Karte nimmt.',
+  contractsHintThree:
+    'Zu dritt spielt jeder allein gegen die zwei anderen: kein Sauspiel, keine Hochzeit. Mindestens ein Einzelspiel muss an sein.',
+  notForThree: 'nicht zu dritt',
+  notForShort: 'nicht mit kurzer Karte zu viert',
+  setup: 'Spieler und Karten',
+  setupName: (players: number, deck: DeckKind) =>
+    `Zu ${players === 3 ? 'dritt' : 'viert'}, ${deck === 'kurz' ? 'kurze' : 'lange'} Karte`,
+  setupHint: (players: number, deck: DeckKind) =>
+    deck === 'lang'
+      ? '32 Karten, acht für jeden.'
+      : players === 3
+        ? 'Ohne 7er und 8er: 24 Karten, acht für jeden. Nur Einzelspiele; der Spieler kassiert von zwei Gegnern.'
+        : 'Ohne 7er und 8er: 24 Karten, sechs für jeden. Davonlaufen schon mit drei Karten.',
+  setupFull: 'Für drei Plätze sitzen schon zu viele am Tisch.',
+  mussNotForThree: 'Muss gibt es zu dritt nicht.',
   houseRules: 'Hausregeln',
   houseRulesHint:
     'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe. Hawaii-Habicht: vier Könige, dazu eine Trumpffarbe für die Stiche 1–4 und eine andere ab Stich 5. Arabische Hochzeit: wie die Hochzeit, aber mit genau zwei Trümpfen und zwei Karten zurück.',
   tout: 'Tout erlaubt',
   sie: 'Sie (alle Ober und Unter) wird bezahlt',
-  davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',
+  davonlaufen: (n: number) => `Davonlaufen mit ${n === 3 ? 'drei' : 'vier'} Karten der Ruffarbe`,
   kontra: 'Kontra und Re',
   tariff: 'Tarif (Cent)',
   tariffSauspiel: 'Sauspiel',

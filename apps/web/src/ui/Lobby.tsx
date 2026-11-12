@@ -7,7 +7,7 @@ import { formatRoomCode } from '../roomCode';
 import { Button, PlayerSeat, Tafel } from './kit';
 import { LobbySettings } from './LobbySettings';
 import { RulesSummary } from './RulesSummary';
-import { POSITIONS } from './table/layout';
+import { positionOf } from './table/layout';
 
 interface Props {
   view: TableView;
@@ -151,7 +151,7 @@ function Invite({ roomId }: { roomId: string }) {
   );
 }
 
-/** Der Tisch mit den vier Plätzen; in der Mitte „Spiel starten“ bzw. der Hinweis für Gäste. */
+/** Der Tisch mit seinen Plätzen (drei oder vier); in der Mitte „Spiel starten“ bzw. der Hinweis für Gäste. */
 function LobbyTable({
   view,
   client,
@@ -175,7 +175,7 @@ function LobbyTable({
           {view.seats.map((player, seat) => (
             <li
               key={seat}
-              className={`lobby-seat lobby-seat--${POSITIONS[(seat - bottom + players) % players]}`}
+              className={`lobby-seat lobby-seat--${positionOf(seat, bottom, players)}`}
             >
               {player ? (
                 <TakenSeat

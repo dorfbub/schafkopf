@@ -1,12 +1,14 @@
-import { BID_ORDER, LAUFENDE_KINDS, type RuleSet } from '@schafkopf/core';
+import { LAUFENDE_KINDS, type RuleSet, availableKinds, davonlaufenAb } from '@schafkopf/core';
 import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
 
 /** Die Tischregeln zum Lesen – für Gäste in der Lobby und im Info-Dialog am Tisch. */
 export function RulesSummary({ rules }: { rules: RuleSet }) {
   const yesNo = (b: boolean) => (b ? T.yes : T.no);
-  const kinds = BID_ORDER.filter((k) => rules.contracts.includes(k));
+  const kinds = availableKinds(rules);
   return (
     <dl className="regeln">
+      <dt>{T.setup}</dt>
+      <dd>{T.setupName(rules.players, rules.deck)}</dd>
       <dt>{T.contracts}</dt>
       <dd>{kinds.map((k) => KIND_NAME[k]).join(', ')}</dd>
       <dt>{T.tout}</dt>
@@ -18,7 +20,7 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
       </dd>
       <dt>{T.laufende}</dt>
       <dd>
-        {LAUFENDE_KINDS.filter((k) => rules.contracts.includes(k))
+        {LAUFENDE_KINDS.filter((k) => kinds.includes(k))
           .map((k) => `${KIND_NAME[k]} ${rules.laufende[k]}`)
           .join(' · ')}
       </dd>
@@ -33,8 +35,12 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
       </dd>
       <dt>{T.sie}</dt>
       <dd>{yesNo(rules.sie)}</dd>
-      <dt>{T.davonlaufen}</dt>
-      <dd>{yesNo(rules.davonlaufen)}</dd>
+      {kinds.includes('sauspiel') && (
+        <>
+          <dt>{T.davonlaufen(davonlaufenAb(rules.deck))}</dt>
+          <dd>{yesNo(rules.davonlaufen)}</dd>
+        </>
+      )}
       <dt>{T.kontra}</dt>
       <dd>{yesNo(rules.kontra)}</dd>
     </dl>

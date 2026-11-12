@@ -31,7 +31,8 @@ Spiel. Die Ausbaupakete stehen in [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md)
 | Bereich       | Stand                                                                                                                                                                        |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel, Hochzeit; Tout und „Sie“ (einstellbar); Hausregeln Eisenbahner, Hawaii-Habicht, Arabische Hochzeit (Lobby, Standard aus) |
-| Tischregeln   | In der Lobby einstellbar: erlaubte Spielarten, Tout, Tarif, Schwellen für Laufende, „Sie“, Davonlaufen, Kontra und Re                                                        |
+| Besetzung     | Zu viert mit langer oder kurzer Karte, zu dritt mit kurzer Karte (nur Einzelspiele); in der Lobby wählbar                                                                    |
+| Tischregeln   | In der Lobby einstellbar: zu viert/zu dritt, lange/kurze Karte, Spielarten, Tout, Tarif, Laufende, „Sie“, Davonlaufen, alle „weiter“, Kontra und Re                          |
 | Abrechnung    | Grundtarif, Schneider, Schwarz, Laufende, Kontra/Re; Aufschlüsselung, Tabelle des Abends, „wer zahlt wem“                                                                    |
 | Alle „weiter“ | Tischregel: Zusammenwerfen, Ramsch, Stock oder Muss                                                                                                                          |
 | Netz          | WebRTC über Trystero; Tischcode mit 10 Zeichen; Platz wird nach Verbindungsabbruch wiedergefunden; Gastgeber-Tisch übersteht Neuladen (Zustand im Browser)                   |

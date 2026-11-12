@@ -321,7 +321,7 @@ Bot-Vertretung (N3) – und vergleichen.
 | „Alle weiter“ (Ramsch, Stock)  | `AllPassedRule` + Eintrag in `ALL_PASSED`, Auswahl in Lobby                |
 | Faktor (Kontra/Re, Bock)       | Quelle in `factorsFor` (`scoring.ts`), Zustand in `HandState`/`HandCarry`  |
 | Neue Tischregel sonst          | Feld in `RuleSet` + `parseRuleOptions`, Auswahl in Lobby                   |
-| Kurzes Blatt / 3 Spieler       | `RuleSet.deck` / `RuleSet.players` (im Kern schon parametrisiert)          |
+| Kurzes Blatt / 3 Spieler       | `RuleSet.deck`/`players`, erlaubt laut `TABLE_SETUPS` (siehe unten, K6)    |
 | Anderes Kartenset              | Weiteres `CardTheme`                                                       |
 | Stärkerer Bot                  | Weitere `Bot`-Implementierung in `packages/bots`                           |
 | Anderer Verbindungsweg         | Weitere Implementierung von `HostTransport`/`ClientTransport`              |
@@ -366,6 +366,30 @@ eingezogen mit K3a). Jede Variante soll **ein Eintrag oder ein Hook** sein, kein
 Der Umbau ist gegen Verhaltensänderungen abgesichert: `packages/core/test/reference.test.ts` spielt
 500 Zufallsspiele und vergleicht Ansage, Spieler und Zahlungen mit `reference-games.json` vom Stand
 vor dem Umbau.
+
+## Kurze Karte und Dreier (K6)
+
+Spielerzahl und Blatt sind Tischregeln wie alle anderen (`RuleOptions` enthält seit K6 auch
+`players` und `deck`). Erlaubt sind nur die Besetzungen aus `TABLE_SETUPS` (4/lang, 4/kurz,
+3/kurz); `parseRuleOptions` lehnt alles andere ab, außerdem zu dritt das Muss und einen Satz
+ohne Einzelspiel.
+
+- **Welche Spielarten gehen:** `availableKinds(rules)` ist die einzige Quelle. Sie filtert
+  `contracts` nach `kindFitsPlayers` (zu dritt nur Spielarten mit `parties: 'alone'` oder
+  `'everyone'`) und nach `ModeDefinition.handSize` (eine Spielart, die genau acht Karten je
+  Spieler braucht, fehlt mit kurzer Karte zu viert – gedacht für den Hawaii-Habicht).
+  `allContracts` und damit Ansage, Lobby und Regelübersicht lesen nur diese Liste.
+- **Davonlaufen:** `davonlaufenAb(deck)` (lang 4, kurz 3) kommt über `LegalContext` in
+  `restrictRufsau`.
+- **Abrechnung, Laufende, Sie, Ramsch, Stock** brauchten nichts Neues: Sie rechnen schon mit
+  `rules.players` und dem Blatt aus `createDeck(rules.deck)`.
+- **Host:** `setRules` mit anderer Spielerzahl passt die Plätze an (`resizeSeats`): Wer auf einem
+  wegfallenden Platz sitzt, rückt auf den ersten freien; sitzen zu viele, wird abgelehnt. Nur vor
+  dem ersten Spiel, deshalb sind alle Stände noch 0.
+- **Oberfläche:** `positionOf(seat, me, players)` in `ui/table/layout.ts` – zu dritt sitzen die
+  anderen links und rechts, oben bleibt frei. Tisch und Lobby nutzen dieselbe Funktion.
+- **Bots** filtern ihre Kandidaten mit `kindFitsPlayers` und skalieren die Ansageschwellen mit
+  der Kartenzahl; die Blattgröße schätzen sie aus Hand, Stichen und laufendem Stich.
 
 ## Mischen (Seed und Generator)
 

@@ -8,7 +8,17 @@
  * (siehe docs/entwurf-sonderspiele.md, §2–§3).
  */
 
-import { type Card, type Rank, type Suit, RANKS, SUITS, card, rankOf, suitOf } from './cards';
+import {
+  type Card,
+  type DeckKind,
+  type Rank,
+  type Suit,
+  RANKS,
+  SUITS,
+  card,
+  rankOf,
+  suitOf,
+} from './cards';
 import type { HandState } from './hand';
 import { type PreludeDefinition, weddingPrelude } from './prelude';
 import type { Tariff } from './rules';
@@ -69,6 +79,8 @@ export interface LegalContext {
   completedTricks: readonly (readonly Card[])[];
   /** Davonlaufen erlaubt (`RuleSet.davonlaufen`). */
   davonlaufen: boolean;
+  /** Ab so vielen Karten der Ruffarbe darf davongelaufen werden (siehe `davonlaufenAb`). */
+  davonlaufenAb: number;
 }
 
 /** Wer spielt mit wem. */
@@ -130,6 +142,12 @@ export interface ModeDefinition {
   outcome?(state: HandState): Outcome;
   /** Ablauf zwischen Ansage und erstem Stich (Hochzeit), siehe `prelude.ts`. */
   prelude?: PreludeDefinition;
+  /**
+   * Nur spielbar mit genau so vielen Karten je Spieler (Standard: mit jeder Besetzung). Für
+   * Spielarten, die an der Zahl der Stiche hängen – der Hawaii-Habicht wechselt nach vier von
+   * acht Stichen und gibt es mit kurzer Karte zu viert nicht (Annahme 58).
+   */
+  handSize?: number;
 }
 
 const OBER: Card[] = SUITS.map((s) => card(s, 'O'));
@@ -202,7 +220,9 @@ function restrictRufsau(ctx: LegalContext, candidates: Card[]): Card[] {
   if (ledBefore) return candidates;
 
   if (ctx.trick.length === 0) {
-    if (ctx.davonlaufen && ctx.hand.filter(isCalled).length >= 4) return candidates;
+    if (ctx.davonlaufen && ctx.hand.filter(isCalled).length >= ctx.davonlaufenAb) {
+      return candidates;
+    }
     return candidates.filter((c) => !isCalled(c) || c === sau);
   }
   if (isCalled(ctx.trick[0]!)) return [sau];
@@ -293,6 +313,8 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
   hawaii: {
     kind: 'hawaii',
     biddable: true,
+    // Wechsel nach vier von acht Stichen; mit kurzer Karte zu viert nicht spielbar (Annahme 58).
+    handSize: 8,
     suitRole: 'trump',
     suitCount: 2,
     parties: 'alone',
@@ -357,6 +379,22 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
 
 /** Ansagbare Spielarten, niedrigste zuerst. Einzige Quelle für den Rang. */
 export const BID_ORDER: readonly ContractKind[] = CONTRACT_KINDS.filter((k) => MODES[k].biddable);
+
+/**
+ * Passt die Spielart zur Spielerzahl? Zu dritt gibt es keinen Partner, also nur Spiele allein
+ * und den Ramsch (REGELN.md, „Kurze Karte und Dreier“, Annahme 51).
+ */
+export function kindFitsPlayers(kind: ContractKind, players: number): boolean {
+  return players >= 4 || MODES[kind].parties === 'alone' || MODES[kind].parties === 'everyone';
+}
+
+/**
+ * Ab wie vielen Karten der Ruffarbe davongelaufen werden darf: lange Karte vier, kurze drei –
+ * dort hat jede Farbe nur noch vier Farbkarten (Annahme 57).
+ */
+export function davonlaufenAb(deck: DeckKind): number {
+  return deck === 'kurz' ? 3 : 4;
+}
 
 /** Stich- und Bedienordnung für den Stich mit Index `trick` (0-basiert). */
 export function orderFor(contract: Contract, trick: number): CardOrder {

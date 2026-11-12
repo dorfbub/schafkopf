@@ -44,7 +44,8 @@ import {
 /** 12: Eisenbahner (H1): `RuleSet.laufende.eisenbahner`. */
 /** 13: Arabische Hochzeit (H3): `RuleSet.laufende.arabischeHochzeit`. */
 /** 14: Hawaii-Habicht (H2): `Contract.suit2`, `RuleSet.laufende.hawaii`. */
-export const HOST_SNAPSHOT_VERSION = 14;
+/** 15: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Tische mit drei Plätzen. */
+export const HOST_SNAPSHOT_VERSION = 15;
 
 export interface HostSnapshot {
   v: number;
@@ -109,10 +110,11 @@ function check(raw: unknown): HostSnapshot | null {
 
   const rules = table.rules;
   if (!isObj(rules) || !hasKeys(rules, DEFAULT_RULES)) return null;
-  const players = rules.players;
-  if (!isInt(players, 2, 8)) return null;
-  // Prüft auch `allPassed` gegen die bekannten Regeln (`ALL_PASSED_RULES`).
-  if (!parseRuleOptions(rules)) return null;
+  // Prüft auch `allPassed` gegen die bekannten Regeln (`ALL_PASSED_RULES`) und die Besetzung
+  // gegen `TABLE_SETUPS`.
+  const parsedRules = parseRuleOptions(rules);
+  if (!parsedRules) return null;
+  const players = parsedRules.players;
   const last = players - 1;
 
   const { seats, balances, pot, dealer, handNo, hand, logs, history } = table;

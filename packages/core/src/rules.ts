@@ -4,7 +4,7 @@
  */
 
 import type { DeckKind } from './cards';
-import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind } from './modes';
+import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind, MODES, kindFitsPlayers } from './modes';
 
 /**
  * Was passiert, wenn alle "weiter" sagen. Umgesetzt in der Registry `ALL_PASSED`
@@ -49,10 +49,13 @@ export const LAUFENDE_KINDS: readonly LaufendeKind[] = [
 ];
 
 export interface RuleSet {
-  /** Anzahl Spieler. Aktuell nur 4; 3 ist für den Dreier-Modus mit kurzem Blatt vorgesehen. */
+  /** Anzahl Spieler: 4 oder 3 (Dreier, nur mit kurzer Karte; siehe `TABLE_SETUPS`). */
   players: number;
   deck: DeckKind;
-  /** Erlaubte Spielarten (nur ansagbare, in der Reihenfolge von `BID_ORDER`). */
+  /**
+   * Erlaubte Spielarten (nur ansagbare, in der Reihenfolge von `BID_ORDER`). Zu dritt bleiben die
+   * Partnerspiele gespeichert, sind aber nicht ansagbar (`availableKinds`).
+   */
   contracts: ContractKind[];
   allowTout: boolean;
   allPassed: AllPassedRule;
@@ -94,9 +97,42 @@ export const DEFAULT_RULES: RuleSet = {
   kontra: false,
 };
 
-/** Was der Gastgeber ändern darf: alles außer Spielerzahl und Blatt. */
+/** Erlaubte Besetzungen: Spielerzahl und Blatt (REGELN.md, „Kurze Karte und Dreier“). */
+export const TABLE_SETUPS: readonly { players: number; deck: DeckKind }[] = [
+  { players: 4, deck: 'lang' },
+  { players: 4, deck: 'kurz' },
+  { players: 3, deck: 'kurz' },
+];
+
+/** Kartenzahl je Blatt (wie `createDeck(deck).length`, ohne das Blatt zu bauen). */
+const DECK_SIZE: Record<DeckKind, number> = { lang: 32, kurz: 24 };
+
+/** Karten je Spieler: lang zu viert 8, kurz zu viert 6, kurz zu dritt 8. */
+export function cardsPerPlayer(rules: Pick<RuleSet, 'players' | 'deck'>): number {
+  return DECK_SIZE[rules.deck] / rules.players;
+}
+
+/**
+ * Spielarten, die an diesem Tisch angesagt werden können: eingeschaltet, passend zur
+ * Spielerzahl (zu dritt keine Partnerspiele) und zur Kartenzahl (`ModeDefinition.handSize`).
+ */
+export function availableKinds(
+  rules: Pick<RuleSet, 'contracts' | 'players' | 'deck'>,
+): ContractKind[] {
+  const size = cardsPerPlayer(rules);
+  return BID_ORDER.filter(
+    (k) =>
+      rules.contracts.includes(k) &&
+      kindFitsPlayers(k, rules.players) &&
+      (MODES[k].handSize === undefined || MODES[k].handSize === size),
+  );
+}
+
+/** Was der Gastgeber ändern darf – seit K6 auch Spielerzahl und Blatt. */
 export type RuleOptions = Pick<
   RuleSet,
+  | 'players'
+  | 'deck'
   | 'contracts'
   | 'allowTout'
   | 'allPassed'
@@ -122,14 +158,20 @@ function isInt(v: unknown, min: number, max: number): v is number {
  */
 export function parseRuleOptions(raw: unknown): RuleOptions | null {
   if (!isObj(raw)) return null;
+  const { players, deck } = raw;
   const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     raw;
+  const setup = TABLE_SETUPS.find((s) => s.players === players && s.deck === deck);
+  if (!setup) return null;
   if (!Array.isArray(contracts) || !contracts.every((k) => BID_ORDER.includes(k))) return null;
   const kinds = new Set(contracts as ContractKind[]);
   if (!kinds.has('sauspiel')) return null;
   if (typeof allowTout !== 'boolean' || typeof sie !== 'boolean') return null;
   if (typeof davonlaufen !== 'boolean' || typeof kontra !== 'boolean') return null;
   if (!ALL_PASSED_RULES.includes(allPassed as AllPassedRule)) return null;
+  // Zu dritt: kein Muss (ohne Sauspiel kein Pflichtspiel) und mindestens ein Einzelspiel.
+  if (setup.players < 4 && allPassed === 'muss') return null;
+  if (availableKinds({ ...setup, contracts: [...kinds] }).length === 0) return null;
   if (!isObj(tariff) || !isObj(laufende) || !isObj(ramsch)) return null;
   const MAX_TARIFF = 100_000;
   if (!isInt(tariff.sauspiel, 0, MAX_TARIFF)) return null;
@@ -143,6 +185,8 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
     run[kind] = n;
   }
   return {
+    players: setup.players,
+    deck: setup.deck,
     contracts: BID_ORDER.filter((k) => kinds.has(k)),
     allowTout,
     allPassed: allPassed as AllPassedRule,

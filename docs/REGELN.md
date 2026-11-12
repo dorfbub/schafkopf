@@ -7,9 +7,11 @@ Wer eine Regel ändert, ändert zuerst dieses Dokument, dann Test und Code.
 
 | Thema             | Entscheidung                                                     |
 | ----------------- | ---------------------------------------------------------------- |
-| Spieler           | 4                                                                |
-| Blatt             | Lange Karte, 32 Karten, 8 je Spieler                             |
+| Spieler, Blatt    | Tischregel: 4 mit langer Karte (Standard), 4 oder 3 mit kurzer   |
+| Lange Karte       | 32 Karten, 8 je Spieler                                          |
+| Kurze Karte       | 24 Karten ohne 7er und 8er; zu viert 6, zu dritt 8 je Spieler    |
 | Spielarten        | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und Sie |
+| Zu dritt          | Nur Einzelspiele, kein Sauspiel (siehe „Kurze Karte und Dreier“) |
 | Alle „weiter“     | Tischregel: Zusammenwerfen (Standard), Ramsch, Stock oder Muss   |
 | Kontra/Re         | Tischregel, Standard aus (siehe „Kontra und Re“)                 |
 | Legen, Bockrunden | Nicht gespielt                                                   |
@@ -106,7 +108,31 @@ Aufschlag 10 Cent.
 - **Sie** (alle Ober und Unter auf einer Hand, im Solo): Grundtarif × 4, immer gewonnen.
 - **Bettel**: gewonnen, wenn der Spieler keinen Stich macht. Wert = Grundtarif Einzelspiel.
 - **Zahlung**: Im Sauspiel zahlt jeder Verlierer den Spielwert an einen Gewinner. Im Einzelspiel
-  zahlt bzw. bekommt der Spieler den Spielwert von jedem der drei Gegner.
+  zahlt bzw. bekommt der Spieler den Spielwert von jedem der drei Gegner (zu dritt: der zwei).
+
+## Kurze Karte und Dreier
+
+Lukas' Wunsch von Anfang an (Paket K6). Der Gastgeber wählt in der Lobby eine von drei
+Besetzungen: **vier Spieler mit langer Karte** (Standard), **vier mit kurzer Karte** („Kurzer“,
+6 Karten je Spieler) oder **drei mit kurzer Karte** („Dreier“, 8 Karten je Spieler). Lange Karte
+zu dritt gibt es nicht (32 Karten gehen nicht auf drei auf). Die Festlegungen stehen unter
+„Annahmen“, Nr. 50–59.
+
+- **Kurze Karte:** Es fehlen die 7er und 8er. Sie zählen keine Augen, also bleiben es 120 Augen:
+  gewonnen mit 61, Schneider- und Schwarz-Grenzen wie bei langer Karte. Trümpfe und Farben wie in
+  den Tabellen oben, nur ohne 7 und 8; Laufende zählen über die Trümpfe des kurzen Blatts.
+  Davonlaufen geht ab **drei** Karten der Ruffarbe, denn jede Farbe hat nur noch vier Farbkarten.
+- **Zu dritt** spielt der Spieler immer allein gegen die zwei anderen. Es gibt **kein Sauspiel,
+  keine Hochzeit und keine arabische Hochzeit**, weil es keinen Partner geben kann. Ansagbar sind
+  die Einzelspiele: Bettel, Geier, Farbwenz, Wenz, Farb-Solo und, wenn eingeschaltet, Eisenbahner
+  und Hawaii-Habicht – mit Tout wie zu viert. Mit kurzer Karte zu viert gibt es keinen
+  Hawaii-Habicht (nur sechs Stiche, Annahme 58).
+- **Abrechnung zu dritt:** Tarif wie im Einzelspiel zu viert; der Spieler zahlt bzw. bekommt den
+  Spielwert von **jedem der zwei** Gegner.
+- **Alle „weiter“ zu dritt:** Zusammenwerfen, Ramsch und Stock wie zu viert (Ramsch: der Verlierer
+  zahlt an jeden der zwei anderen). **Muss gibt es zu dritt nicht.**
+- **Sie** zu dritt wie gewohnt (alle vier Ober und vier Unter auf einer Hand im Solo); mit kurzer
+  Karte zu viert hat niemand acht Karten, Sie kommt dort nicht vor.
 
 ## Varianten
 
@@ -241,6 +267,8 @@ Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
 | `ramsch.durchmarsch`  | Durchmarsch ab 91 Augen gewinnt                      | an               | an/aus                                      |
 | `ramsch.jungfrau`     | Jeder Spieler ohne Stich verdoppelt                  | an               | an/aus                                      |
 | `kontra`              | Kontra und Re erlaubt                                | aus              | an/aus                                      |
+| `players`             | Zahl der Spieler                                     | 4                | 3 oder 4                                    |
+| `deck`                | Lange oder kurze Karte                               | `lang`           | `lang` (nur zu viert), `kurz`               |
 
 Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz, Hochzeit →
 3, 3, 2, 2, 3, 3; dazu `eisenbahner` 2 und `arabischeHochzeit` 3. Die klassischen sechs Spielarten sind Sauspiel, Bettel, Geier, Farbwenz, Wenz
@@ -249,11 +277,15 @@ Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abg
 (Laufende zählen dann). Ist `davonlaufen` aus, darf die Ruffarbe nur mit der Sau angespielt werden.
 Die Unteroptionen für Ramsch gelten nur bei `allPassed: 'ramsch'`, der Stock-Einsatz nur bei
 `'stock'`; sie bleiben aber gespeichert.
+Zu dritt gelten zusätzlich: kurze Karte, kein Muss, und mindestens eine Einzelspielart muss
+eingeschaltet sein; die Partnerspiele (Sauspiel, Hochzeit, arabische Hochzeit) bleiben in
+`contracts` gespeichert, sind aber nicht ansagbar. Die Spielerzahl lässt sich nur ändern, solange
+nicht mehr Menschen am Tisch sitzen als Plätze bleiben.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Noch keine Option ist die arabische Hochzeit (siehe „Hausregeln“; Paket H3). Eisenbahner und
-Hawaii-Habicht sind Optionen in `contracts`, mit eigener Schwelle in `laufende`. Fest bleiben die
-Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
+Alle Hausregeln (Eisenbahner, Hawaii-Habicht, Arabische Hochzeit) sind Optionen in `contracts`;
+Eisenbahner und Hawaii-Habicht haben eine eigene Schwelle in `laufende`. Fest bleiben die
+Bettel-Reihenfolge und die Rangfolge der Spielarten (feste Regeln).
 
 ## Annahmen – bitte prüfen
 
@@ -394,3 +426,42 @@ Ohne Rückfrage nach gängiger Spielweise festgelegt. **Bitte prüfen.**
     der Hochzeit. Tarif wie Sauspiel, kein Tout.
 42. **Bots:** Sie sagen die arabische Hochzeit nie an, lehnen sie ab und geben, wenn sie als
     Vertretung annehmen mussten, die zwei niedrigsten erlaubten Karten zurück.
+
+### Annahmen zu kurzer Karte und Dreier (K6)
+
+Ohne Rückfrage nach gängiger Spielweise beim „Kurzen“ und beim Dreier-Schafkopf festgelegt.
+**Bitte prüfen.**
+
+50. **Besetzungen:** Vier mit langer Karte (Standard), vier mit kurzer oder drei mit kurzer Karte.
+    Der Gastgeber wählt in der Lobby; nach Spielbeginn ist nichts mehr änderbar. Wechselt er auf
+    drei, rücken Sitzende von Platz 4 auf einen freien Platz; sitzen schon vier Menschen, geht es
+    nicht.
+51. **Spielarten zu dritt:** nur Einzelspiele (Bettel, Geier, Farbwenz, Wenz, Farb-Solo; Eisenbahner
+    und Hawaii-Habicht, wenn eingeschaltet). Kein Sauspiel, keine Hochzeit, keine arabische
+    Hochzeit. Rangfolge, Zweikampf und Tout wie zu viert. Einen Ersatz für das Sauspiel (etwa ein
+    Pflicht-Herz-Solo) gibt es nicht; wer nichts Einzelnes spielen mag, sagt „weiter“.
+52. **Abrechnung zu dritt:** Einzelspiel-Tarif, Aufschläge, Tout, Sie, Kontra und Re wie zu viert.
+    Der Spieler zahlt bzw. bekommt den Spielwert von jedem der zwei Gegner. Kontra dürfen beide
+    Gegenspieler sagen, Re der Spieler.
+53. **Alle „weiter“ zu dritt:** Zusammenwerfen, Ramsch und Stock wie zu viert. Im Ramsch zahlt der
+    Verlierer den Ramsch-Tarif an jeden der zwei anderen; Durchmarsch ab 91 Augen, Jungfrau wie
+    gehabt. Beim Stock zahlt jeder den Einsatz; den Pott bekommt der Spieler des nächsten
+    gewonnenen Spiels allein. Muss gibt es zu dritt nicht (ohne Sauspiel kein Pflichtspiel); die
+    Lobby bietet es nicht an, der Host lehnt es ab.
+54. **Augen und Schneider mit kurzer Karte:** 7er und 8er zählen keine Augen, es bleiben 120.
+    Gewonnen mit 61, Schneider unter 30 bzw. 31, Schwarz ohne Stich – wie bei langer Karte.
+55. **Laufende mit kurzer Karte:** gezählt über die Trümpfe des kurzen Blatts (Herz-7 und -8 gibt
+    es nicht); die Schwellen bleiben, wie sie eingestellt sind (Standard wie bei langer Karte).
+56. **Sie mit kurzer Karte:** Zu dritt (8 Karten) wie gewohnt. Kurz zu viert (6 Karten) kann
+    niemand alle acht Ober und Unter halten; eine verkürzte Sie (etwa vier Ober und zwei Unter)
+    gibt es nicht.
+57. **Davonlaufen mit kurzer Karte:** ab drei Karten der Ruffarbe einschließlich der Sau, weil
+    eine Farbe nur noch vier Farbkarten hat (A 10 K 9). Bei langer Karte bleibt es bei vier.
+58. **Hochzeit und Hausregeln mit kurzer Karte zu viert:** Hochzeit (genau ein Trumpf) und
+    arabische Hochzeit (genau zwei) wie bei langer Karte, mit Tausch wie gehabt; Eisenbahner wie
+    gehabt. Den **Hawaii-Habicht gibt es mit kurzer Karte zu viert nicht**: Er lebt von zwei
+    Hälften mit je vier Stichen, und mit sechs Stichen passt das nicht. Zu dritt (acht Stiche)
+    wechselt die Trumpffarbe wie gewohnt nach dem 4. Stich.
+59. **Ansage, Geben und Bots zu dritt:** Ansage, Herauskommen und Geberwechsel laufen reihum über
+    drei Plätze wie über vier. Die Bots spielen alle Besetzungen mit; sie bewerten ihr Blatt nach
+    der Kartenzahl und sagen zu dritt kein Partnerspiel an.

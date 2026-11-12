@@ -353,6 +353,24 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
   diesen (sonst ginge beim Verschwinden der Fokus verloren). Hochkant in der Ecke unten rechts,
   quer rechts unten am Filzrand. Der Knopf in der Leiste ist weg; im Ergebnis-Dialog bleibt er.
 
+### Dreier-Tisch (K6)
+
+Zu dritt sitzen die zwei anderen **links und rechts**, oben bleibt der Filz frei
+(`positionOf` in `ui/table/layout.ts`). Es gibt keine eigenen Stile: Die Plätze und die Karten
+im Stich nutzen die vorhandenen Stellungen `left`/`right`/`bottom`, deshalb passt die Anordnung
+in allen Größenstufen. Hochkant stehen die beiden oben in den Ecken wie zu viert der linke und
+rechte Platz. In der Lobby wählt der Gastgeber unter „Spieler und Karten“ die Besetzung;
+Spielarten, die zur Besetzung nicht passen, sind ausgegraut und mit „nicht zu dritt“ bzw.
+„nicht mit kurzer Karte zu viert“ beschriftet, „Muss“ zu dritt ebenso.
+
+| Ansage, hochkant                                                       | Stich, hochkant                                                      | Stich, quer                                                  |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ |
+| ![Dreier, Ansage, hochkant](bilder/tisch/dreier-hochkant-1-ansage.png) | ![Dreier, Stich, hochkant](bilder/tisch/dreier-hochkant-2-stich.png) | ![Dreier, Stich, quer](bilder/tisch/dreier-quer-2-stich.png) |
+
+![Dreier, Stich, Desktop](bilder/tisch/dreier-desktop-2-stich.png)
+
+Die Bilder entstehen mit `BILDER=1 npx playwright test e2e/dreier.spec.ts`.
+
 ### Größenstufen
 
 Der Raum zwischen Leiste und Hand ist ein Größen-Container (`container: tisch`); Stichkarten
@@ -453,8 +471,8 @@ Loopback-Verbindungen, ohne Relays.
   - Leiste: Schriftzug (Messing, am Handy weg), „Tisch k7m 2xp“, „Tisch verlassen“.
   - Einladung zuerst: großer Code, Link zum Markieren, „Link kopieren“ (→ „Kopiert“; geht die
     Zwischenablage nicht, ein Hinweis in Minusfarbe). Am Tisch gegen die Bots entfällt sie.
-  - Der Tisch: ovaler Filz im Holzrahmen (`--shadow-rim`), die vier Plätze ringsum in derselben
-    Anordnung wie im Spiel (du unten mit Messingring und Marke „du“; Zuschauer sehen ihn aus
+  - Der Tisch: ovaler Filz im Holzrahmen (`--shadow-rim`), die vier (zu dritt drei) Plätze ringsum
+    in derselben Anordnung wie im Spiel (du unten mit Messingring und Marke „du“; Zuschauer sehen ihn aus
     Sicht von Platz 1). Freier Platz = gestrichelter Stuhl mit „Hier sitzen“, die ganze Fläche ist
     der Knopf. In der Mitte „Noch 1 Platz frei“ und für den Gastgeber „Spiel starten“ (mit
     „Den freien Platz übernimmt ein Bot.“), für Gäste „Der Gastgeber startet das Spiel.“

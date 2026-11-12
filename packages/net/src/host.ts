@@ -9,6 +9,7 @@ import {
   withRuleOptions,
   type Bot,
   type PlayerAction,
+  type PlayerInfo,
   type RuleSet,
   type Seat,
   type TableState,
@@ -246,8 +247,37 @@ export class HostSession {
     if (this.table.hand) return false;
     const parsed = parseRuleOptions(options);
     if (!parsed) return false;
+    if (parsed.players !== this.table.seats.length && !this.resizeSeats(parsed.players)) {
+      return false;
+    }
     this.table = { ...this.table, rules: withRuleOptions(this.table.rules, parsed) };
     this.changed();
+    return true;
+  }
+
+  /**
+   * Neue Spielerzahl in der Lobby (K6, Annahme 50): Wer auf einem wegfallenden Platz sitzt,
+   * rückt auf den ersten freien Platz. Sitzen mehr Spieler als Plätze bleiben, geht es nicht.
+   * Vor dem ersten Spiel sind alle Stände 0 – sie werden nur in der Länge angepasst.
+   */
+  private resizeSeats(players: number): boolean {
+    const old = this.table.seats;
+    if (old.filter((s) => s !== null).length > players) return false;
+    const seats = Array.from({ length: players }, (_, i): PlayerInfo | null => old[i] ?? null);
+    for (let from = players; from < old.length; from++) {
+      const player = old[from];
+      if (!player) continue;
+      const to = seats.indexOf(null);
+      seats[to] = player;
+      const clientId = this.clientAt(from);
+      if (clientId) this.assign(clientId, to);
+    }
+    this.table = {
+      ...this.table,
+      seats,
+      balances: Array.from({ length: players }, () => 0),
+      dealer: this.table.dealer % players,
+    };
     return true;
   }
 

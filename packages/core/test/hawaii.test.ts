@@ -10,6 +10,7 @@ import {
   HAWAII_SWITCH_TRICK,
   MODES,
   allContracts,
+  availableKinds,
   allLevels,
   applyAction,
   bidValue,
@@ -332,5 +333,14 @@ describe('Hawaii-Habicht: Abrechnung', () => {
     const r = value(finished({ ...HAWAII, tout: true }, ALLE, 110, 7));
     expect(r.won).toBe(false);
     expect(r.payments[0]).toBeLessThan(0);
+  });
+});
+
+describe('Hawaii-Habicht und Besetzung (Annahme 58)', () => {
+  it('ist mit langer Karte zu viert und zu dritt mit kurzer Karte ansagbar, mit kurzer Karte zu viert nicht', () => {
+    const contracts = [...DEFAULT_RULES.contracts, 'hawaii' as const];
+    expect(availableKinds({ contracts, players: 4, deck: 'lang' })).toContain('hawaii');
+    expect(availableKinds({ contracts, players: 3, deck: 'kurz' })).toContain('hawaii');
+    expect(availableKinds({ contracts, players: 4, deck: 'kurz' })).not.toContain('hawaii');
   });
 });

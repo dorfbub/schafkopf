@@ -3,10 +3,13 @@ import {
   BID_ORDER,
   CLASSIC_CONTRACTS,
   LAUFENDE_KINDS,
+  TABLE_SETUPS,
   type ContractKind,
   type LaufendeKind,
   type RuleOptions,
   type TableView,
+  availableKinds,
+  davonlaufenAb,
 } from '@schafkopf/core';
 import type { HostSession } from '@schafkopf/net';
 import { useId, useState } from 'react';
@@ -18,9 +21,12 @@ interface Props {
 }
 
 function options(view: TableView): RuleOptions {
+  const { players, deck } = view.rules;
   const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     view.rules;
   return {
+    players,
+    deck,
     contracts,
     allowTout,
     allPassed,
@@ -37,7 +43,26 @@ function options(view: TableView): RuleOptions {
 export function LobbySettings({ view, host }: Props) {
   const current = options(view);
   const allPassedGroup = useId();
+  const setupGroup = useId();
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
+  const three = current.players === 3;
+  const available = availableKinds(current);
+  const seated = view.seats.filter((s) => s !== null).length;
+
+  /**
+   * Neue Besetzung (K6). Zu dritt geht kein Muss, und es braucht ein Einzelspiel – beides wird
+   * gleich mit umgestellt, sonst lehnt der Host die Änderung ab.
+   */
+  const changeSetup = (players: number, deck: RuleOptions['deck']) => {
+    const patch: Partial<RuleOptions> = { players, deck };
+    if (players === 3) {
+      if (current.allPassed === 'muss') patch.allPassed = 'zusammenwerfen';
+      if (availableKinds({ contracts: current.contracts, players, deck }).length === 0) {
+        patch.contracts = BID_ORDER.filter((k) => current.contracts.includes(k) || k === 'solo');
+      }
+    }
+    change(patch);
+  };
 
   const toggleContract = (kind: ContractKind, on: boolean) => {
     const set = new Set(current.contracts);
@@ -48,26 +73,60 @@ export function LobbySettings({ view, host }: Props) {
 
   const contractChecks = (kinds: ContractKind[]) => (
     <div className="row">
-      {kinds.map((kind) => (
-        <label key={kind} className="check">
-          <input
-            type="checkbox"
-            checked={current.contracts.includes(kind)}
-            disabled={kind === 'sauspiel'}
-            onChange={(e) => toggleContract(kind, e.target.checked)}
-          />
-          {KIND_NAME[kind]}
-        </label>
-      ))}
+      {kinds.map((kind) => {
+        // Eingeschaltet oder nicht: Passt die Spielart zu dieser Besetzung?
+        const fits = availableKinds({ ...current, contracts: [kind] }).length > 0;
+        return (
+          <label key={kind} className="check">
+            <input
+              type="checkbox"
+              checked={fits && current.contracts.includes(kind)}
+              disabled={kind === 'sauspiel' || !fits}
+              onChange={(e) => toggleContract(kind, e.target.checked)}
+            />
+            {KIND_NAME[kind]}
+            {!fits && (
+              <span className="text-muted"> ({three ? T.notForThree : T.notForShort})</span>
+            )}
+          </label>
+        );
+      })}
     </div>
   );
 
   return (
     <div className="regeln-einstellung">
       <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.setup}</legend>
+        <div className="row">
+          {TABLE_SETUPS.map(({ players, deck }) => {
+            const key = `${players}-${deck}`;
+            const full = players < seated;
+            return (
+              <label key={key} className="check">
+                <input
+                  type="radio"
+                  name={setupGroup}
+                  value={key}
+                  checked={current.players === players && current.deck === deck}
+                  disabled={full}
+                  onChange={() => changeSetup(players, deck)}
+                />
+                {T.setupName(players, deck)}
+              </label>
+            );
+          })}
+        </div>
+        <p className="hint">
+          {T.setupHint(current.players, current.deck)}
+          {current.players > 3 && seated > 3 && ` ${T.setupFull}`}
+        </p>
+      </fieldset>
+
+      <fieldset className="regeln-einstellung__gruppe">
         <legend>{T.contracts}</legend>
         {contractChecks(BID_ORDER.filter((k) => CLASSIC_CONTRACTS.includes(k)))}
-        <p className="hint">{T.contractsHint}</p>
+        <p className="hint">{three ? T.contractsHintThree : T.contractsHint}</p>
       </fieldset>
 
       <fieldset className="regeln-einstellung__gruppe">
@@ -93,14 +152,16 @@ export function LobbySettings({ view, host }: Props) {
           />
           {T.sie}
         </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={current.davonlaufen}
-            onChange={(e) => change({ davonlaufen: e.target.checked })}
-          />
-          {T.davonlaufen}
-        </label>
+        {!three && (
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={current.davonlaufen}
+              onChange={(e) => change({ davonlaufen: e.target.checked })}
+            />
+            {T.davonlaufen(davonlaufenAb(current.deck))}
+          </label>
+        )}
         <label className="check">
           <input
             type="checkbox"
@@ -121,13 +182,17 @@ export function LobbySettings({ view, host }: Props) {
                 name={allPassedGroup}
                 value={rule}
                 checked={current.allPassed === rule}
+                disabled={three && rule === 'muss'}
                 onChange={() => change({ allPassed: rule })}
               />
               {T.allPassedName[rule]}
             </label>
           ))}
         </div>
-        <p className="hint">{T.allPassedHint[current.allPassed]}</p>
+        <p className="hint">
+          {T.allPassedHint[current.allPassed]}
+          {three && ` ${T.mussNotForThree}`}
+        </p>
         {current.allPassed === 'stock' && (
           <div className="row">
             <NumberField
@@ -203,7 +268,7 @@ export function LobbySettings({ view, host }: Props) {
       <fieldset className="regeln-einstellung__gruppe">
         <legend>{T.laufende}</legend>
         <div className="row">
-          {LAUFENDE_KINDS.filter((k) => current.contracts.includes(k)).map((kind: LaufendeKind) => (
+          {LAUFENDE_KINDS.filter((k) => available.includes(k)).map((kind: LaufendeKind) => (
             <NumberField
               key={`${kind}-${current.laufende[kind]}`}
               label={KIND_NAME[kind]}

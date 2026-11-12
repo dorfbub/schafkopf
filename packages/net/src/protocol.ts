@@ -23,7 +23,11 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 /** 13: Eisenbahner (H1): Spielart `eisenbahner`, `RuleSet.laufende.eisenbahner`. */
 /** 14: Arabische Hochzeit (H3): Spielart `arabischeHochzeit`, `RuleSet.laufende.arabischeHochzeit`. */
 /** 15: Hawaii-Habicht (H2): Spielart `hawaii`, `Contract.suit2`, `RuleSet.laufende.hawaii`. */
-export const PROTOCOL_VERSION = 15;
+/**
+ * 16: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Sichten mit drei Plätzen,
+ * Davonlaufen mit kurzer Karte ab drei Karten.
+ */
+export const PROTOCOL_VERSION = 16;
 
 export type ClientMessage =
   | {
