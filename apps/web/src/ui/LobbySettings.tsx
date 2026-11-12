@@ -10,7 +10,6 @@ import {
   type TableView,
   availableKinds,
   davonlaufenAb,
-  kindFitsPlayers,
 } from '@schafkopf/core';
 import type { HostSession } from '@schafkopf/net';
 import { useId, useState } from 'react';
@@ -57,7 +56,7 @@ export function LobbySettings({ view, host }: Props) {
     const patch: Partial<RuleOptions> = { players, deck };
     if (players === 3) {
       if (current.allPassed === 'muss') patch.allPassed = 'zusammenwerfen';
-      if (availableKinds({ contracts: current.contracts, players }).length === 0) {
+      if (availableKinds({ contracts: current.contracts, players, deck }).length === 0) {
         patch.contracts = BID_ORDER.filter((k) => current.contracts.includes(k) || k === 'solo');
       }
     }
@@ -74,7 +73,7 @@ export function LobbySettings({ view, host }: Props) {
   const contractChecks = (kinds: ContractKind[]) => (
     <div className="row">
       {kinds.map((kind) => {
-        const fits = kindFitsPlayers(kind, current.players);
+        const fits = availableKinds({ ...current, contracts: [kind] }).length > 0;
         return (
           <label key={kind} className="check">
             <input
@@ -84,7 +83,9 @@ export function LobbySettings({ view, host }: Props) {
               onChange={(e) => toggleContract(kind, e.target.checked)}
             />
             {KIND_NAME[kind]}
-            {!fits && <span className="text-muted"> ({T.notForThree})</span>}
+            {!fits && (
+              <span className="text-muted"> ({three ? T.notForThree : T.notForShort})</span>
+            )}
           </label>
         );
       })}

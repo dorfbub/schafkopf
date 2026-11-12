@@ -178,6 +178,11 @@ ungetestet). Zu klären: welche Spielarten zu dritt, Sie mit kurzer Karte, Tisch
 
 - **Bereich:** Kern-Tests, `scoring.ts` (Sie), `ui/Table.tsx` (Positionen), Lobby.
 - **Abnahme:** Zufallsspiel-Test (wie in `hand.test.ts`) für kurz/4 und kurz/3.
+- **Stand:** umgesetzt. Regeln in `docs/REGELN.md` („Kurze Karte und Dreier“, Annahmen 50–59, bitte
+  prüfen), Aufbau in `docs/ARCHITEKTUR.md` („Kurze Karte und Dreier“). Zufallsspiele im Kern
+  (`core/test/dreier.test.ts`) und über den Host mit Heuristik-Bots für lang/4, kurz/4 und kurz/3
+  (`net/test/dreier.test.ts`), E2E `e2e/dreier.spec.ts`; Bilder `docs/bilder/tisch/dreier-*.png`.
+  Offen beim Zusammenführen mit H2: im Eintrag `hawaii` `handSize: 8` setzen (Annahme 58).
 
 ### K7 · Spielprotokoll
 

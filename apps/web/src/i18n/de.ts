@@ -452,6 +452,7 @@ export const RULES_TEXT = {
   contractsHintThree:
     'Zu dritt spielt jeder allein gegen die zwei anderen: kein Sauspiel, keine Hochzeit. Mindestens ein Einzelspiel muss an sein.',
   notForThree: 'nicht zu dritt',
+  notForShort: 'nicht mit kurzer Karte zu viert',
   setup: 'Spieler und Karten',
   setupName: {
     '4-lang': 'Zu viert, lange Karte',

@@ -134,6 +134,12 @@ export interface ModeDefinition {
   outcome?(state: HandState): Outcome;
   /** Ablauf zwischen Ansage und erstem Stich (Hochzeit), siehe `prelude.ts`. */
   prelude?: PreludeDefinition;
+  /**
+   * Nur spielbar mit genau so vielen Karten je Spieler (Standard: mit jeder Besetzung). Für
+   * Spielarten, die an der Zahl der Stiche hängen – der Hawaii-Habicht wechselt nach vier von
+   * acht Stichen und gibt es mit kurzer Karte zu viert nicht (Annahme 58).
+   */
+  handSize?: number;
 }
 
 const OBER: Card[] = SUITS.map((s) => card(s, 'O'));

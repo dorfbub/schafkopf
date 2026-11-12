@@ -11,8 +11,10 @@ import {
   TABLE_SETUPS,
   allContracts,
   applyAction,
+  MODES,
   availableKinds,
   canDouble,
+  cardsPerPlayer,
   createDeck,
   createRng,
   dealHand,
@@ -287,6 +289,21 @@ describe('Alle „weiter“ zu dritt (Annahme 53)', () => {
 });
 
 describe('Kurze Karte (Annahmen 54–58)', () => {
+  it('eine Spielart mit fester Kartenzahl (Hawaii-Habicht: 8) fehlt mit kurzer Karte zu viert', () => {
+    expect([DEFAULT_RULES, KURZ4, DREIER].map(cardsPerPlayer)).toEqual([8, 6, 8]);
+    const mode = MODES.eisenbahner;
+    mode.handSize = 8;
+    try {
+      const rules = (r: RuleSet): RuleSet => ({ ...r, contracts: [...r.contracts, 'eisenbahner'] });
+      expect(availableKinds(rules(DEFAULT_RULES))).toContain('eisenbahner');
+      expect(availableKinds(rules(DREIER))).toContain('eisenbahner');
+      expect(availableKinds(rules(KURZ4))).not.toContain('eisenbahner');
+      expect(allContracts(rules(KURZ4)).some((c) => c.kind === 'eisenbahner')).toBe(false);
+    } finally {
+      delete mode.handSize;
+    }
+  });
+
   it('Laufende zählen über die Trümpfe des kurzen Blatts', () => {
     // Wenz zu viert mit kurzer Karte: Sitz 0 hat Eichel- und Gras-Unter → 2 Laufende.
     const hands: Card[][] = [

@@ -125,7 +125,8 @@ zu dritt gibt es nicht (32 Karten gehen nicht auf drei auf). Die Festlegungen st
 - **Zu dritt** spielt der Spieler immer allein gegen die zwei anderen. Es gibt **kein Sauspiel,
   keine Hochzeit und keine arabische Hochzeit**, weil es keinen Partner geben kann. Ansagbar sind
   die Einzelspiele: Bettel, Geier, Farbwenz, Wenz, Farb-Solo und, wenn eingeschaltet, Eisenbahner
-  und Hawaii-Habicht – mit Tout wie zu viert.
+  und Hawaii-Habicht – mit Tout wie zu viert. Mit kurzer Karte zu viert gibt es keinen
+  Hawaii-Habicht (nur sechs Stiche, Annahme 58).
 - **Abrechnung zu dritt:** Tarif wie im Einzelspiel zu viert; der Spieler zahlt bzw. bekommt den
   Spielwert von **jedem der zwei** Gegner.
 - **Alle „weiter“ zu dritt:** Zusammenwerfen, Ramsch und Stock wie zu viert (Ramsch: der Verlierer
@@ -436,9 +437,10 @@ Ohne Rückfrage nach gängiger Spielweise beim „Kurzen“ und beim Dreier-Scha
 57. **Davonlaufen mit kurzer Karte:** ab drei Karten der Ruffarbe einschließlich der Sau, weil
     eine Farbe nur noch vier Farbkarten hat (A 10 K 9). Bei langer Karte bleibt es bei vier.
 58. **Hochzeit und Hausregeln mit kurzer Karte zu viert:** Hochzeit (genau ein Trumpf) und
-    arabische Hochzeit (genau zwei) wie bei langer Karte, mit Tausch wie gehabt. Der
-    Hawaii-Habicht wechselt die Trumpffarbe nach der Hälfte der Stiche: zu viert mit kurzer Karte
-    nach dem 3. von 6 Stichen, zu dritt wie gewohnt nach dem 4. von 8.
+    arabische Hochzeit (genau zwei) wie bei langer Karte, mit Tausch wie gehabt; Eisenbahner wie
+    gehabt. Den **Hawaii-Habicht gibt es mit kurzer Karte zu viert nicht**: Er lebt von zwei
+    Hälften mit je vier Stichen, und mit sechs Stichen passt das nicht. Zu dritt (acht Stiche)
+    wechselt die Trumpffarbe wie gewohnt nach dem 4. Stich.
 59. **Ansage, Geben und Bots zu dritt:** Ansage, Herauskommen und Geberwechsel laufen reihum über
     drei Plätze wie über vier. Die Bots spielen alle Besetzungen mit; sie bewerten ihr Blatt nach
     der Kartenzahl und sagen zu dritt kein Partnerspiel an.

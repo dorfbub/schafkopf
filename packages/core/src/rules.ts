@@ -3,8 +3,8 @@
  * können sollen, gehört hier hinein – nicht als Konstante in die Spiellogik.
  */
 
-import type { DeckKind } from './cards';
-import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind, kindFitsPlayers } from './modes';
+import { type DeckKind, createDeck } from './cards';
+import { BID_ORDER, CLASSIC_CONTRACTS, type ContractKind, MODES, kindFitsPlayers } from './modes';
 
 /**
  * Was passiert, wenn alle "weiter" sagen. Umgesetzt in der Registry `ALL_PASSED`
@@ -102,9 +102,25 @@ export const TABLE_SETUPS: readonly { players: number; deck: DeckKind }[] = [
   { players: 3, deck: 'kurz' },
 ];
 
-/** Spielarten, die an diesem Tisch angesagt werden können: eingeschaltet und passend zur Spielerzahl. */
-export function availableKinds(rules: Pick<RuleSet, 'contracts' | 'players'>): ContractKind[] {
-  return BID_ORDER.filter((k) => rules.contracts.includes(k) && kindFitsPlayers(k, rules.players));
+/** Karten je Spieler: lang zu viert 8, kurz zu viert 6, kurz zu dritt 8. */
+export function cardsPerPlayer(rules: Pick<RuleSet, 'players' | 'deck'>): number {
+  return createDeck(rules.deck).length / rules.players;
+}
+
+/**
+ * Spielarten, die an diesem Tisch angesagt werden können: eingeschaltet, passend zur
+ * Spielerzahl (zu dritt keine Partnerspiele) und zur Kartenzahl (`ModeDefinition.handSize`).
+ */
+export function availableKinds(
+  rules: Pick<RuleSet, 'contracts' | 'players' | 'deck'>,
+): ContractKind[] {
+  const size = cardsPerPlayer(rules);
+  return BID_ORDER.filter(
+    (k) =>
+      rules.contracts.includes(k) &&
+      kindFitsPlayers(k, rules.players) &&
+      (MODES[k].handSize === undefined || MODES[k].handSize === size),
+  );
 }
 
 /** Was der Gastgeber ändern darf – seit K6 auch Spielerzahl und Blatt. */
@@ -150,7 +166,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
   if (!ALL_PASSED_RULES.includes(allPassed as AllPassedRule)) return null;
   // Zu dritt: kein Muss (ohne Sauspiel kein Pflichtspiel) und mindestens ein Einzelspiel.
   if (setup.players < 4 && allPassed === 'muss') return null;
-  if (availableKinds({ contracts: [...kinds], players: setup.players }).length === 0) return null;
+  if (availableKinds({ ...setup, contracts: [...kinds] }).length === 0) return null;
   if (!isObj(tariff) || !isObj(laufende) || !isObj(ramsch)) return null;
   const MAX_TARIFF = 100_000;
   if (!isInt(tariff.sauspiel, 0, MAX_TARIFF)) return null;
