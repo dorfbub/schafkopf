@@ -55,7 +55,8 @@ Eine ESLint-Regel verbietet im Kern `window`, `document`, `setTimeout`, `Math.ra
 
 ### packages/net – Host, Mitspieler, Transport
 
-- `protocol.ts` – Nachrichten (`hello`, `action` → `welcome`, `state`, `error`) und die beiden
+- `protocol.ts` – Nachrichten (`hello`, `action` → `welcome`, `state`, `waiting`, `rejected`,
+  `error`) und die beiden
   Transport-Schnittstellen `HostTransport` und `ClientTransport`.
 - `host.ts` – `HostSession`: hält den `TableState`, vergibt Plätze, prüft Aktionen mit dem Kern,
   verteilt Sichten, lässt Bots ziehen. Mehrere Transporte gleichzeitig möglich.
@@ -139,7 +140,8 @@ die Plätze; im laufenden Spiel ist alles davon gesperrt (`wrong_phase`).
   (Name 1–24 Zeichen). Ein Platz wird nie einem anderen Menschen weggenommen oder getauscht.
 - **Admin-Befehle des Gastgebers** laufen direkt über `HostSession`, nicht übers Protokoll:
   `moveSeat(von, nach)` (tauscht, wenn `nach` besetzt ist), `unseat(platz)` und
-  `setSpectatorsWelcome(bool)` sowie `setRules(optionen)` (Tischregeln, nur vor Spielbeginn,
+  `setSpectatorsWelcome(bool)`, `setRequireApproval(bool)`, `admitJoin(id)`/`rejectJoin(id)`
+  (Beitrittsanfragen, siehe „Tisch-Code“) sowie `setRules(optionen)` (Tischregeln, nur vor Spielbeginn,
   geprüft mit `parseRuleOptions`; Gäste sehen sie in `TableView.rules`). Sie geben `false` zurück, wenn der Befehl nicht möglich ist.
 - **Zuschauer:** Wer keinen Platz hat oder nur zuschauen will (`seat` mit `null`, oder der Gastgeber
   nimmt ihn vom Platz), bekommt eine Sicht ohne Hand (`TableView.you === null`) und merkt sich beim
@@ -514,8 +516,44 @@ Codes offline durchprobieren, bei 49 Bit ist das unpraktisch.
 **Was er nicht schützt:** Der Code ist ein Geheimnis, das man weitergibt. Wer ihn hat (Link in
 einem Gruppenchat, Bildschirmfoto, Browserverlauf), sitzt ohne Rückfrage am Tisch, und die
 Beitrittsanfragen (SDP) sind nicht mit dem Code verschlüsselt. Der Host prüft Nachrichten, aber
-nicht, _wer_ beitritt. Abhilfe wäre die Bestätigung neuer Mitspieler (Paket N6).
-Der Broadcast-Transport (nur E2E und Tests) hat keinerlei Schutz.
+von sich aus nicht, _wer_ beitritt – dafür gibt es die Einstellung „Neue Mitspieler bestätigen“
+(unten). Der Broadcast-Transport (nur E2E und Tests) hat keinerlei Schutz.
+
+### Neue Mitspieler bestätigen (N6)
+
+Damit ein erratener oder weitergereichter Code allein nicht reicht, kann der Gastgeber in der
+Lobby „Neue Mitspieler bestätigen“ einschalten (`HostSession.setRequireApproval`, Standard aus,
+im Speicherstand als `requireApproval`).
+
+- **Bekannt** ist, wer schon einmal zugelassen war: Der Host merkt sich jede `clientId`, die an den
+  Tisch kam (`known`, im Speicherstand; dazu alle aus `seatByClient` und `watching`). Auch wer vor
+  dem Einschalten schon da war, gilt als bekannt. Der Gastgeber selbst (`HostOptions.owner`, seine
+  `clientId` aus `connection.ts`) muss nie zugelassen werden. Bekannte kommen ohne Rückfrage
+  zurück – nach einem Abbruch, im laufenden Spiel an ihren Platz und nach dem Neuladen des
+  Gastgebers.
+- **Wartezustand:** Meldet sich eine unbekannte `clientId`, ist die Verbindung `waiting`. Sie
+  bekommt nur `{ t: 'waiting', host }` (Name des Gastgebers) – kein `welcome`, keine `state`,
+  also keine `TableView` und keine Namen der Mitspieler. Alles außer `hello` beantwortet der Host
+  mit `not_admitted`, ohne etwas zu ändern. Eine Verbindung kann ihre `clientId` nicht wechseln.
+  Wartende stehen weder am Tisch noch in der Zuschauerliste.
+- **Anfragen beim Gastgeber:** `getJoinRequests()` liefert `{ id, name }[]` in der Reihenfolge des
+  Eingangs (gleiche Referenz, solange sich nichts ändert; passt auf `useSyncExternalStore`). Die
+  `id` ist eine laufende Nummer, nicht die `clientId` – die verlässt den Host nicht.
+  `admitJoin(id)` lässt alle Verbindungen dieser `clientId` herein (wie ein normales `hello`: in
+  der Lobby auf einen freien Platz, im laufenden Spiel als Zuschauer) und merkt sie als bekannt.
+  `rejectJoin(id)` schickt `{ t: 'rejected' }`; dieselbe `clientId` wird sofort wieder abgewiesen,
+  bis der Gastgeber neu lädt (abgewiesene stehen nicht im Speicherstand). Geht die letzte wartende
+  Verbindung, verfällt die Anfrage. Ausschalten der Einstellung lässt alle Wartenden herein.
+- **Neuladen des Gastgebers:** Anfragen werden nicht gespeichert. Die Wartenden verlieren die
+  Verbindung, finden den Tisch wieder, melden sich neu und stehen wieder in der Liste.
+- **Gast:** `ClientSnapshot.admission` (`'waiting' | 'rejected' | null`) und `hostName`. Solange er
+  wartet, läuft keine Zeitüberschreitung (die Zusage kann dauern); verliert er die Verbindung, gilt
+  wieder die normale Suche.
+
+Grenzen: Die Bestätigung schützt nur vor Unbekannten, nicht vor jemandem, der eine fremde
+`clientId` kennt (sie liegt nur im sessionStorage des jeweiligen Tabs). Wer abgewiesen wurde,
+kann mit einem neuen Tab (neue `clientId`) erneut anfragen; der Gastgeber muss dann wieder
+abweisen.
 
 ## Bekannte Grenzen des Grundgerüsts
 

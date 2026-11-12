@@ -352,6 +352,18 @@ Wartezustand im Host (Beitritt angefragt, nicht zugelassen), eine Nachricht des 
 - **Modell:** Opus.
 - **Abnahme:** Netz-Tests für zulassen, abweisen und Rückkehr eines bekannten Gastes; E2E mit
   zwei Tabs.
+- **Stand:** umgesetzt (November 2026). Wartezustand, `admitJoin`/`rejectJoin`,
+  `setRequireApproval` in `packages/net/src/host.ts`; Nachrichten `waiting`/`rejected`, Fehler
+  `not_admitted` (`PROTOCOL_VERSION` 18, `HOST_SNAPSHOT_VERSION` 17 mit `requireApproval` und
+  `known`). Netz-Tests in `packages/net/test/admission.test.ts` (zulassen, abweisen, Rückkehr,
+  Neuladen des Gastgebers mit wartender Anfrage, Aktionen vor der Zusage), E2E in
+  `e2e/beitritt.spec.ts`. Oberfläche: Einstellung in der Lobby, Wartebildschirm beim Gast,
+  Anfrage-Zettel beim Gastgeber (`apps/web/src/ui/JoinRequests.tsx`). Entscheidungen ohne
+  Rückfrage bei Lukas: „bekannt“ ist jede `clientId`, die schon einmal am Tisch war (auch als
+  Zuschauer und vor dem Einschalten); Abweisungen gelten bis zum Neuladen des Gastgebers; Anfragen
+  werden nicht gespeichert, Wartende fragen nach dem Neuladen neu an; im laufenden Spiel kommt
+  ein Zugelassener als Zuschauer dazu; Ausschalten lässt alle Wartenden herein. Details in
+  ARCHITEKTUR.md, „Neue Mitspieler bestätigen“.
 
 ---
 

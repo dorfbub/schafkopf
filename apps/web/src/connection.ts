@@ -292,7 +292,8 @@ function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
 
 export function openTable(name: string, online: boolean): Connection {
   const roomId = online ? randomRoomId() : null;
-  return hostConnection(new HostSession({ ...hostOptions(), roomId }), name);
+  // Der Gastgeber selbst muss nie zugelassen werden (N6).
+  return hostConnection(new HostSession({ ...hostOptions(), roomId, owner: clientId() }), name);
 }
 
 /** Setzt einen gespeicherten Tisch fort – gleicher Raum-Code, gleiche Plätze. */
@@ -306,7 +307,10 @@ export function resumeTable(saved: SavedTable): Connection {
       // ohne sessionStorage sitzt der Gastgeber eben als Zuschauer am Tisch
     }
   }
-  return hostConnection(HostSession.restore(saved.snapshot, hostOptions()), saved.name);
+  return hostConnection(
+    HostSession.restore(saved.snapshot, { ...hostOptions(), owner: saved.owner }),
+    saved.name,
+  );
 }
 
 function hostConnection(host: HostSession, name: string): Connection {

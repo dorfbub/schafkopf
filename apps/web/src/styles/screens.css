@@ -377,6 +377,37 @@
   flex: none;
 }
 
+/* Beitrittsanfragen beim Gastgeber (N6): Zettel oben mittig, unter der Leiste, über Lobby und
+   Tisch; feste Lage, damit am Tisch nichts verrutscht. */
+.join-requests {
+  position: fixed;
+  z-index: 31;
+  left: 50%;
+  top: calc(max(var(--space-3), env(safe-area-inset-top)) + var(--join-requests-offset));
+  translate: -50% 0;
+  display: grid;
+  gap: var(--space-2);
+  width: min(var(--notice-width), calc(100% - var(--space-5)));
+  pointer-events: none;
+}
+
+.join-requests:empty {
+  display: none;
+}
+
+.join-request {
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-left: 4px solid var(--color-brass);
+}
+
+.join-request__actions {
+  display: flex;
+  flex: none;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
 @keyframes notice-in {
   from {
     opacity: 0;

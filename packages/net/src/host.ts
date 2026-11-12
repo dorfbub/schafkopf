@@ -62,6 +62,18 @@ export interface HostOptions {
    * Karte, solange ein Mensch noch Kontra oder Re sagen darf. Standard 3 s.
    */
   kontraWindowMs?: number;
+  /**
+   * `clientId` des Gastgebers, der über die Loopback-Verbindung selbst mitspielt. Er muss nie
+   * zugelassen werden (N6), und sein Name steht in der Wartenachricht an neue Gäste.
+   */
+  owner?: string;
+}
+
+/** Eine offene Beitrittsanfrage (N6), wie der Gastgeber sie sieht. */
+export interface JoinRequest {
+  /** Kennung der Anfrage – nicht die `clientId`, die bleibt beim Host. */
+  id: number;
+  name: string;
 }
 
 export const DEFAULT_KONTRA_WINDOW_MS = 3_000;
@@ -85,8 +97,17 @@ function cleanName(name: string): string {
   return name.trim().slice(0, MAX_NAME_LENGTH);
 }
 
+/**
+ * - `new`: noch kein gültiges `hello`.
+ * - `waiting`: Beitritt angefragt, der Gastgeber hat noch nicht zugestimmt (N6).
+ * - `in`: am Tisch (spielt oder schaut zu), bekommt Sichten.
+ * - `rejected`: vom Gastgeber abgewiesen.
+ */
+type PeerState = 'new' | 'waiting' | 'in' | 'rejected';
+
 interface Peer {
   send: (message: HostMessage) => void;
+  state: PeerState;
   clientId: string | null;
   seat: Seat | null;
   name: string;
@@ -119,6 +140,18 @@ export class HostSession {
   /** Wer ausdrücklich zuschauen will: bekommt beim Beitritt keinen Platz zugeteilt. */
   private watching = new Set<string>();
   private spectatorsWelcome = false;
+  /** Neue Mitspieler bestätigen (N6). */
+  private requireApproval = false;
+  /** `clientId`s, die schon einmal am Tisch waren: kommen ohne Rückfrage zurück. */
+  private known = new Set<string>();
+  /** Abgewiesene `clientId`s; nur bis zum Neuladen des Gastgebers. */
+  private readonly rejected = new Set<string>();
+  /** Offene Anfragen: `clientId` → Kennung der Anfrage. */
+  private readonly requestIds = new Map<string, number>();
+  private requestCounter = 0;
+  /** Zuletzt gemeldete Anfragen; gleiche Referenz, solange sich nichts ändert. */
+  private requests: JoinRequest[] = [];
+  private readonly owner: string | null;
 
   private readonly makeBot: (seat: Seat, rules: RuleSet) => Bot;
   private readonly botNames: string[];
@@ -141,6 +174,7 @@ export class HostSession {
     this.standInDelayMs = options.standInDelayMs ?? DEFAULT_STAND_IN_DELAY_MS;
     this.now = options.now ?? Date.now;
     this.kontraWindowMs = options.kontraWindowMs ?? DEFAULT_KONTRA_WINDOW_MS;
+    this.owner = options.owner ?? null;
   }
 
   /**
@@ -167,6 +201,8 @@ export class HostSession {
     for (const seat of snapshot.botSeats) host.bots.set(seat, host.createBot(seat));
     host.watching = new Set(snapshot.watching);
     host.spectatorsWelcome = snapshot.spectatorsWelcome;
+    host.requireApproval = snapshot.requireApproval;
+    host.known = new Set([...snapshot.known, ...host.seatByClient.keys(), ...host.watching]);
     if (host.table.hand) {
       host.table.seats.forEach((s, seat) => {
         if (s?.kind === 'human') host.markAbsent(seat);
@@ -190,6 +226,8 @@ export class HostSession {
       botSeats: [...this.bots.keys()],
       watching: [...this.watching],
       spectatorsWelcome: this.spectatorsWelcome,
+      requireApproval: this.requireApproval,
+      known: [...this.known],
     };
   }
 
@@ -240,6 +278,93 @@ export class HostSession {
     if (this.spectatorsWelcome === welcome) return;
     this.spectatorsWelcome = welcome;
     this.changed();
+  }
+
+  /** Lässt der Gastgeber Unbekannte erst nach einer Zusage an den Tisch? Standard: nein. */
+  isApprovalRequired(): boolean {
+    return this.requireApproval;
+  }
+
+  /**
+   * Gastgeber-Befehl: Neue Mitspieler bestätigen (N6). Wer schon einmal am Tisch war, kommt
+   * weiter ohne Rückfrage zurück. Ausschalten lässt alle offenen Anfragen herein.
+   */
+  setRequireApproval(on: boolean): void {
+    if (typeof on !== 'boolean' || this.requireApproval === on) return;
+    this.requireApproval = on;
+    if (!on) for (const clientId of [...this.requestIds.keys()]) this.admitClient(clientId);
+    this.changed();
+  }
+
+  /** Offene Beitrittsanfragen in der Reihenfolge ihres Eingangs (für die Anzeige beim Gastgeber). */
+  getJoinRequests = (): JoinRequest[] => this.requests;
+
+  /** Gastgeber-Befehl: lässt die Anfrage `id` zu. `false`, wenn es sie nicht (mehr) gibt. */
+  admitJoin(id: number): boolean {
+    const clientId = this.clientOfRequest(id);
+    if (clientId === null) return false;
+    this.admitClient(clientId);
+    this.changed();
+    return true;
+  }
+
+  /**
+   * Gastgeber-Befehl: weist die Anfrage `id` ab. Der Gast erfährt es und kommt mit derselben
+   * `clientId` nicht wieder in die Warteschlange, bis der Gastgeber neu lädt.
+   */
+  rejectJoin(id: number): boolean {
+    const clientId = this.clientOfRequest(id);
+    if (clientId === null) return false;
+    this.requestIds.delete(clientId);
+    this.rejected.add(clientId);
+    for (const peer of this.peers.values()) {
+      if (peer.clientId !== clientId || peer.state !== 'waiting') continue;
+      peer.state = 'rejected';
+      peer.send({ t: 'rejected' });
+    }
+    this.changed();
+    return true;
+  }
+
+  private clientOfRequest(id: unknown): string | null {
+    for (const [clientId, requestId] of this.requestIds) if (requestId === id) return clientId;
+    return null;
+  }
+
+  /** Lässt alle wartenden Verbindungen dieser `clientId` an den Tisch (ohne `changed`). */
+  private admitClient(clientId: string): void {
+    this.requestIds.delete(clientId);
+    this.known.add(clientId);
+    for (const peer of this.peers.values()) {
+      if (peer.clientId === clientId && peer.state === 'waiting') this.seatPeer(peer, peer.name);
+    }
+  }
+
+  /** Name des Gastgebers für die Wartenachricht; leer, wenn er gerade nicht da ist. */
+  private ownerName(): string {
+    if (this.owner === null) return '';
+    const seat = this.seatByClient.get(this.owner);
+    const player = seat === undefined ? null : this.table.seats[seat];
+    if (player) return player.name;
+    for (const peer of this.peers.values()) {
+      if (peer.clientId === this.owner && peer.state === 'in') return peer.name;
+    }
+    return '';
+  }
+
+  /** Baut die Liste der Anfragen neu; die Referenz bleibt, solange sich nichts ändert. */
+  private refreshRequests(): void {
+    const names = new Map<string, string>();
+    for (const peer of this.peers.values()) {
+      if (peer.state === 'waiting' && peer.clientId !== null) names.set(peer.clientId, peer.name);
+    }
+    const next = [...this.requestIds]
+      .filter(([clientId]) => names.has(clientId))
+      .map(([clientId, id]) => ({ id, name: names.get(clientId)! }));
+    const same =
+      next.length === this.requests.length &&
+      next.every((r, i) => r.id === this.requests[i]!.id && r.name === this.requests[i]!.name);
+    if (!same) this.requests = next;
   }
 
   /**
@@ -425,7 +550,9 @@ export class HostSession {
   private watcherNames(): string[] {
     const seen = new Map<string, string>();
     for (const peer of this.peers.values()) {
-      if (peer.clientId !== null && peer.seat === null) seen.set(peer.clientId, peer.name);
+      if (peer.state === 'in' && peer.clientId !== null && peer.seat === null) {
+        seen.set(peer.clientId, peer.name);
+      }
     }
     return [...seen.values()];
   }
@@ -471,12 +598,16 @@ export class HostSession {
     if (this.closed) return;
     let peer = this.peers.get(peerKey);
     if (!peer) {
-      peer = { send, clientId: null, seat: null, name: 'Gast' };
+      peer = { send, state: 'new', clientId: null, seat: null, name: 'Gast' };
       this.peers.set(peerKey, peer);
     }
     // Nachrichten kommen aus dem Netz: nichts ungeprüft übernehmen.
     if (typeof message !== 'object' || message === null) return this.reject(peer, 'bad_message');
     if (message.t === 'hello') return this.handleHello(peer, message);
+    // Vor der Zusage des Gastgebers (oder nach der Abweisung) zählt nichts anderes (N6).
+    if (peer.state === 'waiting' || peer.state === 'rejected') {
+      return this.reject(peer, 'not_admitted');
+    }
     if (message.t === 'action') return this.handleAction(peer, message.action);
     if (message.t === 'seat') return this.handleSeat(peer, message.seat);
     if (message.t === 'rename') return this.handleRename(peer, message.name);
@@ -488,11 +619,43 @@ export class HostSession {
     if (typeof message.clientId !== 'string' || typeof message.name !== 'string') {
       return this.reject(peer, 'bad_message');
     }
-    let name = cleanName(message.name) || 'Gast';
-    peer.clientId = message.clientId;
+    if (message.clientId.length === 0 || message.clientId.length > 64) {
+      return this.reject(peer, 'bad_message');
+    }
+    const { clientId } = message;
+    const name = cleanName(message.name) || 'Gast';
+    // Eine Verbindung bleibt bei ihrer ersten Kennung.
+    if (peer.clientId !== null && peer.clientId !== clientId) {
+      return this.reject(peer, 'bad_message');
+    }
+    peer.clientId = clientId;
+    peer.name = name;
 
-    let seat = this.seatByClient.get(message.clientId) ?? null;
-    if (seat === null && !this.table.hand && !this.watching.has(message.clientId)) {
+    if (this.rejected.has(clientId)) {
+      peer.state = 'rejected';
+      peer.send({ t: 'rejected' });
+      return;
+    }
+    const known = clientId === this.owner || this.known.has(clientId);
+    if (this.requireApproval && !known) {
+      peer.state = 'waiting';
+      if (!this.requestIds.has(clientId)) this.requestIds.set(clientId, ++this.requestCounter);
+      peer.send({ t: 'waiting', host: this.ownerName() });
+      this.changed(); // für den Gastgeber: neue Anfrage
+      return;
+    }
+    this.known.add(clientId);
+    this.seatPeer(peer, name);
+    this.changed();
+  }
+
+  /** Nimmt eine Verbindung an den Tisch: Platz zuteilen oder wiederfinden, begrüßen. */
+  private seatPeer(peer: Peer, requestedName: string): void {
+    const clientId = peer.clientId!;
+    let name = requestedName;
+    peer.state = 'in';
+    let seat = this.seatByClient.get(clientId) ?? null;
+    if (seat === null && !this.table.hand && !this.watching.has(clientId)) {
       const free = this.table.seats.findIndex((s) => s === null);
       if (free >= 0) seat = free;
     }
@@ -500,7 +663,7 @@ export class HostSession {
       // Wer schon einen Platz hat, behält dort den Namen (ein Umbenennen überlebt das Neuladen).
       const existing = this.table.seats[seat];
       if (existing) name = existing.name;
-      this.assign(message.clientId, seat);
+      this.assign(clientId, seat);
       // Zurück am Platz: Die Vertretung endet, ab dem nächsten Zug spielt wieder der Mensch.
       this.absences.delete(seat);
       const seats = [...this.table.seats];
@@ -510,7 +673,6 @@ export class HostSession {
     peer.name = name;
     peer.seat = seat;
     peer.send({ t: 'welcome', v: PROTOCOL_VERSION, seat });
-    this.changed();
   }
 
   /** Gast wählt einen freien Platz oder (`null`) schaut nur zu. Nur in der Lobby. */
@@ -564,6 +726,17 @@ export class HostSession {
     const peer = this.peers.get(peerKey);
     if (!peer) return;
     this.peers.delete(peerKey);
+    if (peer.state === 'waiting') {
+      // Geht die letzte wartende Verbindung, verfällt die Anfrage.
+      const clientId = peer.clientId!;
+      const still = [...this.peers.values()].some(
+        (p) => p.clientId === clientId && p.state === 'waiting',
+      );
+      if (!still) this.requestIds.delete(clientId);
+      this.changed();
+      return;
+    }
+    if (peer.state !== 'in') return;
     const seat = peer.seat;
     if (seat === null) {
       if (peer.clientId) this.changed(); // die Zuschauerliste hat sich geändert
@@ -605,14 +778,16 @@ export class HostSession {
   private changed(): void {
     let lobby: LobbyInfo | undefined;
     let absent: AbsentSeat[] | undefined;
+    this.refreshRequests();
     for (const peer of this.peers.values()) {
-      if (peer.clientId === null) continue;
+      if (peer.state !== 'in') continue;
       peer.send({
         t: 'state',
         view: tableViewFor(this.table, peer.seat),
         lobby: (lobby ??= {
           watchers: this.watcherNames(),
           spectatorsWelcome: this.spectatorsWelcome,
+          requireApproval: this.requireApproval,
         }),
         absent: (absent ??= this.getAbsentSeats()),
       });

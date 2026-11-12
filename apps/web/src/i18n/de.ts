@@ -67,6 +67,7 @@ export const ERROR_TEXT: Record<HostErrorCode, string> = {
   illegal_double: 'Kontra bzw. Re geht jetzt nicht mehr.',
   no_hand: 'Es läuft gerade kein Spiel.',
   seat_taken: 'Dieser Platz ist schon besetzt.',
+  not_admitted: 'Der Gastgeber hat dich noch nicht an den Tisch gelassen.',
 };
 
 /** Verbindungsstatus für Gäste (Paket N1, gestaltet in D4). */
@@ -81,6 +82,23 @@ export const CONNECT_TEXT = {
   cancel: 'Abbrechen',
   lost: 'Verbindung zum Gastgeber verloren – suche Tisch …',
   lostFailed: 'Gastgeber nicht mehr erreichbar.',
+  /** Beitritt muss bestätigt werden (N6). */
+  waiting: (host: string) => (host ? `Warte auf Zusage von ${host} …` : 'Warte auf Zusage …'),
+  waitingHint:
+    'Der Tisch ist gefunden. Der Gastgeber lässt neue Mitspieler erst nach einem Klick an den Tisch.',
+  rejected: 'Nicht zugelassen',
+  rejectedHint: 'Der Gastgeber hat deine Anfrage abgewiesen.',
+  back: 'Zurück zum Start',
+};
+
+/** Beitrittsanfragen beim Gastgeber (N6). */
+export const JOIN_TEXT = {
+  region: 'Beitrittsanfragen',
+  request: (name: string) => `${name} möchte an den Tisch.`,
+  admit: 'Zulassen',
+  admitLabel: (name: string) => `${name} an den Tisch lassen`,
+  reject: 'Abweisen',
+  rejectLabel: (name: string) => `${name} abweisen`,
 };
 
 /** Offener Tisch nach dem Neuladen des Gastgebers (Paket N2). */
@@ -450,6 +468,9 @@ export const LOBBY_TEXT = {
   spectatorsHint:
     'Hält den Tisch auch bei voller Besetzung und im laufenden Spiel für neue Zuschauer offen. Das kostet etwas mehr Verbindungsverkehr über die öffentlichen Relays.',
   spectatorsHintLocal: 'Nur bei einem Tisch mit Einladungslink möglich.',
+  approval: 'Neue Mitspieler bestätigen',
+  approvalHint:
+    'Wer zum ersten Mal an den Tisch will, wartet auf deinen Klick. Wer schon da war, kommt ohne Rückfrage zurück.',
   guestWaits: 'Der Gastgeber startet das Spiel.',
 } as const;
 

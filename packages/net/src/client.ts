@@ -43,6 +43,13 @@ export interface ClientSnapshot {
   name: string;
   /** Getrennte Mitspieler im laufenden Spiel. */
   absent: AbsentSeatInfo[];
+  /**
+   * Beitritt (N6): `waiting` = der Gastgeber muss erst zustimmen, `rejected` = abgewiesen;
+   * `null`, sobald man am Tisch ist oder solange der Host nichts dazu gesagt hat.
+   */
+  admission: 'waiting' | 'rejected' | null;
+  /** Name des Gastgebers aus der Wartenachricht; leer, wenn unbekannt. */
+  hostName: string;
 }
 
 export interface ClientOptions {
@@ -67,6 +74,8 @@ export class ClientSession {
     lobby: null,
     name: '',
     absent: [],
+    admission: null,
+    hostName: '',
   };
   private readonly listeners = new Set<() => void>();
   private cancelTimeout: (() => void) | null = null;
@@ -88,7 +97,8 @@ export class ClientSession {
     transport.onMessage = (message) => this.handle(message);
     transport.onClose = () => {
       if (this.closed) return;
-      this.update({ status: 'disconnected' });
+      // Nach dem Wiederverbinden sagt der Host neu, ob man warten muss.
+      this.update({ status: 'disconnected', admission: null });
       this.startTimeout();
     };
     this.startTimeout();
@@ -99,7 +109,7 @@ export class ClientSession {
   retry(): void {
     if (this.closed) return;
     this.transport.close();
-    this.update({ status: 'connecting', lastError: null });
+    this.update({ status: 'connecting', lastError: null, admission: null });
     this.startTimeout();
     this.transport.connect();
   }
@@ -174,7 +184,19 @@ export class ClientSession {
     switch (message.t) {
       case 'welcome':
         this.stopTimeout();
-        this.update({ status: 'connected', seat: message.seat });
+        this.update({ status: 'connected', seat: message.seat, admission: null });
+        break;
+      case 'waiting':
+        // Der Host ist gefunden; die Zusage kann dauern, deshalb keine Zeitüberschreitung.
+        this.stopTimeout();
+        this.update({
+          admission: 'waiting',
+          hostName: typeof message.host === 'string' ? message.host.slice(0, 24) : '',
+        });
+        break;
+      case 'rejected':
+        this.stopTimeout();
+        this.update({ admission: 'rejected' });
         break;
       case 'state':
         this.update({

@@ -220,6 +220,8 @@ describe('Speicherstand des Hosts', () => {
       ['Platz-Zuordnung auf Bot', (s) => ({ ...s, seatByClient: [['id-anna', 2]] })],
       ['Bot-Platz ohne Bot', (s) => ({ ...s, botSeats: [0] })],
       ['Bot ohne Bot-Platz', (s) => ({ ...s, botSeats: [] })],
+      ['Bestätigung fehlt', (s) => ({ ...s, requireApproval: undefined })],
+      ['Bekannte kaputt', (s) => ({ ...s, known: ['id-anna', 7] })],
     ];
 
     it('der unveränderte Stand ist gültig', () => {

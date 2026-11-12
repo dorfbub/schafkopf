@@ -28,7 +28,11 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * Davonlaufen mit kurzer Karte ab drei Karten.
  */
 /** 17: Spielstärken (B2): `RuleSet.botStrength`. */
-export const PROTOCOL_VERSION = 17;
+/**
+ * 18: Neue Mitspieler bestätigen (N6): Nachrichten `waiting` und `rejected`, Fehler `not_admitted`,
+ * `LobbyInfo.requireApproval`.
+ */
+export const PROTOCOL_VERSION = 18;
 
 export type ClientMessage =
   | {
@@ -55,7 +59,9 @@ export type HostErrorCode =
   | 'illegal_card'
   | 'illegal_double'
   | 'no_hand'
-  | 'seat_taken';
+  | 'seat_taken'
+  /** Der Gastgeber hat den Beitritt noch nicht zugelassen (oder ihn abgewiesen). */
+  | 'not_admitted';
 
 /** Was die Lobby über die Sicht hinaus braucht: Zuschauer und Beitrittsregel. */
 export interface LobbyInfo {
@@ -63,6 +69,8 @@ export interface LobbyInfo {
   watchers: string[];
   /** Der Gastgeber lässt den Tisch für Zuschauer offen (Vermittlung ruht nie). */
   spectatorsWelcome: boolean;
+  /** Der Gastgeber lässt Unbekannte erst nach einer Zusage an den Tisch (N6). */
+  requireApproval: boolean;
 }
 
 /**
@@ -85,6 +93,13 @@ export interface AbsentSeat {
 export type HostMessage =
   | { t: 'welcome'; v: number; seat: Seat | null }
   | { t: 'state'; view: TableView; lobby: LobbyInfo; absent: AbsentSeat[] }
+  /**
+   * Beitritt angefragt (N6): Der Gastgeber muss erst zustimmen. `host` ist sein Name, leer, wenn
+   * er nicht bekannt ist. Bis zur Zusage kommt keine Sicht.
+   */
+  | { t: 'waiting'; host: string }
+  /** Der Gastgeber hat den Beitritt abgewiesen (N6). */
+  | { t: 'rejected' }
   | { t: 'error'; code: HostErrorCode };
 
 /**

@@ -107,6 +107,7 @@
   --content-width-wide: 68rem; /* Lobby am Desktop: Tisch und Seitenspalte */
   --side-width: 22rem; /* Seitenspalte der Lobby */
   --notice-width: 26rem; /* Hinweis-Zettel unten */
+  --join-requests-offset: 2.75rem; /* Beitrittsanfragen (N6): Abstand oben, unter der Leiste */
   --dialog-width: 30rem;
   --dialog-width-wide: 38rem; /* Ansage: alle Spielarten in einer Reihe */
   --seat-max-width: 34vw;

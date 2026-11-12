@@ -12,6 +12,7 @@ import {
 } from './connection';
 import { ERROR_TEXT, UPDATE_TEXT } from './i18n/de';
 import { ConnectBanner, ConnectSearch } from './ui/ConnectStatus';
+import { JoinRequests } from './ui/JoinRequests';
 import { Lobby } from './ui/Lobby';
 import { Notice } from './ui/Notice';
 import { StartScreen } from './ui/StartScreen';
@@ -95,12 +96,14 @@ function Screens() {
 function Game({ connection, onLeave }: { connection: Connection; onLeave: () => void }) {
   const { client, host, roomId } = connection;
   const snapshot = useSyncExternalStore(client.subscribe, client.getSnapshot);
-  const { view, status, lastError, absent } = snapshot;
+  const { view, status, lastError, absent, admission, hostName } = snapshot;
 
   if (!view) {
     return (
       <ConnectSearch
         status={status}
+        admission={admission}
+        hostName={hostName}
         roomId={roomId}
         onRetry={() => client.retry()}
         onCancel={onLeave}
@@ -117,6 +120,7 @@ function Game({ connection, onLeave }: { connection: Connection; onLeave: () => 
         <Lobby view={view} client={client} host={host} roomId={roomId} onLeave={onLeave} />
       )}
       <Notice message={lastError && ERROR_TEXT[lastError]} aboveHand={view.hand !== null} />
+      {host && <JoinRequests host={host} />}
     </>
   );
 }

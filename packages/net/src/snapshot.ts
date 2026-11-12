@@ -46,7 +46,8 @@ import {
 /** 14: Hawaii-Habicht (H2): `Contract.suit2`, `RuleSet.laufende.hawaii`. */
 /** 15: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Tische mit drei Plätzen. */
 /** 16: Spielstärken (B2): `RuleSet.botStrength`. */
-export const HOST_SNAPSHOT_VERSION = 16;
+/** 17: Neue Mitspieler bestätigen (N6): `requireApproval`, `known`. */
+export const HOST_SNAPSHOT_VERSION = 17;
 
 export interface HostSnapshot {
   v: number;
@@ -61,6 +62,10 @@ export interface HostSnapshot {
   watching: string[];
   /** Tisch bleibt für Zuschauer offen. */
   spectatorsWelcome: boolean;
+  /** Neue Mitspieler bestätigen (N6). */
+  requireApproval: boolean;
+  /** `clientId`s, die schon am Tisch waren und ohne Rückfrage zurückkommen (N6). */
+  known: string[];
 }
 
 type Obj = Record<string, unknown>;
@@ -103,7 +108,16 @@ export function parseHostSnapshot(raw: unknown): HostSnapshot | null {
 
 function check(raw: unknown): HostSnapshot | null {
   if (!isObj(raw) || raw.v !== HOST_SNAPSHOT_VERSION) return null;
-  const { roomId, table, seatByClient, botSeats, watching, spectatorsWelcome } = raw;
+  const {
+    roomId,
+    table,
+    seatByClient,
+    botSeats,
+    watching,
+    spectatorsWelcome,
+    requireApproval,
+    known,
+  } = raw;
   if (roomId !== null && (typeof roomId !== 'string' || !/^[a-z0-9]{1,32}$/.test(roomId))) {
     return null;
   }
@@ -173,6 +187,10 @@ function check(raw: unknown): HostSnapshot | null {
 
   if (!Array.isArray(watching) || !watching.every((id) => typeof id === 'string')) return null;
   if (typeof spectatorsWelcome !== 'boolean') return null;
+  if (typeof requireApproval !== 'boolean') return null;
+  if (!Array.isArray(known) || !known.every((id) => typeof id === 'string' && id.length > 0)) {
+    return null;
+  }
 
   const snapshot = raw as unknown as HostSnapshot;
   // Probelesen: jede Sicht muss sich bauen lassen, sonst scheitert es erst mitten im Spiel.
