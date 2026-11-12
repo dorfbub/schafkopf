@@ -15,6 +15,8 @@ import {
 import type { HostSession } from '@schafkopf/net';
 import { useId, useState } from 'react';
 import { KIND_NAME, RULES_TEXT as T } from '../i18n/de';
+import { CARD_THEMES, cardTheme, ownFaceCount } from './cardTheme';
+import { CardSetPreview } from './CardSetPreview';
 
 interface Props {
   view: TableView;
@@ -25,7 +27,7 @@ function options(view: TableView): RuleOptions {
   const { players, deck } = view.rules;
   const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     view.rules;
-  const { botStrength } = view.rules;
+  const { botStrength, cardSet } = view.rules;
   return {
     players,
     deck,
@@ -39,6 +41,7 @@ function options(view: TableView): RuleOptions {
     davonlaufen,
     kontra,
     botStrength,
+    cardSet,
   };
 }
 
@@ -48,6 +51,8 @@ export function LobbySettings({ view, host }: Props) {
   const allPassedGroup = useId();
   const setupGroup = useId();
   const strengthGroup = useId();
+  const cardSetGroup = useId();
+  const theme = cardTheme(current.cardSet);
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
   const three = current.players === 3;
   const available = availableKinds(current);
@@ -243,6 +248,32 @@ export function LobbySettings({ view, host }: Props) {
             </label>
           </div>
         )}
+      </fieldset>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.cardSet}</legend>
+        <div className="kartenbild">
+          {CARD_THEMES.map((t) => (
+            <label key={t.id} className="check kartenbild__wahl">
+              <span>
+                <input
+                  type="radio"
+                  name={cardSetGroup}
+                  value={t.id}
+                  checked={theme.id === t.id}
+                  onChange={() => change({ cardSet: t.id })}
+                />
+                {t.label}
+              </span>
+              <CardSetPreview theme={t} />
+            </label>
+          ))}
+        </div>
+        <p className="hint">
+          {T.cardSetHint}
+          {theme.draft && ` ${T.cardSetDraft(ownFaceCount(theme), 32)}`}
+          {theme.credits.map((c) => ` ${c}.`)}
+        </p>
       </fieldset>
 
       <fieldset className="regeln-einstellung__gruppe">

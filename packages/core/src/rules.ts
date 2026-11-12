@@ -55,6 +55,21 @@ export const LAUFENDE_KINDS: readonly LaufendeKind[] = [
 export const BOT_STRENGTHS = ['anfaenger', 'normal', 'stark'] as const;
 export type BotStrength = (typeof BOT_STRENGTHS)[number];
 
+/**
+ * Kennung des Kartenbilds (U9), z. B. `bayerisch`. Wie `botStrength` keine Spielregel, sondern
+ * eine Einstellung des Gastgebers für alle am Tisch. Der Kern kennt die Sätze nicht: Er prüft nur
+ * die Form der Kennung; welche Sätze es gibt, weiß die Oberfläche (Registry in `cardTheme.tsx`),
+ * die bei unbekannter Kennung auf das bayerische Bild zurückfällt.
+ */
+export type CardSetId = string;
+export const DEFAULT_CARD_SET: CardSetId = 'bayerisch';
+const CARD_SET_ID = /^[a-z][a-z0-9-]{0,31}$/;
+
+/** Hat die Kennung eines Kartenbilds die erlaubte Form (Kleinbuchstaben, Ziffern, Bindestrich)? */
+export function isCardSetId(value: unknown): value is CardSetId {
+  return typeof value === 'string' && CARD_SET_ID.test(value);
+}
+
 export interface RuleSet {
   /** Anzahl Spieler: 4 oder 3 (Dreier, nur mit kurzer Karte; siehe `TABLE_SETUPS`). */
   players: number;
@@ -78,6 +93,8 @@ export interface RuleSet {
   kontra: boolean;
   /** Spielstärke aller Bots am Tisch (B2). */
   botStrength: BotStrength;
+  /** Kartenbild für alle am Tisch (U9); siehe `CardSetId`. */
+  cardSet: CardSetId;
 }
 
 export const DEFAULT_RULES: RuleSet = {
@@ -105,6 +122,7 @@ export const DEFAULT_RULES: RuleSet = {
   davonlaufen: true,
   kontra: false,
   botStrength: 'normal',
+  cardSet: DEFAULT_CARD_SET,
 };
 
 /** Erlaubte Besetzungen: Spielerzahl und Blatt (REGELN.md, „Kurze Karte und Dreier“). */
@@ -153,6 +171,7 @@ export type RuleOptions = Pick<
   | 'davonlaufen'
   | 'kontra'
   | 'botStrength'
+  | 'cardSet'
 >;
 
 function isObj(v: unknown): v is Record<string, unknown> {
@@ -172,7 +191,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
   const { players, deck } = raw;
   const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
     raw;
-  const { botStrength } = raw;
+  const { botStrength, cardSet } = raw;
   const setup = TABLE_SETUPS.find((s) => s.players === players && s.deck === deck);
   if (!setup) return null;
   if (!Array.isArray(contracts) || !contracts.every((k) => BID_ORDER.includes(k))) return null;
@@ -185,6 +204,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
   if (setup.players < 4 && allPassed === 'muss') return null;
   if (availableKinds({ ...setup, contracts: [...kinds] }).length === 0) return null;
   if (!BOT_STRENGTHS.includes(botStrength as BotStrength)) return null;
+  if (!isCardSetId(cardSet)) return null;
   if (!isObj(tariff) || !isObj(laufende) || !isObj(ramsch)) return null;
   const MAX_TARIFF = 100_000;
   if (!isInt(tariff.sauspiel, 0, MAX_TARIFF)) return null;
@@ -216,6 +236,7 @@ export function parseRuleOptions(raw: unknown): RuleOptions | null {
     davonlaufen,
     kontra,
     botStrength: botStrength as BotStrength,
+    cardSet,
   };
 }
 

@@ -129,6 +129,20 @@ describe('DEFAULT_RULES', () => {
     delete raw.botStrength;
     expect(parseRuleOptions(raw)).toBeNull();
   });
+
+  it('parseRuleOptions prüft die Form der Kartenbild-Kennung (U9), nicht den Satz', () => {
+    const raw = JSON.parse(JSON.stringify(DEFAULT_RULES));
+    expect(DEFAULT_RULES.cardSet).toBe('bayerisch');
+    // Der Kern kennt die Sätze nicht – auch ein künftiger Satz geht ohne Änderung durch.
+    for (const id of ['bayerisch', 'salzburger', 'fraenkisch-2']) {
+      expect(parseRuleOptions({ ...raw, cardSet: id })?.cardSet).toBe(id);
+    }
+    for (const id of ['', 'Bayerisch', '1blatt', 'a b', 'x'.repeat(33), '<svg>', 7, null]) {
+      expect(parseRuleOptions({ ...raw, cardSet: id })).toBeNull();
+    }
+    delete raw.cardSet;
+    expect(parseRuleOptions(raw)).toBeNull();
+  });
 });
 
 describe('Option: erlaubte Spielarten', () => {

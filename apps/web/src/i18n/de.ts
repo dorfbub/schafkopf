@@ -454,6 +454,12 @@ export const LOBBY_TEXT = {
 } as const;
 
 /** Tischregeln (K2): Einstellungen in der Lobby und Regelübersicht am Tisch. */
+/** Namen der Kartenbilder (U9) in der Lobby; die Sätze selbst stehen in `ui/cardTheme.tsx`. */
+export const CARD_SET_NAME = {
+  bayerisch: 'Bayerisch',
+  salzburger: 'Salzburger (Entwurf)',
+};
+
 export const RULES_TEXT = {
   title: 'Regeln',
   info: 'Regeln',
@@ -494,6 +500,11 @@ export const RULES_TEXT = {
     normal: 'Spielt nach den Faustregeln vom Wirtshaustisch.',
     stark: 'Rechnet vor jedem Zug mögliche Kartenverteilungen durch.',
   } satisfies Record<BotStrength, string>,
+  cardSet: 'Kartenbild',
+  cardSetHint: 'Gilt für alle am Tisch.',
+  cardSetDraft: (own: number, total: number) =>
+    `Entwurf: ${own} von ${total} Karten im neuen Bild, die übrigen bayerisch.`,
+  cardSetPreview: (name: string) => `Vorschau ${name}: Herz-Ober, Eichel-Sau, Rücken`,
   tariff: 'Tarif (Cent)',
   tariffSauspiel: 'Sauspiel',
   tariffSolo: 'Einzelspiel',

@@ -115,6 +115,7 @@
   /* Karten: Breite passt sich dem Bildschirm an; Seitenverhältnis des bayerischen Blatts. */
   --card-w: clamp(44px, 9.5vw, 78px);
   --card-w-mini: 20px; /* verdeckte Karten am Platz */
+  --card-w-preview: 34px; /* Vorschau der Kartenbilder in der Lobby (U9) */
   --card-ratio: 115 / 195;
   --card-h: calc(var(--card-w) * 195 / 115);
   --card-radius: calc(var(--card-w) * 0.1);

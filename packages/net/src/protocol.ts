@@ -28,7 +28,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * Davonlaufen mit kurzer Karte ab drei Karten.
  */
 /** 17: Spielstärken (B2): `RuleSet.botStrength`. */
-export const PROTOCOL_VERSION = 17;
+/** 18: Mehrere Kartensets (U9): `RuleSet.cardSet`. */
+export const PROTOCOL_VERSION = 18;
 
 export type ClientMessage =
   | {
