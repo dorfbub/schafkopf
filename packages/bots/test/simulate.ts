@@ -28,7 +28,7 @@ export function playHand(
   for (let step = 0; state.phase !== 'finished'; step++) {
     if (step > 200) throw new Error('Spiel endet nicht');
     const seat = state.turn;
-    const action = bots[seat]!.decide(handViewFor(state, seat));
+    const action = bots[seat]!.decide(handViewFor(state, seat), rules);
     hook?.(seat, action, state);
     const result = applyAction(state, { ...action, seat });
     if (!result.ok) {

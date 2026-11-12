@@ -9,11 +9,12 @@ import {
   type HandView,
   type PlayerAction,
   type Rng,
+  type RuleSet,
   type Seat,
   type Suit,
   type Trick,
   BID_ORDER,
-  CLASSIC_CONTRACTS,
+  DEFAULT_RULES,
   MODES,
   SUITS,
   bidValue,
@@ -28,14 +29,16 @@ import {
   suitOf,
   trickWinnerIndex,
   tricksPlayed,
+  trumpsChange,
 } from '@schafkopf/core';
-import { preludeMove } from './prelude';
+import { wantsDouble } from './doubling';
+import { rateWedding, weddingMove, weddingSize } from './hochzeit';
 
 /**
  * Heuristik-Bot: sagt nach Blattstärke an und spielt nach einfachen Faustregeln,
- * wie man sie am Wirtshaustisch lernt. Er sieht nur, was ein Mensch sieht (`HandView`),
- * und merkt sich dafür selbst, welche Karten schon gefallen sind und wer welche Farbe
- * nicht mehr hat. Eine Instanz gehört zu genau einem Sitz und überdauert mehrere Spiele.
+ * wie man sie am Wirtshaustisch lernt. Er sieht nur, was ein Mensch sieht (`HandView` und die
+ * Tischregeln), und merkt sich dafür selbst, welche Karten schon gefallen sind und wer welche
+ * Farbe nicht mehr hat. Eine Instanz gehört zu genau einem Sitz und überdauert mehrere Spiele.
  *
  * Aufbau:
  *  - `Memory`: gefallene Karten und erkannte Fehlfarben, wird bei jedem Aufruf aus
@@ -43,10 +46,15 @@ import { preludeMove } from './prelude';
  *    höchstens ein Stich – der, zu dem man selbst beigetragen hat).
  *  - Ansage: `rateContract` bewertet jedes mögliche Spiel mit einer Punktzahl abzüglich
  *    Schwelle („Marge“); gewünscht sind Spiele mit Marge ≥ 0. Daraus folgen alle drei
- *    Stufen der Ansage.
+ *    Stufen der Ansage. Bewertet werden nur Spielarten, die am Tisch erlaubt sind
+ *    (`RuleSet.contracts`, Tout nur mit `allowTout`).
+ *  - Hochzeit und arabische Hochzeit (annehmen, zurückgeben): `hochzeit.ts`.
+ *  - Kontra und Re, wenn er am Zug ist und `canDouble` gilt: `doubling.ts`.
  *  - Kartenspiel: anspielen (`lead`), zugeben (`follow`) und Bettel (`bettelCard`) als
  *    getrennte Faustregel-Ketten. Parteien ergeben sich aus `declarer`, `partner` und der
- *    eigenen Rufsau.
+ *    eigenen Rufsau. Ramsch (`ramschCard`) mit Blick auf Jungfrau und Durchmarsch.
+ *  - Wechselnde Trümpfe (Hawaii-Habicht): Die Ordnung gilt je Stich; Trümpfe, die nach dem
+ *    Wechsel keine mehr sind, gibt er lieber her als die, die bleiben (`trumpCost`).
  *
  * Zufall nur für Gleichstände, über den übergebenen Seed.
  */
@@ -54,11 +62,12 @@ export function createHeuristicBot(seed: number): Bot {
   const rng = createRng(seed);
   const memory = createMemory();
   return {
-    decide(view: HandView): PlayerAction {
+    decide(view: HandView, rules: RuleSet = DEFAULT_RULES): PlayerAction {
       updateMemory(memory, view);
-      if (view.phase === 'bidding') return { type: 'bid', call: bid(view, rng) };
-      if (view.phase === 'prelude') return { type: 'prelude', move: preludeMove(view) };
-      return { type: 'play', card: play(view, memory, rng) };
+      if (view.phase === 'bidding') return { type: 'bid', call: bid(view, rules, rng) };
+      if (view.phase === 'prelude') return { type: 'prelude', move: weddingMove(view) };
+      if (wantsDouble(view, rateContract)) return { type: 'double' };
+      return { type: 'play', card: play(view, memory, rules, rng) };
     },
   };
 }
@@ -82,10 +91,22 @@ interface Memory {
   deckSize: number;
   /** Das ganze Blatt, einmal je Spiel gebaut. */
   deck: readonly Card[];
+  /** Augen je Sitz aus den gesehenen Stichen (Ramsch: Durchmarsch erkennen). */
+  pointsWon: number[];
+  /** Ramsch: Spielt der Bot auf Durchmarsch? Vor seiner ersten Karte entschieden. */
+  durchmarsch: boolean | null;
 }
 
 function createMemory(): Memory {
-  return { played: new Set(), absent: [], tricksSeen: 0, deckSize: 32, deck: createDeck('lang') };
+  return {
+    played: new Set(),
+    absent: [],
+    tricksSeen: 0,
+    deckSize: 32,
+    deck: createDeck('lang'),
+    pointsWon: [],
+    durchmarsch: null,
+  };
 }
 
 function resetMemory(memory: Memory, view: HandView): void {
@@ -94,6 +115,8 @@ function resetMemory(memory: Memory, view: HandView): void {
   memory.tricksSeen = 0;
   memory.deckSize = view.handSizes.reduce((a, b) => a + b, 0);
   memory.deck = createDeck(memory.deckSize < 32 ? 'kurz' : 'lang');
+  memory.pointsWon = view.handSizes.map(() => 0);
+  memory.durchmarsch = null;
 }
 
 function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: number): void {
@@ -132,6 +155,8 @@ function updateMemory(memory: Memory, view: HandView): void {
   const players = view.handSizes.length;
   if (completed > memory.tricksSeen && view.lastTrick) {
     noteTrick(memory, view.lastTrick, orderFor(view.contract, completed - 1), players);
+    memory.pointsWon[view.lastTrick.winner] =
+      (memory.pointsWon[view.lastTrick.winner] ?? 0) + view.lastTrick.points;
   }
   memory.tricksSeen = completed;
   noteTrick(memory, view.currentTrick, orderFor(view.contract, completed), players);
@@ -141,23 +166,37 @@ function updateMemory(memory: Memory, view: HandView): void {
 // Ansage
 
 /**
- * Spielarten, die der Bot bewerten und spielen kann. Neue Spielarten (Hausregeln) sagt er
- * nicht selbst an; als Gegenspieler behandelt er sie mit den allgemeinen Faustregeln.
+ * Spielarten, die der Bot in dieser Runde ansagen darf: am Tisch erlaubt (`RuleSet.contracts`)
+ * und nicht schon mit gescheitertem Vorspiel aus dem Rennen (Hochzeit, die keiner nahm).
  */
-const KNOWN_KINDS: readonly ContractKind[] = CLASSIC_CONTRACTS;
+export function allowedKinds(rules: RuleSet, failed: readonly ContractKind[] = []): ContractKind[] {
+  return BID_ORDER.filter((kind) => rules.contracts.includes(kind) && !failed.includes(kind));
+}
 
-/** Alle Spiele, die mit diesem Blatt formal möglich wären (Tischregeln unbekannt). */
-function candidateContracts(hand: readonly Card[]): Contract[] {
+/** Farben bzw. Farbpaare (Hawaii-Habicht: erste und zweite Trumpffarbe), die man nennen kann. */
+function suitVariants(kind: ContractKind, hand: readonly Card[]): Contract[] {
+  const mode = MODES[kind];
+  if (mode.suitRole === 'none') return [{ kind }];
+  const suits = mode.suitChoices?.(hand) ?? SUITS;
+  if (mode.suitCount !== 2) return suits.map((suit) => ({ kind, suit }));
+  return suits.flatMap((suit) =>
+    suits.filter((suit2) => suit2 !== suit).map((suit2) => ({ kind, suit, suit2 })),
+  );
+}
+
+/** Alle Spiele, die mit diesem Blatt nach den Tischregeln möglich wären. */
+function candidateContracts(
+  hand: readonly Card[],
+  rules: RuleSet,
+  failed: readonly ContractKind[],
+): Contract[] {
   const out: Contract[] = [];
-  for (const kind of BID_ORDER) {
-    if (!KNOWN_KINDS.includes(kind)) continue;
+  for (const kind of allowedKinds(rules, failed)) {
     const mode = MODES[kind];
     if (mode.eligible && !mode.eligible(hand)) continue;
-    const suits = mode.suitRole === 'none' ? [undefined] : (mode.suitChoices?.(hand) ?? SUITS);
-    for (const suit of suits) {
-      const base: Contract = suit ? { kind, suit } : { kind };
+    for (const base of suitVariants(kind, hand)) {
       out.push(base);
-      if (mode.canTout) out.push({ ...base, tout: true });
+      if (mode.canTout && rules.allowTout) out.push({ ...base, tout: true });
     }
   }
   return out;
@@ -235,7 +274,7 @@ function bettelSafe(hand: readonly Card[], order: CardOrder, deckSize: number): 
 function toutSafe(hand: readonly Card[], contract: Contract, order: CardOrder): boolean {
   const mine = (c: Card) => hand.includes(c);
   const allTrump = hand.every((c) => order.trumps.includes(c));
-  if (contract.kind === 'wenz' || contract.kind === 'geier') {
+  if (contract.kind === 'wenz' || contract.kind === 'geier' || contract.kind === 'eisenbahner') {
     if (!order.trumps.every(mine)) return false;
     // Jede Nebenkarte muss Teil einer Folge von oben sein.
     return SUITS.every((suit) => {
@@ -244,6 +283,9 @@ function toutSafe(hand: readonly Card[], contract: Contract, order: CardOrder): 
       return own.every((c) => ranks.indexOf(rankOf(c)) < own.length);
     });
   }
+  // Hawaii-Habicht: Selbst mit allen Königen sticht ein Gegner mit einer hohen Karte der Farbe,
+  // die gerade Trumpf ist – zu unsicher für den Bot, er sagt dort kein Tout an.
+  if (trumpsChange(contract)) return false;
   return allTrump && order.trumps.slice(0, 4).every(mine);
 }
 
@@ -288,25 +330,66 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
       return t < 6 ? -10 : score - 10.8;
     }
     case 'wenz':
-    case 'geier': {
+    case 'geier':
+    case 'eisenbahner': {
+      // Eisenbahner (Zehner als Trümpfe) bewertet wie Wenz und Geier: vier Trümpfe, der Rest
+      // sind Farbstiche von oben. Dass die Trümpfe selbst zehn Augen tragen, gleicht aus, dass
+      // die Sau keinen Zehner mehr neben sich hat.
       const w = trumpWeights(order, [2.5, 2.2, 1.8, 1.6], 0);
       const score =
         trumps.reduce((s, c) => s + w(c), 0) +
         topSequenceValue(hand, order) +
         0.4 * voidCount(hand, order);
       const top = hand.includes(order.trumps[0]!);
-      return t < 2 || (t === 2 && !top) ? -10 : score - 8.3;
+      const threshold = contract.kind === 'eisenbahner' ? EISENBAHNER_THRESHOLD : 8.3;
+      return t < 2 || (t === 2 && !top) ? -10 : score - threshold;
     }
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
-    case 'hochzeit': // bietet der Bot nicht an (nicht in `KNOWN_KINDS`)
+    case 'hawaii':
+      return rateHawaii(hand, contract);
+    case 'hochzeit':
     case 'arabischeHochzeit':
-    case 'eisenbahner':
-    case 'hawaii': // Hausregeln: sagt der Bot nie an (B3)
+      return rateWedding(hand, weddingSize(contract.kind));
     case 'ramsch': // nicht ansagbar
       return -10;
   }
 }
+
+/**
+ * Hawaii-Habicht: Die Könige sind immer Trumpf, die erste Farbe in den Stichen 1–4, die zweite
+ * danach. Karten der ersten Farbe zählen voll (mit ihnen zieht man Trumpf, solange es zählt),
+ * die der zweiten etwas weniger (bis zum Wechsel sind sie Farbkarten, die man halten muss).
+ * Unter allen zwölf Paaren wählt der Bot das mit der besten Bewertung.
+ */
+function rateHawaii(hand: readonly Card[], contract: Contract): number {
+  const early = orderFor(contract, 0);
+  const late = orderFor(contract, 99);
+  const kingWeights = [2.2, 2.0, 1.8, 1.6];
+  const suitWeights = [1.4, 1.2, 1.0, 0.9, 0.8, 0.8, 0.8];
+  const kings = early.trumps.slice(0, 4);
+  const rankWeight = (c: Card, suit: Suit) => {
+    const ranks: readonly string[] = early.rankOrder.filter((r) => r !== 'K');
+    return suitOf(c) === suit ? (suitWeights[ranks.indexOf(rankOf(c))] ?? 0.8) : 0;
+  };
+  let score = 0;
+  for (const c of hand) {
+    const k = kings.indexOf(c);
+    if (k >= 0) score += kingWeights[k]!;
+    else score += rankWeight(c, contract.suit!) + 0.8 * rankWeight(c, contract.suit2!);
+  }
+  const others = SUITS.filter((s) => s !== contract.suit && s !== contract.suit2);
+  for (const suit of others) {
+    score += sideStrength(hand, early, suit);
+    if (!hand.some((c) => effectiveSuit(c, early) === suit)) score += 0.5;
+  }
+  const t1 = hand.filter((c) => early.trumps.includes(c)).length;
+  const t2 = hand.filter((c) => late.trumps.includes(c)).length;
+  return t1 < 5 || t2 < 4 ? -10 : score - HAWAII_THRESHOLD;
+}
+const HAWAII_THRESHOLD = 10.8;
+/** Niedriger als bei Wenz und Geier: Die Zehner als Trümpfe bringen selbst viele Augen. */
+const EISENBAHNER_THRESHOLD = 7.6;
 
 interface Rated {
   contract: Contract;
@@ -319,11 +402,11 @@ function bestOf(rated: readonly Rated[]): Rated | undefined {
   )[0];
 }
 
-function bid(view: HandView, rng: Rng): BidCall {
+function bid(view: HandView, rules: RuleSet, rng: Rng): BidCall {
   const calls = view.legalCalls;
   const passive = calls[0]!;
   const deckSize = view.handSizes.reduce((a, b) => a + b, 0);
-  const rated = candidateContracts(view.hand).map((contract) => ({
+  const rated = candidateContracts(view.hand, rules, view.auction.failed).map((contract) => ({
     contract,
     margin: rateContract(view.hand, contract, deckSize),
   }));
@@ -354,7 +437,6 @@ function bid(view: HandView, rng: Rng): BidCall {
       // `candidateContracts` nicht kennt.
       const legalRated = calls
         .flatMap((c) => (c.type === 'declare' ? [c.contract] : []))
-        .filter((contract) => KNOWN_KINDS.includes(contract.kind))
         .map((contract) => ({ contract, margin: rateContract(view.hand, contract, deckSize) }));
       const pickWanted = bestOf(legalRated.filter((r) => r.margin >= 0));
       const fallback = [...legalRated].sort((a, b) => b.margin - a.margin)[0];
@@ -383,11 +465,29 @@ interface Ctx {
   /** Noch nicht gesehene Karten (bei anderen auf der Hand). */
   unseen: Card[];
   sideOf(seat: Seat): Side;
+  rules: RuleSet;
+  /**
+   * Ordnung im letzten Stich, wenn sie sich bis dahin noch ändert (Hawaii-Habicht vor dem
+   * Wechsel), sonst `null`. Daran erkennt der Bot Trümpfe, die verfallen, und Farbkarten, die
+   * noch Trumpf werden.
+   */
+  finalOrder: CardOrder | null;
 }
 
-function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
+/** Ordnung des letzten Stichs, falls sie sich von der jetzigen unterscheidet. */
+function finalOrderFor(contract: Contract, trick: number, totalTricks: number): CardOrder | null {
+  if (!trumpsChange(contract)) return null;
+  const last = orderFor(contract, totalTricks - 1);
+  const now = orderFor(contract, trick);
+  const same =
+    last.trumps.length === now.trumps.length && last.trumps.every((c, i) => now.trumps[i] === c);
+  return same ? null : last;
+}
+
+function makeCtx(view: HandView, memory: Memory, rules: RuleSet, rng: Rng): Ctx {
   const contract = view.contract!;
-  const order = orderFor(contract, tricksPlayed(view));
+  const trick = tricksPlayed(view);
+  const order = orderFor(contract, trick);
   const players = view.handSizes.length;
   const me = view.turn;
   const deck = memory.deck;
@@ -410,13 +510,27 @@ function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
     return seatDeclSide === declarerSide ? 'friend' : 'foe';
   }
 
-  return { view, memory, rng, me, players, contract, order, declarerSide, unseen, sideOf };
+  const finalOrder = finalOrderFor(contract, trick, memory.deckSize / players);
+  return {
+    view,
+    memory,
+    rng,
+    me,
+    players,
+    contract,
+    order,
+    declarerSide,
+    unseen,
+    sideOf,
+    rules,
+    finalOrder,
+  };
 }
 
-function play(view: HandView, memory: Memory, rng: Rng): Card {
+function play(view: HandView, memory: Memory, rules: RuleSet, rng: Rng): Card {
   const legal = view.legalCards;
   if (legal.length === 1) return legal[0]!;
-  const ctx = makeCtx(view, memory, rng);
+  const ctx = makeCtx(view, memory, rules, rng);
   if (ctx.contract.kind === 'bettel') return bettelCard(ctx, legal);
   if (ctx.contract.kind === 'ramsch') return ramschCard(ctx, legal);
   return view.currentTrick.cards.length === 0 ? lead(ctx, legal) : follow(ctx, legal);
@@ -429,13 +543,26 @@ const str = (ctx: Ctx, c: Card) => strength(c, ctx.order);
 const voidOf = (ctx: Ctx, seat: Seat, suit: EffectiveSuit) =>
   isVoid(ctx.memory, seat, suit, ctx.order);
 
-/** Wie teuer es ist, einen Trumpf herzugeben (hohe Trümpfe sind Stiche wert). */
+/**
+ * Wie teuer es ist, einen Trumpf herzugeben (hohe Trümpfe sind Stiche wert). Ein Trumpf, der
+ * nach dem Wechsel keiner mehr ist (Hawaii-Habicht: erste Farbe), ist billiger – ihn jetzt
+ * einzusetzen kostet weniger als später.
+ */
 function trumpCost(ctx: Ctx, c: Card): number {
   const i = ctx.order.trumps.indexOf(c);
   if (i < 0) return 0;
-  if (i < 4) return 8;
-  if (i < 8) return 4;
-  return 1;
+  const cost = i < 4 ? 8 : i < 8 ? 4 : 1;
+  return expiring(ctx, c) ? Math.min(cost, 2) : cost;
+}
+
+/** Trumpf jetzt, aber nicht mehr im letzten Stich (Hawaii-Habicht vor dem Wechsel). */
+function expiring(ctx: Ctx, c: Card): boolean {
+  return ctx.finalOrder !== null && isTrump(ctx, c) && !ctx.finalOrder.trumps.includes(c);
+}
+
+/** Farbkarte jetzt, aber Trumpf nach dem Wechsel (Hawaii-Habicht: zweite Farbe). */
+function futureTrump(ctx: Ctx, c: Card): boolean {
+  return ctx.finalOrder !== null && !isTrump(ctx, c) && ctx.finalOrder.trumps.includes(c);
 }
 
 function minBy<T>(items: readonly T[], score: (t: T) => number): T {
@@ -507,6 +634,7 @@ function cheapest(ctx: Ctx, cards: readonly Card[]): Card {
     return (
       pointsOf(c) +
       (isTrump(ctx, c) ? 6 + trumpCost(ctx, c) : 0) +
+      (futureTrump(ctx, c) ? 4 : 0) +
       (!isTrump(ctx, c) && isTopOfSuit(ctx, c) ? 5 : 0) +
       suitLen * 0.1 +
       ctx.rng() * 0.01
@@ -516,7 +644,10 @@ function cheapest(ctx: Ctx, cards: readonly Card[]): Card {
 
 /** Karte zum Schmieren: viele Augen, aber keine hohen Trümpfe. */
 function richest(ctx: Ctx, cards: readonly Card[]): Card {
-  return maxBy(cards, (c) => pointsOf(c) - 2 * trumpCost(ctx, c) + ctx.rng() * 0.01);
+  return maxBy(
+    cards,
+    (c) => pointsOf(c) - 2 * trumpCost(ctx, c) - (futureTrump(ctx, c) ? 4 : 0) + ctx.rng() * 0.01,
+  );
 }
 
 function lead(ctx: Ctx, legal: readonly Card[]): Card {
@@ -543,8 +674,12 @@ function lead(ctx: Ctx, legal: readonly Card[]): Card {
       const top = maxBy(trumps, (c) => str(ctx, c));
       if (isTopOfSuit(ctx, top)) return top;
       // Allein von oben ziehen; im Sauspiel klein anspielen, der Partner sticht mit.
+      // Vor dem Trumpfwechsel zuerst mit den Trümpfen, die danach verfallen.
       if (trumps.length >= 2 || sureSide.length === 0) {
         const alone = MODES[contract.kind].parties === 'alone';
+        const fading = trumps.filter((c) => expiring(ctx, c));
+        if (alone && fading.length > 0)
+          return minBy(fading, (c) => pointsOf(c) + str(ctx, c) * 0.01);
         return alone ? top : minBy(trumps, (c) => str(ctx, c));
       }
     }
@@ -618,25 +753,128 @@ function follow(ctx: Ctx, legal: readonly Card[]): Card {
 }
 
 /**
- * Ramsch: jeder für sich, Augen vermeiden. Regelgerecht und schlicht (bessere Strategie: B3):
- *  - Anspielen: die niedrigste Karte, bevorzugt eine Farbkarte ohne Augen.
- *  - Zugeben: Kann man drunter bleiben, die teuerste Karte, die den Stich nicht nimmt
+ * Ramsch: jeder für sich, Augen vermeiden (B3).
+ *  - Durchmarsch (`RuleSet.ramsch.durchmarsch`): Mit sehr starkem Blatt spielt der Bot auf alle
+ *    Augen wie ein Solospieler mit Herz als Trumpf (dieselben Trümpfe wie im Ramsch). Sobald die
+ *    anderen zusammen mehr als 29 Augen haben, gibt er auf und spielt wieder normal.
+ *  - Droht ein anderer mit Durchmarsch (hat alle Stiche, mindestens drei), nimmt der Bot einen
+ *    Stich, wenn es sicher geht – mit möglichst wenig Augen.
+ *  - Sonst Stiche vermeiden (das hält auch die Jungfrau, `RuleSet.ramsch.jungfrau`):
+ *    Anspielen: eine Karte, über der noch viele unbekannte Karten ihrer Farbe liegen, mit wenig
+ *    Augen. Zugeben: Kann man drunter bleiben, die teuerste Karte, die den Stich nicht nimmt
  *    (hohe Karten und Augen loswerden). Muss man stechen, die Karte mit den wenigsten Augen
  *    (als Letzter davon die höchste, um sie loszuwerden).
  */
 function ramschCard(ctx: Ctx, legal: readonly Card[]): Card {
+  const { memory } = ctx;
+  if (ctx.rules.ramsch.durchmarsch) {
+    memory.durchmarsch ??= tricksPlayed(ctx.view) === 0 && durchmarschHand(ctx.view.hand);
+    if (memory.durchmarsch && othersPoints(ctx) > 29) memory.durchmarsch = false;
+    if (memory.durchmarsch) return durchmarschCard(ctx, legal);
+  } else {
+    memory.durchmarsch = false;
+  }
+
   const trick = ctx.view.currentTrick;
   const jitter = () => ctx.rng() * 0.01;
+  const threat = ctx.rules.ramsch.durchmarsch ? durchmarschThreat(ctx) : null;
   if (trick.cards.length === 0) {
-    return minBy(legal, (c) => str(ctx, c) + (isTrump(ctx, c) ? 20 : 0) + pointsOf(c) + jitter());
+    if (threat !== null) {
+      // Durchmarsch verhindern: eine Karte anspielen, die sicher sticht.
+      const sure = legal.filter(
+        (c) =>
+          isTopOfSuit(ctx, c) &&
+          (isTrump(ctx, c) || !voidOf(ctx, threat, eff(ctx, c))) &&
+          !canBeat(ctx, threat, c, eff(ctx, c)),
+      );
+      if (sure.length > 0) return minBy(sure, (c) => pointsOf(c) + jitter());
+    }
+    // Je mehr höhere Karten der Farbe noch draußen sind, desto sicherer bleibt man drunter.
+    const higher = (c: Card) =>
+      ctx.unseen.filter((u) => eff(ctx, u) === eff(ctx, c) && str(ctx, u) > str(ctx, c)).length;
+    return minBy(legal, (c) => {
+      const h = higher(c);
+      return (
+        (h === 0 ? 100 : 0) -
+        Math.min(h, 4) * 3 +
+        (isTrump(ctx, c) ? 4 : 0) +
+        pointsOf(c) +
+        str(ctx, c) * 0.01 +
+        jitter()
+      );
+    });
   }
   const wins = (c: Card) => trickWinnerIndex([...trick.cards, c], ctx.order) === trick.cards.length;
+  const leadSuit = eff(ctx, trick.cards[0]!);
+
+  if (threat !== null) {
+    const winIdx = trickWinnerIndex(trick.cards, ctx.order);
+    const threatWins = (trick.leader + winIdx) % ctx.players === threat;
+    const later = laterSeats(ctx);
+    if (threatWins || later.includes(threat)) {
+      const stoppers = legal.filter(
+        (c) => wins(c) && (!later.includes(threat) || !canBeat(ctx, threat, c, leadSuit)),
+      );
+      if (stoppers.length > 0) return minBy(stoppers, (c) => pointsOf(c) + jitter());
+      // Nicht zu verhindern: ihm wenigstens keine Augen schenken.
+      if (threatWins && !later.includes(threat)) return minBy(legal, (c) => pointsOf(c) + jitter());
+    }
+  }
+
   const under = legal.filter((c) => !wins(c));
   if (under.length > 0) return maxBy(under, (c) => pointsOf(c) * 2 + str(ctx, c) + jitter());
   // Als Letzter gehört einem der Stich sicher: wenig Augen dazulegen, dabei eine hohe Karte loswerden.
   if (laterSeats(ctx).length === 0)
     return minBy(legal, (c) => pointsOf(c) * 10 - str(ctx, c) + jitter());
   return minBy(legal, (c) => pointsOf(c) + str(ctx, c) * 0.1 + jitter());
+}
+
+/** Augen, die die anderen im Ramsch schon haben (aus den gesehenen Stichen). */
+function othersPoints(ctx: Ctx): number {
+  return ctx.memory.pointsWon.reduce((sum, p, seat) => (seat === ctx.me ? sum : sum + p), 0);
+}
+
+/**
+ * Blatt für einen Durchmarsch: fast ein Solo-Tout – mindestens sechs Trümpfe mit den beiden
+ * höchsten Obern und sonst nur Sauen (eine Farbe frei oder mit Sau besetzt).
+ */
+export function durchmarschHand(hand: readonly Card[]): boolean {
+  const order = orderFor({ kind: 'solo', suit: 'herz' }, 0);
+  const trumps = hand.filter((c) => order.trumps.includes(c));
+  if (trumps.length < Math.ceil(hand.length * 0.75)) return false;
+  if (!order.trumps.slice(0, 2).every((c) => hand.includes(c))) return false;
+  const top = order.trumps.slice(0, 4).filter((c) => hand.includes(c)).length;
+  const sideOk = hand.every((c) => order.trumps.includes(c) || rankOf(c) === 'A');
+  return sideOk && top >= 3;
+}
+
+/** Durchmarsch spielen: wie ein Solospieler, alle anderen sind Gegner. */
+function durchmarschCard(ctx: Ctx, legal: readonly Card[]): Card {
+  const solo: Ctx = {
+    ...ctx,
+    contract: { kind: 'solo', suit: 'herz' },
+    declarerSide: true,
+    sideOf: (seat) => (seat === ctx.me ? 'friend' : 'foe'),
+  };
+  return ctx.view.currentTrick.cards.length === 0 ? lead(solo, legal) : follow(solo, legal);
+}
+
+/**
+ * Droht ein anderer Sitz mit Durchmarsch? Ja, wenn er alle bisherigen Stiche hat (mindestens
+ * zwei) oder schon viele Augen, während die übrigen zusammen fast keine haben.
+ */
+function durchmarschThreat(ctx: Ctx): Seat | null {
+  const done = tricksPlayed(ctx.view);
+  if (done < 2) return null;
+  const points = ctx.memory.pointsWon;
+  const total = points.reduce((a, b) => a + b, 0);
+  for (let seat = 0; seat < ctx.players; seat++) {
+    if (seat === ctx.me) continue;
+    const allTricks = ctx.view.tricksWon[seat] === done;
+    const rest = total - (points[seat] ?? 0);
+    if (allTricks || ((points[seat] ?? 0) >= 40 && rest <= 15)) return seat;
+  }
+  return null;
 }
 
 /** Bettel: Der Spieler will keinen Stich, die Gegner wollen ihm einen aufzwingen. */

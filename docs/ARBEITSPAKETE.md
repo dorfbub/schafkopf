@@ -483,8 +483,8 @@ Vier kleine Funde, die zusammen ein Paket ergeben.
 ### B1 · Bot, der vernünftig spielt (erledigt)
 
 Umgesetzt als `createHeuristicBot` in `packages/bots/src/heuristicBot.ts`; Quote und Regeltreue
-in `packages/bots/test/heuristicBot.test.ts`. Bekannte Schwächen: kennt die Tischregeln nicht
-(sagt in Stufe 1 evtl. für eine abgeschaltete Spielart „Ich würde“), merkt sich nach dem
+in `packages/bots/test/heuristicBot.test.ts`. Bekannte Schwächen: kannte die Tischregeln nicht
+(mit B3 behoben), merkt sich nach dem
 Wiederherstellen eines Tisches nur die Stiche ab dann, zählt keine Augen mit.
 
 Heuristik-Bot: sagt nach Blattstärke an (Trumpfzahl, Laufende, freie Farben), spielt sinnvoll
@@ -497,7 +497,7 @@ Heuristik-Bot: sagt nach Blattstärke an (Trumpfzahl, Laufende, freie Farben), s
 
 Mehrere Stufen wählbar; optional Suchverfahren (Monte-Carlo über mögliche Kartenverteilungen).
 
-### B3 · Bots für Sonderspiele und Hausregeln
+### B3 · Bots für Sonderspiele und Hausregeln (erledigt)
 
 Der Heuristik-Bot kennt die Tischregeln und die neuen Spielarten: sagt Eisenbahner,
 Hawaii-Habicht und (arabische) Hochzeit bei passendem Blatt an, nimmt Hochzeiten sinnvoll an,
@@ -507,6 +507,23 @@ spielt Ramsch mit Blick auf Jungfrau und Durchmarsch, sagt Kontra bei starkem Bl
 - **Abhängigkeit:** die jeweiligen K- und H-Pakete (dort spielt der Bot nur regelgerecht mit).
 - **Abnahme:** Je Variante ein Test mit festem Seed-Satz gegen `createRandomBot` mit Schwelle, wie
   in B1; Bot sagt nie eine abgeschaltete Spielart an.
+- **Stand:** umgesetzt. Die Tischregeln bekommt jeder Bot bei jedem Zug vom Host
+  (`Bot.decide(view, rules?)`, `host.ts` gibt `rules` des laufenden Spiels mit); ohne sie gelten
+  die Standardregeln. Der Heuristik-Bot bewertet nur erlaubte Spielarten (`allowedKinds`, Tout nur
+  mit `allowTout`) – die Schwäche aus B1 („Ich würde“ für Abgeschaltetes) ist weg. Neu in
+  `packages/bots/src`: Bewertung für Eisenbahner (wie Wenz, eigene Schwelle) und Hawaii-Habicht
+  (alle zwölf Farbpaare, `rateHawaii`) in `heuristicBot.ts`; Hochzeit und arabische Hochzeit
+  ansagen, annehmen, zurückgeben in `hochzeit.ts`; Kontra und Re in `doubling.ts`; Ramsch mit
+  Durchmarsch-Versuch und -Abwehr (`ramschCard`); vor dem Hawaii-Wechsel setzt er verfallende
+  Trümpfe zuerst ein und hält Karten der zweiten Farbe (`trumpCost`, `finalOrder`). Selbstspiel
+  mit allen Optionen (6000 Spiele): Siegquote der Ansager Sauspiel 74 %, Solo 78 %, Eisenbahner
+  89 %, arabische Hochzeit 83 %, Hochzeit 82 %, Hawaii-Habicht 65–70 %; Kontra gewinnt 54–64 %.
+  Tests: `packages/bots/test/sonderspiele.test.ts` (je Variante fester Seed-Satz gegen
+  Zufalls-Bots, mit und ohne die Variante; Entscheidungszeit), `sonderspieleFaelle.test.ts`
+  (nie Abgeschaltetes, Einzelfälle), Regeltreue mit allen Optionen in `heuristicBot.test.ts`.
+  Lange Läufe: `BOT_LONG=1 npx vitest run packages/bots` (Zahlen mit `BOT_REPORT=1`).
+  Annahmen 32, 36, 42 und 70–74. Offen: Bots sagen Kontra/Re nur, wenn sie am Zug sind
+  (Annahme 71) – Kontra außer der Reihe bräuchte einen eigenen Weg im Host.
 
 ---
 

@@ -37,7 +37,7 @@ Spiel. Die Ausbaupakete stehen in [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md)
 | Netz          | WebRTC über Trystero; Tischcode mit 10 Zeichen; Platz wird nach Verbindungsabbruch wiedergefunden; Gastgeber-Tisch übersteht Neuladen (Zustand im Browser)                   |
 | Ausfall       | Getrennte Spieler werden nach 30 s durch einen Bot vertreten, bei Rückkehr übernommen; der Gastgeber kann Spieler vom Tisch nehmen                                           |
 | Lobby         | Platzwahl, Zuschauer, Umbenennen, Tischeinstellungen                                                                                                                         |
-| Bots          | Heuristik-Bot: sagt nach Blattstärke an, spielt Partner-/Gegner-Taktik; gegen den Zufalls-Bot getestet                                                                       |
+| Bots          | Heuristik-Bot: sagt nach Blattstärke und Tischregeln an (auch Hausregeln und Hochzeiten), spielt Partner-/Gegner-Taktik, Ramsch und Kontra; gegen den Zufalls-Bot getestet   |
 | App           | Installierbar (Manifest, Symbole), Offline-Start, Hinweis bei neuer Version                                                                                                  |
 | Tests         | Unit-Tests für Kern, Netz und Bots; Ende-zu-Ende-Tests mit Playwright                                                                                                        |
 | Oberfläche    | Gestaltung „Kartentisch“ (grüner Filz, Holzrahmen), eigenes bayerisches Kartenbild, Spielschild, letzter Stich, Spielverlauf                                                 |

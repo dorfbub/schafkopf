@@ -195,7 +195,8 @@ eigenen Platz `canDouble`. Die Faktoren entstehen in Stufe 2 der Abrechnung (`fa
   solange ein Mensch (kein Bot, keine Vertretung) noch Kontra oder Re sagen darf. Ändert sich
   Kontra/Re während der Wartezeit, plant der Host den Bot-Zug neu (der alte Zeitgeber verfällt
   über eine Kennung) – mit frischem Fenster, wenn nun ein Mensch Re sagen darf, sonst ohne.
-- **Bots** sagen nie Kontra (B3 kann das später übernehmen).
+- **Bots** sagen Kontra und Re nur, wenn sie am Zug sind und `HandView.canDouble` gilt (B3,
+  `doubling.ts`); außerhalb der Reihe fragt der Host sie nicht.
 
 **Hochzeit (K5).** Sagt jemand eine Spielart mit `prelude` an, geht das Spiel in die Phase
 `prelude` statt gleich zu den Stichen. Züge sind `{ type: 'prelude', move }` (`accept`, `decline`,
@@ -207,9 +208,10 @@ die Form (`isWellFormedMove`), der Kern die Regel (Fehler `illegal_move`).
 - **Gescheitert:** Nimmt keiner an, setzt `preludeFailed` die Ansage fort: Spieler aus
   `Auction.yielded` (wer im Zweikampf aufgegeben hat) tragen es neu aus, die Spielart steht in
   `Auction.failed` und ist gesperrt; ohne Nachrücker greift `ALL_PASSED`.
-- **Bots** lehnen jede Hochzeit ab und sagen selbst keine an; müssen sie als Vertretung Karten
-  zurückgeben, nehmen sie die billigsten erlaubten (`preludeMove` in `packages/bots`). Der
-  Notfallzug des Hosts nimmt `legalMoves[0]`.
+- **Bots:** Der Heuristik-Bot sagt Hochzeiten bei passendem Blatt an, nimmt mit starkem
+  Trumpfblatt an und gibt Karten so zurück, dass eine Farbe frei wird (`weddingMove` in
+  `packages/bots/src/hochzeit.ts`, B3). Der Zufalls-Bot lehnt ab und gibt die billigsten erlaubten
+  Karten (`preludeMove`). Der Notfallzug des Hosts nimmt `legalMoves[0]`.
 - **E2E:** Der E2E-Build kennt `?seed=` für feste Karten (`connection.ts`); das Szenario
   `e2e/hochzeit.spec.ts` nutzt es.
 
@@ -226,6 +228,8 @@ berücksichtigen:
 - **Bot-Gedächtnis:** Der Heuristik-Bot merkt sich Fehlfarben als Karten, die ein Sitz sicher
   nicht hat (`Memory.absent`), und fragt `isVoid` mit der Ordnung des laufenden Stichs. Eine
   gemerkte Farbe wäre nach dem Wechsel falsch („kein Trumpf“ hieß vorher König oder erste Farbe).
+  Vor dem Wechsel kennt er außerdem die Ordnung des letzten Stichs (`Ctx.finalOrder`): Trümpfe,
+  die verfallen, gibt er billiger her, Karten, die noch Trumpf werden, hält er.
 - **Oberfläche:** `sortHand(hand, contract, tricksPlayed(view))` sortiert bei jedem Zeichnen neu;
   das Spielschild zeigt das Zeichen der gültigen Farbe und als Zusatz „ab Stich 5: …“ bzw.
   „Trumpf gewechselt“, die Tischleiste nach dem Wechsel „Trumpf jetzt …“. Der Ansage-Dialog hat
@@ -259,8 +263,16 @@ nach dem Verlust des Hosts ohnehin weitersucht – finden ihn unter demselben Ra
 
 ### packages/bots
 
-Ein Bot implementiert `decide(view: HandView): PlayerAction`. Er sieht exakt das, was ein Mensch
-sieht. `createRandomBot` ist der Platzhalter.
+Ein Bot implementiert `decide(view: HandView, rules?: RuleSet): PlayerAction`. Er sieht exakt das,
+was ein Mensch sieht: seine Sicht und die öffentlichen Tischregeln, die der Host bei jedem Zug
+mitgibt (ohne sie gelten die Standardregeln). `createRandomBot` ist der Platzhalter,
+`createHeuristicBot` der Bot am Tisch.
+
+- `heuristicBot.ts` – Gedächtnis, Ansage (`rateContract` je Spielart, nur am Tisch erlaubte
+  Spielarten), Faustregeln fürs Anspielen und Zugeben, Bettel, Ramsch (Jungfrau, Durchmarsch).
+- `hochzeit.ts` – Hochzeit und arabische Hochzeit: ansagen, annehmen, zurückgeben.
+- `doubling.ts` – Kontra und Re.
+- `prelude.ts` – einfacher Vorspiel-Zug (ablehnen, billigste Karten) für den Zufalls-Bot.
 
 ### apps/web
 
