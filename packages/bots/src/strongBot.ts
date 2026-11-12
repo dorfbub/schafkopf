@@ -97,10 +97,10 @@ export function createStrongBot(seed: number, options: StrongBotOptions = {}): B
   const log = createTrickLog();
   const bidding: BidPlan = { mode: 'heuristic', contract: null };
   return {
-    decide(view: HandView): PlayerAction {
+    decide(view: HandView, rules?: RuleSet): PlayerAction {
       // Die Heuristik entscheidet immer mit: Beim Kartenspiel hält das ihr Gedächtnis aktuell
       // und liefert den Vorschlag für Gleichstände; das Vorspiel bleibt ganz ihres.
-      const suggestion = heuristic.decide(view);
+      const suggestion = heuristic.decide(view, rules ?? options.rules);
       updateLog(log, view);
       if (view.phase === 'bidding' && suggestion.type === 'bid') {
         return { type: 'bid', call: bid(view, suggestion.call, bidding, rng, options) };
@@ -274,6 +274,8 @@ function simulateContract(
     tricksSeen: 0,
     deckSize,
     deck: createDeck(deckSize < 32 ? 'kurz' : 'lang'),
+    pointsWon: hands.map(() => 0),
+    durchmarsch: null,
   };
   return rollout(state, memory, me, rng);
 }
@@ -482,7 +484,10 @@ function memoryOf(state: HandState, k: Knowledge): Memory {
     tricksSeen: state.tricks.length,
     deckSize,
     deck: createDeck(deckSize < 32 ? 'kurz' : 'lang'),
+    pointsWon: state.hands.map(() => 0),
+    durchmarsch: null,
   };
+  for (const t of state.tricks) memory.pointsWon[t.winner]! += t.points;
   // Fehlfarben nach der jetzt gültigen Ordnung (beim Hawaii-Wechsel eine Näherung).
   const order = orderFor(state.contract!, state.tricks.length);
   k.voids.forEach((suits, seat) => {
@@ -553,6 +558,7 @@ function playInPlace(state: HandState, memory: Memory, seat: Seat, c: Card): voi
     winner,
     points: sumPoints(trick.cards),
   });
+  memory.pointsWon[winner] = (memory.pointsWon[winner] ?? 0) + sumPoints(trick.cards);
   memory.tricksSeen = state.tricks.length;
   state.currentTrick = { leader: winner, cards: [] };
   state.turn = winner;

@@ -671,7 +671,7 @@ export class HostSession {
       const view = handViewFor(current, seat);
       let error: HostErrorCode | null;
       try {
-        error = this.apply(seat, bot.decide(view));
+        error = this.apply(seat, bot.decide(view, current.rules));
       } catch {
         error = 'bad_message';
       }

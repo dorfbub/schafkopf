@@ -7,6 +7,7 @@ import {
   type PlayerAction,
   type RuleSet,
   type Seat,
+  BID_ORDER,
   DEFAULT_RULES,
   applyAction,
   dealHand,
@@ -142,6 +143,9 @@ describe('Heuristik-Bot: Kartenspiel', () => {
   });
 });
 
+/** Alle Spielarten und Hausregeln an, dazu Kontra und Re (B3). */
+const ALL_OPTIONS: RuleSet = { ...DEFAULT_RULES, contracts: [...BID_ORDER], kontra: true };
+
 describe('Heuristik-Bot: Regeltreue', () => {
   const variants: [string, RuleSet][] = [
     ['Standard', DEFAULT_RULES],
@@ -149,18 +153,35 @@ describe('Heuristik-Bot: Regeltreue', () => {
     ['ohne Tout, ohne Davonlaufen', { ...DEFAULT_RULES, allowTout: false, davonlaufen: false }],
     ['nur Einzelspiele', { ...DEFAULT_RULES, contracts: ['bettel', 'geier', 'wenz', 'farbwenz'] }],
     ['kurzes Blatt', { ...DEFAULT_RULES, deck: 'kurz' }],
+    // B3: alle Spielarten und Hausregeln, Kontra und Re, je eine Regel für „alle weiter“.
+    ['alle Optionen, Ramsch', { ...ALL_OPTIONS, allPassed: 'ramsch' }],
+    ['alle Optionen, Stock', { ...ALL_OPTIONS, allPassed: 'stock' }],
+    ['alle Optionen, Muss', { ...ALL_OPTIONS, allPassed: 'muss' }],
+    [
+      'alle Optionen, Ramsch ohne Durchmarsch und Jungfrau',
+      { ...ALL_OPTIONS, allPassed: 'ramsch', ramsch: { durchmarsch: false, jungfrau: false } },
+    ],
   ];
 
-  it.each(variants)('liefert nie eine unerlaubte Aktion (%s)', (_name, rules) => {
-    // Bots bleiben über alle Spiele dieselben Objekte – wie am echten Tisch.
-    const heuristic = [0, 1, 2, 3].map((s) => createHeuristicBot(900 + s));
-    const random = [0, 1, 2, 3].map((s) => createRandomBot(950 + s, 3));
-    for (let i = 0; i < 400; i++) {
-      // Sitzbelegung wechselt: mal nur Heuristik, mal gemischt.
-      const bots = [0, 1, 2, 3].map((s) => ((i >> s) & 1 || i % 5 === 0 ? heuristic : random)[s]!);
-      expect(() => playHand(bots, 20_000 + i, i % 4, rules)).not.toThrow();
-    }
-  });
+  it.each(variants)(
+    'liefert nie eine unerlaubte Aktion (%s)',
+    (name, rules) => {
+      // Bots bleiben über alle Spiele dieselben Objekte – wie am echten Tisch.
+      const heuristic = [0, 1, 2, 3].map((s) => createHeuristicBot(900 + s));
+      const random = [0, 1, 2, 3].map((s) => createRandomBot(950 + s, 3));
+      // Lange Läufe (B3) mit `BOT_LONG=1`.
+      // Die Varianten mit allen Optionen kurz, zusammen prüfen sie trotzdem 400 Spiele.
+      const games = process.env.BOT_LONG ? 4000 : name.startsWith('alle') ? 100 : 400;
+      for (let i = 0; i < games; i++) {
+        // Sitzbelegung wechselt: mal nur Heuristik, mal gemischt.
+        const bots = [0, 1, 2, 3].map(
+          (s) => ((i >> s) & 1 || i % 5 === 0 ? heuristic : random)[s]!,
+        );
+        expect(() => playHand(bots, 20_000 + i, i % 4, rules)).not.toThrow();
+      }
+    },
+    process.env.BOT_LONG ? 600_000 : 30_000,
+  );
 });
 
 describe('Heuristik-Bot gegen Zufalls-Bot', () => {
@@ -361,8 +382,10 @@ describe('Heuristik-Bot im Hawaii-Habicht', () => {
     expect(action).not.toEqual({ type: 'play', card: 'GA' });
   });
 
-  it('sagt ihn nicht selbst an (B3)', () => {
+  it('bewertet ein Blatt mit allen Königen und zwei langen Farben als Hawaii-Habicht (B3)', () => {
     const hand: Card[] = ['EK', 'GK', 'HK', 'SK', 'GA', 'G10', 'HA', 'H10'];
-    expect(rateContract(hand, { kind: 'hawaii', suit: 'gras', suit2: 'herz' })).toBeLessThan(0);
+    expect(rateContract(hand, { kind: 'hawaii', suit: 'gras', suit2: 'herz' })).toBeGreaterThan(0);
+    const weak: Card[] = ['EK', 'G7', 'G8', 'G9', 'H7', 'H8', 'S7', 'E7'];
+    expect(rateContract(weak, { kind: 'hawaii', suit: 'gras', suit2: 'herz' })).toBeLessThan(0);
   });
 });

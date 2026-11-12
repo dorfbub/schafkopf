@@ -4,3 +4,5 @@ export * from './beginnerBot';
 export * from './strongBot';
 export * from './strength';
 export * from './prelude';
+export * from './hochzeit';
+export * from './doubling';

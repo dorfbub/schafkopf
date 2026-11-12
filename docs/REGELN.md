@@ -358,8 +358,8 @@ Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
     (wer einen Zehner hat, muss ihn auf einen angespielten Zehner zugeben; ein Zehner bedient
     keine Farbe). Ober und Unter sind gewöhnliche Farbkarten: A K O U 9 8 7. Laufende zählen
     über die Zehner in der Reihenfolge Eichel, Gras, Herz, Schellen, mit oder gegen die Zehner.
-32. **Eisenbahner und Bots:** Die Bots sagen ihn von sich aus nie an (Paket B3), spielen ihn aber
-    regelgerecht mit.
+32. **Eisenbahner und Bots:** Der Heuristik-Bot sagt ihn an, wenn er am Tisch erlaubt ist und das
+    Blatt reicht (bewertet wie Wenz und Geier, B3), und spielt ihn regelgerecht mit.
 
 ### Annahmen zum Hawaii-Habicht (H2)
 
@@ -374,8 +374,9 @@ Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
     Stich 5 ist die erste Farbe eine gewöhnliche Farbe (A 10 O U 9 8 7, ohne König); wer sie dann
     nicht mehr hat, muss nicht mit Trumpf bedienen. Hat ein Spieler in Stich 1–4 nicht Trumpf
     bedient, kann er ab Stich 5 trotzdem Trümpfe (Könige ausgeschlossen) der zweiten Farbe haben.
-36. **Hawaii-Habicht und Bots:** Die Bots sagen ihn von sich aus nie an (Paket B3), spielen ihn
-    aber regelgerecht mit und rechnen ab Stich 5 mit der zweiten Farbe. Beim kurzen Blatt (K6,
+36. **Hawaii-Habicht und Bots:** Der Heuristik-Bot sagt ihn an, wenn er am Tisch erlaubt ist und
+    das Blatt reicht; er wählt das beste der zwölf Farbpaare (B3, Annahme 73). Er rechnet ab
+    Stich 5 mit der zweiten Farbe. Beim kurzen Blatt (K6,
     sechs Stiche) wechselt die Farbe vorerst ebenfalls nach dem vierten Stich; das klärt K6.
 
 ### Annahmen zu Kontra und Re (K4)
@@ -425,8 +426,9 @@ Ohne Rückfrage nach gängiger Spielweise festgelegt. **Bitte prüfen.**
     immer so wenige Trümpfe zurück wie möglich).
 41. **Laufende:** Schwelle 3 wie bei Sauspiel und Hochzeit; gezählt wird nach dem Tausch wie bei
     der Hochzeit. Tarif wie Sauspiel, kein Tout.
-42. **Bots:** Sie sagen die arabische Hochzeit nie an, lehnen sie ab und geben, wenn sie als
-    Vertretung annehmen mussten, die zwei niedrigsten erlaubten Karten zurück.
+42. **Bots:** Der Heuristik-Bot sagt die arabische Hochzeit an und nimmt sie an wie die Hochzeit
+    (Annahme 72). Der Zufalls-Bot lehnt ab und gibt, wenn er als Vertretung annehmen musste, die
+    zwei niedrigsten erlaubten Karten zurück.
 
 ### Annahmen zu kurzer Karte und Dreier (K6)
 
@@ -466,3 +468,28 @@ Ohne Rückfrage nach gängiger Spielweise beim „Kurzen“ und beim Dreier-Scha
 59. **Ansage, Geben und Bots zu dritt:** Ansage, Herauskommen und Geberwechsel laufen reihum über
     drei Plätze wie über vier. Die Bots spielen alle Besetzungen mit; sie bewerten ihr Blatt nach
     der Kartenzahl und sagen zu dritt kein Partnerspiel an.
+
+### Annahmen zu den Bots (B3)
+
+Bei der Umsetzung von B3 ohne Rückfrage festgelegt. Spielregeln ändern sie nicht, nur wie die Bots
+spielen. **Bitte prüfen.**
+
+70. **Tischregeln:** Ein Bot kennt die Tischregeln wie jeder Mensch am Tisch (sie sind öffentlich)
+    und sagt nur Spielarten an, die dort erlaubt sind, Tout nur mit „Tout erlaubt“. „Ich würde“
+    sagt er nur, wenn eine erlaubte Spielart für sein Blatt reicht.
+71. **Kontra und Re nur am Zug:** Bots sagen Kontra oder Re nur, wenn sie selbst am Zug sind und
+    es noch dürfen – vor der ersten Karte ist das nur der Herauskommende. Außerhalb der Reihe
+    (Annahme 22) sagen sie nichts. Kontra bei einem Blatt, das gegen ein Partnerspiel selbst ein
+    gutes Sauspiel wäre (gegen eine Hochzeit etwas mehr), gegen ein Einzelspiel bei der Hälfte der
+    Trumpfstärke und Sauen; Re mit deutlich mehr als dem Nötigen. Im Bettel doppeln sie nicht.
+72. **Hochzeit und arabische Hochzeit:** Ein Bot sagt sie mit zwei Sauen (oder gleichwertigen
+    Farbstichen) an. Er nimmt an, wenn er mit den erhaltenen Trümpfen ein starkes Sauspiel-Blatt
+    hätte, und gibt die Karte(n) so zurück, dass eine Farbe frei wird; eine Sau behält er lieber.
+    Als Vertretung eines Menschen, der angenommen hat, gibt er genauso zurück.
+73. **Hawaii-Habicht ohne Tout:** Bots sagen den Hawaii-Habicht nie als Tout an – selbst mit
+    allen Königen sticht ein Gegner mit einer hohen Karte der gerade gültigen Farbe.
+74. **Ramsch:** Bots vermeiden Stiche und Augen (das hält auch die Jungfrau). Auf Durchmarsch
+    spielen sie nur mit fast sicherem Blatt – mindestens sechs Trümpfe, darunter drei der vier
+    Ober mit Eichel- und Gras-Ober, sonst nur Sauen – und geben auf, sobald die anderen zusammen
+    mehr als 29 Augen haben. Hat ein anderer alle bisherigen Stiche (ab zwei) oder fast alle
+    Augen, nehmen sie einen Stich, wenn es sicher geht, und schenken ihm sonst keine Augen.

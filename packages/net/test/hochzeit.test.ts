@@ -101,13 +101,14 @@ describe('Hochzeit über das Netz', () => {
 
   it('ein Mensch gegen Bots: alle Bots lehnen ab, dann wird zusammengeworfen', () => {
     // Seed suchen, bei dem Anna (Platz 0, Geber, sagt zuletzt an) genau einen Trumpf hat und die
-    // Bots vor ihr alle „weiter“ sagen.
+    // Bots vor ihr alle „weiter“ sagen. Zufalls-Bots, weil sie jede Hochzeit ablehnen – der
+    // Heuristik-Bot nimmt mit starkem Trumpfblatt an (B3), und das hat fast immer einer.
     for (let seed = 1; seed < 2000; seed++) {
       if (!MODES.hochzeit.eligible!(dealHand(HOCHZEIT, 0, seed).hands[0]!)) continue;
       const queue: (() => void)[] = [];
       const host = new HostSession({
         rules: HOCHZEIT,
-        createBot: (s) => createHeuristicBot(s),
+        createBot: (s) => createRandomBot(s),
         seed: () => seed,
         schedule: (fn) => void queue.push(fn),
       });
@@ -187,8 +188,9 @@ function weddingBot(seed: number, accepts: boolean, illegal: string[]): Bot {
         return { type: 'bid', call: { type: 'hold' } };
       }
     }
-    if (view.phase === 'prelude' && accepts && view.legalMoves.some((m) => m.type === 'accept')) {
-      return { type: 'prelude', move: { type: 'accept' } };
+    if (view.phase === 'prelude' && view.legalMoves.some((m) => m.type === 'accept')) {
+      // Fest vorgegeben, unabhängig davon, was der Heuristik-Bot mit seinem Blatt täte (B3).
+      return { type: 'prelude', move: { type: accepts ? 'accept' : 'decline' } };
     }
     return inner.decide(view);
   };
