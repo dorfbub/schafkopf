@@ -1,5 +1,6 @@
 import type { ConnectionStatus } from '@schafkopf/net';
-import { CONNECT_TEXT, START_TEXT, spacedCode } from '../i18n/de';
+import { CONNECT_TEXT, START_TEXT } from '../i18n/de';
+import { formatRoomCode } from '../roomCode';
 import { Button, Tafel } from './kit';
 
 interface SearchProps {
@@ -28,7 +29,7 @@ export function ConnectSearch({ status, roomId, onRetry, onCancel }: SearchProps
         <h1 id="connect-title" className="tafel__title">
           {failed ? CONNECT_TEXT.failed : CONNECT_TEXT.searching}
         </h1>
-        {roomId && <p className="code code--large connect__code">{spacedCode(roomId)}</p>}
+        {roomId && <p className="code code--large connect__code">{formatRoomCode(roomId)}</p>}
         <p className="tafel__text text-muted">
           {failed ? CONNECT_TEXT.failedHint : CONNECT_TEXT.searchingHint}
         </p>

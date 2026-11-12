@@ -22,6 +22,7 @@ import {
   createTrysteroClient,
   createTrysteroHost,
 } from '@schafkopf/net/trystero';
+import { normalizeRoom, randomRoomId } from './roomCode';
 
 export interface Connection {
   client: ClientSession;
@@ -30,13 +31,6 @@ export interface Connection {
   /** Tisch-Code für die Einladung; null bei einem rein lokalen Tisch. */
   roomId: string | null;
   close(): void;
-}
-
-const ROOM_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
-
-function randomRoomId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(6));
-  return Array.from(bytes, (b) => ROOM_ALPHABET[b % ROOM_ALPHABET.length]).join('');
 }
 
 function remembered(storage: () => Storage, key: string, create: () => string): string {
@@ -338,18 +332,12 @@ export function joinTable(name: string, roomId: string): Connection {
 
 const HASH_PREFIX = '#tisch=';
 
+/** Tisch-Code aus dem Einladungslink (roh, ungeprüft); null ohne Link. */
 export function roomFromUrl(): string | null {
   const hash = window.location.hash;
   if (!hash.startsWith(HASH_PREFIX)) return null;
   const room = normalizeRoom(hash.slice(HASH_PREFIX.length));
   return room || null;
-}
-
-export function normalizeRoom(input: string): string {
-  return input
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
 }
 
 export function inviteLink(roomId: string): string {

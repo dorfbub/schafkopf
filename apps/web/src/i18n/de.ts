@@ -105,18 +105,17 @@ export const START_TEXT = {
   hostHint: 'Dein Gerät mischt und gibt. Freie Plätze übernehmen Bots.',
   joinTitle: 'Einladung bekommen?',
   joinCode: 'Tisch-Code',
-  joinPlaceholder: 'z. B. k7m2xp',
+  joinPlaceholder: 'z. B. k7mq-x2pd-hn',
+  joinCodeInvalid:
+    'Dieser Tisch-Code stimmt nicht. Ein Code hat 10 Zeichen, zum Beispiel k7mq-x2pd-hn.',
+  inviteOutdated:
+    'Dieser Einladungslink ist veraltet oder unvollständig. Tisch-Codes sind seit Kurzem länger – bitte den Gastgeber um einen neuen Link.',
   join: 'Beitreten',
   inviteTitle: 'Du bist eingeladen',
   inviteTo: 'an Tisch',
   inviteHint: 'Gib deinen Namen ein und setz dich dazu.',
   inviteOwn: 'Lieber selbst einen Tisch eröffnen',
 };
-
-/** Tisch-Code zum Vorlesen in Dreiergruppen: „k7m2xp“ → „k7m 2xp“. */
-export function spacedCode(code: string): string {
-  return code.replace(/(.{3})(?=.)/g, '$1 ');
-}
 
 /** Kurze Hinweise unten am Rand (Fehler des Gastgebers, D4). */
 export const NOTICE_TEXT = {

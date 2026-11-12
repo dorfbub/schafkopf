@@ -24,7 +24,7 @@ import { StartScreen } from '../ui/StartScreen';
  * Beispielnamen stehen deshalb hier und nicht in i18n/de.ts.
  */
 
-const ROOM = 'k7m2xp';
+const ROOM = 'k7mqx2pdhn';
 const noop = () => {};
 
 function guest(host: HostSession, name: string): ClientSession {

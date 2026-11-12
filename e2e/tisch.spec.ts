@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import {
+  E2E_QUERY,
   collectErrors,
+  hostOpens,
   newTisch,
   openStart,
   playUntilCardOnTable,
@@ -135,4 +137,28 @@ test('Kontra: der Gastgeber schaltet es ein, ein Gegenspieler sagt es, beide seh
       page.getByRole('dialog').getByText(`${name} sagt Kontra – Spielwert ×2`),
     ).toBeVisible();
   }
+});
+
+test('Tisch-Code: Eingabe in Großbuchstaben mit Bindestrichen klappt, alter Link zeigt eine Meldung', async ({
+  context,
+}) => {
+  const table = await newTisch(context);
+  const link = await hostOpens(table.host, 'Hanni');
+  const code = link.split('#tisch=')[1]!;
+  expect(code).toMatch(/^[a-z2-9]{10}$/);
+  await expect(table.host.locator('.code--large')).toContainText(
+    `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8)}`,
+  );
+
+  await openStart(table.guest);
+  await table.guest.getByLabel('Dein Name').fill('Sepp');
+  await table.guest
+    .getByLabel('Tisch-Code')
+    .fill(` ${code.slice(0, 4).toUpperCase()}-${code.slice(4, 8)} ${code.slice(8)} `);
+  await table.guest.getByRole('button', { name: 'Beitreten' }).click();
+  await expect(table.guest.getByRole('heading', { name: /^Tisch / })).toBeVisible();
+
+  const old = await context.newPage();
+  await old.goto(`/?${E2E_QUERY}#tisch=k7m2xp`);
+  await expect(old.getByRole('alert')).toContainText('veraltet');
 });
