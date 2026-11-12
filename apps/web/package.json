@@ -15,6 +15,7 @@
     "@schafkopf/bots": "*",
     "@schafkopf/core": "*",
     "@schafkopf/net": "*",
+    "@schafkopf/tutor": "*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

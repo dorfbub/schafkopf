@@ -542,6 +542,89 @@ Loopback-Verbindungen, ohne Relays.
 - **Gastgeber erkennbar:** `TableView` sagt nicht, wer den Tisch hostet; eine Marke
   „Gastgeber“ am Platz bräuchte das in der Sicht.
 
+## Trainer Max Weber (T2) – _Lukas soll noch bestätigen_
+
+Allein gegen Bots schaut auf Wunsch **Max Weber** zu – eine Figur mit Sprechblase am Tisch,
+ruhig und ohne Ton. Gestaltung und Didaktik hat die Umsetzung selbst entschieden (Lukas war
+nicht erreichbar); alles Folgende soll Lukas über die Bilder bestätigen.
+
+| Frage stellen                                           | Denkanstoß (Stufe 1)                                             | Empfehlung (Stufe 2)                                            | Begründung (Stufe 3)                                             |
+| ------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------- |
+| ![Fragen, Desktop](bilder/tutor/desktop-1-fragen.png)   | ![Denkanstoß, Desktop](bilder/tutor/desktop-2-denkanstoss.png)   | ![Empfehlung, Desktop](bilder/tutor/desktop-3-empfehlung.png)   | ![Begründung, Desktop](bilder/tutor/desktop-4-begruendung.png)   |
+| ![Fragen, hochkant](bilder/tutor/hochkant-1-fragen.png) | ![Denkanstoß, hochkant](bilder/tutor/hochkant-2-denkanstoss.png) | ![Empfehlung, hochkant](bilder/tutor/hochkant-3-empfehlung.png) | ![Begründung, hochkant](bilder/tutor/hochkant-4-begruendung.png) |
+| ![Fragen, quer](bilder/tutor/quer-1-fragen.png)         | ![Denkanstoß, quer](bilder/tutor/quer-2-denkanstoss.png)         | ![Empfehlung, quer](bilder/tutor/quer-3-empfehlung.png)         | ![Begründung, quer](bilder/tutor/quer-4-begruendung.png)         |
+
+| Bewertung hinterher                                         | Rückblick „So wurde gespielt“                                  | Rückblick, Kopf                                                       |
+| ----------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| ![Hinterher, Desktop](bilder/tutor/desktop-5-hinterher.png) | ![Rückblick, Desktop](bilder/tutor/desktop-6-rueckblick.png)   | ![Rückblick-Kopf, Desktop](bilder/tutor/desktop-7-rueckblick-max.png) |
+| ![Hinterher, quer](bilder/tutor/quer-5-hinterher.png)       | ![Rückblick, hochkant](bilder/tutor/hochkant-6-rueckblick.png) | ![Rückblick, quer](bilder/tutor/quer-6-rueckblick.png)                |
+
+Die Bilder entstehen mit `BILDER=1 npx playwright test e2e/trainer.spec.ts` (je nach Spielverlauf
+dazu `*-0-automatik.png`, wenn sich Max von selbst gemeldet hat, und `*-5-hinterher.png`).
+
+### Figur
+
+- Ein runder Kopf wie die Plätze, aber auf **Papier mit Messingring** und den Initialen **„MW“**
+  in Fraunces, darunter klein „Max“. So unterscheidet er sich von den Mitspielern (Filz, ein
+  Buchstabe) und gehört trotzdem zum Tisch. Kein Bild einer Person, kein Maskottchen.
+- **Feste Stelle:** auf breitem Tisch und hochkant links neben dem eigenen Namen – er sitzt neben
+  dir und schaut dir über die Schulter. Im niedrigen Fenster (Handy quer) oben links auf dem Filz,
+  weil unten neben dem Namen kein Platz ist.
+- Die Figur ist ein Knopf (Tippfläche mindestens `--control-height`): Antippen öffnet die
+  Auswahlfragen, noch einmal Antippen schließt. Hover und offen: dickerer Messingring.
+
+### Sprechblase
+
+- **Papier** wie die Dialoge, Radius `--radius-md`, Schatten `--shadow-dialog`, oben klein
+  „Max Weber“ und ein Schließen-Kreuz. Erscheint mit `dialog-rein` (nur Deckkraft und Größe).
+- **Liegt über dem Tisch, nimmt keinen Platz:** Der Tisch springt beim Ein- und Ausblenden nicht
+  (Layout-Test in allen drei Größen, mit auf- und zugehender Blase).
+- **Stelle:** Desktop unten links über der Figur, mit Spitze zu ihr; so breit, dass sie neben dem
+  Ansage- und Ergebnis-Dialog bleibt (höchstens 24rem). Hochkant **oben über den Plätzen** in
+  voller Breite, weil unten der Ansage-Dialog liegt – dort verdeckt sie für den Moment die Namen
+  der anderen. Quer rechts neben der Figur oben links; dort verdeckt sie einen Teil des Filzes.
+- **Lange Antworten** scrollen in der Blase; die Knöpfe bleiben unten stehen.
+- **Inhalt:**
+  - _Auswahlfragen_ als Liste heller Knöpfe („Welche Karte ist sinnvoll, und welche Strategie steckt
+    dahinter?“ usw.), darunter der Schalter „Von selbst melden“.
+  - _Antwort_: die gestellte Frage klein und kursiv, darunter der **Denkanstoß in Fraunces** – er
+    ist das Wichtigste. Hauptknopf „Und was empfiehlst du?“, dann „Warum?“, daneben immer
+    „Andere Frage“. Die Empfehlung steht mit einem Akzentstrich links („Ich würde den
+    Schellen-Siebener spielen.“), die Begründung mit dem fett gesetzten Titel der Faustregel,
+    darunter leise, was die Rechnung sagt („Durchgerechnet bringt … im Schnitt etwa 12 Cent
+    mehr als …“). Cent nennt Max erst hier, nie im Denkanstoß.
+  - _Von selbst_ (Automatik): „**Moment –** Partner hält den Stich. Kann ihn noch jemand holen?“ –
+    „Moment –“ in Akzentfarbe, sonst wie eine Antwort in Stufe 1.
+  - _Hinterher_: „Kurz zu deinem Zug: Der Gras-Unter hat dich etwa 11 Cent gekostet.“ – auf Wunsch
+    „Was wäre besser gewesen?“ mit Empfehlung und Faustregel.
+- **Ton:** Du-Form, kurze Sätze, „Servus!“ zur Begrüßung; „das kostet“, nicht „falsch“.
+
+### Empfehlung am Tisch (ab Stufe 2)
+
+- **Karte:** hebt sich und bekommt einen doppelten Ring (Papier, dann Akzentfarbe) – deutlich
+  anders als der Messingrand spielbarer Karten. Ein Schild „Max“ über der Karte wurde verworfen:
+  am Desktop stößt es an den eigenen Namen.
+- **Ansage, Kontra, Re:** Der empfohlene Knopf bzw. Wahlknopf bekommt einen gestrichelten
+  Rahmen in Akzentfarbe.
+- Die Hervorhebung verschwindet, sobald man zieht oder die Lage sich ändert.
+
+### Rückblick in „So wurde gespielt“
+
+- In der Zeile „So wurde gespielt“ rechts eine Marke in Akzentfarbe: „Max hat 2 Stellen markiert“.
+- Aufgeklappt oben ein Kasten mit dem Kopf „MW“: was er markiert hat (Ansage und Kontra stehen
+  hier direkt), oder „kein teurer Fehler in diesem Spiel“.
+- Stiche mit einem Fehler: Zeile leicht hinterlegt mit Akzentstrich links, die eigene Karte mit
+  gestricheltem Rahmen, darunter der Satz „**Hinweis von Max:** Der Gras-Achter wäre besser gewesen
+  als der Gras-Zehner (etwa 19 Cent). Faustregel: In verlorene Stiche einen Spatz.“
+- Höchstens **drei Stellen** – die teuersten; weitere nur als „Dazu ein kleinerer Fehler.“
+
+### Lobby
+
+Nur am Tisch gegen die Bots: Tafel „Trainer“ mit „Max Weber schaut mir über die Schulter“ und
+„Meldet sich in wichtigen Momenten von selbst“, beide **standardmäßig an**. Begründung: Wer
+„Allein gegen Bots“ wählt, übt meist; Max drängt sich nicht auf (von selbst nur bei hohem
+Einsatz, höchstens einmal je Stich) und ist mit einem Klick aus. Die Wahl merkt sich das Gerät.
+
 ## Verworfene Richtungen
 
 - **A · Stube** (`docs/entwuerfe/stube.html`): dunkles Nussholz mit Bernstein – „ok“, aber das

@@ -1,9 +1,11 @@
 import { type Card, type HandView, type TableView, tricksPlayed } from '@schafkopf/core';
 import { type CSSProperties, type KeyboardEvent, useEffect, useState } from 'react';
-import { TABLE_TEXT, UI_TEXT } from '../../i18n/de';
+import { TABLE_TEXT, TUTOR_TEXT, UI_TEXT } from '../../i18n/de';
+import { useTutor } from '../../tutor/context';
 import { Button, CardView } from '../kit';
 import type { SeatInfo } from './layout';
 import { sortHand } from './layout';
+import { TutorFigure } from './Tutor';
 import { DoublingMarks, PartyMarks, SeatStats, hasDoubled, inParty } from './Seats';
 
 interface Props {
@@ -32,7 +34,16 @@ function moveFocus(e: KeyboardEvent<HTMLDivElement>) {
  * er mit der nächsten Sicht von selbst; bis dahin ist er kurz gesperrt, damit kein Doppelklick
  * ankommt.
  */
-function DoubleButton({ hand, onDouble }: { hand: HandView; onDouble: () => void }) {
+function DoubleButton({
+  hand,
+  onDouble,
+  tip,
+}: {
+  hand: HandView;
+  onDouble: () => void;
+  /** Max Weber empfiehlt Kontra bzw. Re (T2). */
+  tip: boolean;
+}) {
   const re = hand.doubling.kontra !== null;
   const [sent, setSent] = useState(false);
   // Kommt keine Antwort an (Verbindung hakt, Host lehnt ab), wird der Knopf wieder frei.
@@ -42,7 +53,7 @@ function DoubleButton({ hand, onDouble }: { hand: HandView; onDouble: () => void
     return () => clearTimeout(id);
   }, [sent]);
   return (
-    <span className="eigen__kontra">
+    <span className={`eigen__kontra${tip ? ' eigen__kontra--tipp' : ''}`}>
       <Button
         size="small"
         disabled={sent}
@@ -61,6 +72,8 @@ function DoubleButton({ hand, onDouble }: { hand: HandView; onDouble: () => void
 
 /** Eigener Platz unten: Name, Stand, Hinweis „Du bist dran“ und die Hand als Fächer. */
 export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
+  const tutor = useTutor();
+  const tutorTip = tutor?.snap.tip ?? null;
   if (view.you === null) {
     return (
       <footer className="eigen">
@@ -69,6 +82,8 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
     );
   }
   const me = view.you;
+  // Empfehlung des Trainers (ab der zweiten Stufe der Antwort) am Tisch sichtbar machen.
+  const tip = tutorTip;
   const myTurn = hand.turn === me && hand.phase !== 'finished';
   const cards = sortHand(hand.hand, hand.contract, tricksPlayed(hand));
   const n = cards.length;
@@ -81,8 +96,9 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
 
   return (
     <footer
-      className={`eigen${myTurn ? ' eigen--dran' : ''}${inParty(hand, me) ? ' eigen--partei' : ''}`}
+      className={`eigen${myTurn ? ' eigen--dran' : ''}${inParty(hand, me) ? ' eigen--partei' : ''}${tutor ? ' eigen--trainer' : ''}`}
     >
+      <TutorFigure place="eigen" />
       <div className="eigen__info">
         <span className="eigen__avatar" aria-hidden="true">
           {seats.nameOf(me).slice(0, 1).toUpperCase()}
@@ -111,6 +127,7 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
             key={`${view.handNo}-${hand.doubling.kontra}`}
             hand={hand}
             onDouble={onDouble}
+            tip={tip?.type === 'double' && tip.double}
           />
         )}
       </div>
@@ -129,11 +146,13 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
         {cards.map((card, i) => {
           const legal = hand.legalCards.includes(card);
           const locked = hand.phase === 'playing' && myTurn && !legal;
+          const tipped = tip?.type === 'card' && tip.card === card && legal;
           return (
             <span
               key={card}
-              className="hand__platz"
+              className={`hand__platz${tipped ? ' hand__platz--tipp' : ''}`}
               style={{ '--d': i - (n - 1) / 2, '--i': i } as CSSProperties}
+              title={tipped ? TUTOR_TEXT.tipLabel : undefined}
             >
               <CardView
                 card={card}

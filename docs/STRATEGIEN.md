@@ -488,8 +488,9 @@ Daraus folgen diese Entscheidungen:
 6. **Der Automatikmodus ist ein Lehrer, kein Souffleur.** Von selbst meldet er sich nur, wenn ein
    naheliegender Fehlgriff – eine Möglichkeit, für die eine Faustregel oder die Bauchentscheidung
    spricht – deutlich etwas kostet (Wichtigkeit „hoch“, siehe unten), und dann zuerst mit dem
-   Denkanstoß. Vorschlag für T2: höchstens einmal je Stich und nicht zweimal hintereinander mit
-   derselben Faustregel.
+   Denkanstoß. In T2 so umgesetzt: höchstens einmal je Stich (Ansage und Kontra je einmal) und
+   nicht zweimal hintereinander mit derselben Faustregel. Bewertungen hinterher spricht er nur im
+   Automatikmodus von selbst an; ohne Automatik antwortet er nur auf Fragen.
 7. **Rückblick knapp.** Nach dem Spiel markiert „So wurde gespielt“ nur die Fehler, am besten die
    teuersten drei, jeweils mit einem Satz und der Faustregel.
 8. **Ton.** Du-Form, kurze Sätze, Schafkopf-Wörter statt Fachchinesisch. Nicht „falsch“, sondern
@@ -527,11 +528,13 @@ bei Bedarf in einem Web Worker.
 
 **Grenzen:** Gegner und Partner spielen in den Probespielen wie die Heuristik, nicht wie Menschen.
 Was die Ansage der anderen verrät („Ich würde“, Zweikampf), nutzt die Rechnung nur für den Ansager
-selbst (`respectBids`). Die Hochzeit (annehmen, zurückgeben) berät der Tutor noch nicht.
+selbst (`respectBids`). Die Hochzeit (annehmen, zurückgeben) berät der Tutor noch nicht; am Tisch
+sagt Max Weber das im Vorspiel ehrlich (T2, Folgepunkt in ARBEITSPAKETE.md).
 
 ## Textvorschläge für die Oberfläche
 
-Für T2 (`apps/web/src/i18n/de.ts`). Platzhalter in geschweiften Klammern; Sitze kommen als Zahl und
+Umgesetzt in T2 (`TUTOR_TEXT` in `apps/web/src/i18n/de.ts`, dort auch Kurztitel und gekürzte
+Begründungen der Faustregeln); die Tabellen bleiben als Vorlage. Platzhalter in geschweiften Klammern; Sitze kommen als Zahl und
 werden zu Namen, Farben und Spielarten zu ihren Wörtern.
 
 ### Auswahlfragen (`QUESTION_IDS`)

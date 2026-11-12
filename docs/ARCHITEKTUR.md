@@ -351,7 +351,8 @@ Fachlicher Hintergrund, Faustregeln und Didaktik stehen in `docs/STRATEGIEN.md`.
   werden verworfen. Der starke Bot am Tisch rechnet ohne.
 - **Antwort:** Werte in Cent, Empfehlung, bis zu zwei begründende Faustregeln, Ausnahmen, ein
   Denkanstoß und die Wichtigkeit. Texte gibt es im Paket keine, nur Kennungen mit Platzhaltern
-  (`denkanstoss.<regel>`, `frage.…`); die Texte kommen in T2 nach `de.ts`.
+  (`denkanstoss.<regel>`, `frage.…`); die Texte stehen in `apps/web/src/i18n/de.ts`
+  (`TUTOR_TEXT`).
 - **Zufall und Zeit:** über den Seed (`TutorOptions.seed`, Standard 1); eine Uhr nur von außen.
   ESLint verbietet in `packages/tutor/src` wie bei den Bots `Math.random`, `Date.now` und
   `performance`, dazu Importe aus `net`, `web` und React.
@@ -370,6 +371,44 @@ React + Vite, keine weitere Zustandsbibliothek.
 - `ui/kit/` – Grundbausteine (Schaltfläche, Eingabefeld, Tafel, Dialog, Spielerplatz, Karte);
   Stile und Variablen in `styles/`, Musterseite unter `#muster` (nur Entwicklungsserver).
 - `i18n/de.ts` – alle Texte.
+- `tutor/` – der Trainer am Tisch (T2), siehe unten.
+
+#### Trainer am Tisch (T2)
+
+Max Weber gibt es **nur allein gegen Bots**: `Table` bekommt `solo` (eigener Tisch ohne
+Einladungslink, man ist Gastgeber) und legt den Trainer nur dann an, wenn man selbst sitzt und
+ihn in der Lobby nicht ausgeschaltet hat. Am Tisch mit Freunden wird nichts davon geladen.
+
+| Datei                      | Inhalt                                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `tutor/settings.ts`        | Ein/aus und Automatik als Vorliebe des Geräts (localStorage `schafkopf.tutor`, kein `RuleSet`) |
+| `tutor/session.ts`         | `TutorSession`: verfolgt die Sicht, sammelt gesehene Stiche, Sprechblase, Automatik, Rückblick |
+| `tutor/engine.ts`          | `TutorEngine`: Rechnung im Web Worker (`createWorkerEngine`), ohne Worker direkt               |
+| `tutor/worker.ts`          | Web Worker; rechnet `advise`/`review` aus `@schafkopf/tutor` mit Uhr und Zeitbudget (400 ms)   |
+| `tutor/context.tsx`        | `useTutorSession`, `TutorProvider`, `useTutor` für die Bausteine des Tisches                   |
+| `ui/table/Tutor.tsx`       | Figur und Sprechblase                                                                          |
+| `ui/table/GameHistory.tsx` | markiert im Rückblick „So wurde gespielt“ die teuersten drei Fehler                            |
+
+- **Nichts geht über das Netz.** Der Trainer bekommt dieselbe `TableView` wie der Tisch und
+  rechnet daraus `TutorInput` (eigene Sicht + gesehene Stiche). Die Aktionen laufen wie immer über
+  `ClientSession`; `Table` meldet dem Trainer nur vorher den eigenen Zug (`noteMove`), damit er
+  ihn hinterher bewerten kann.
+- **Gesehene Stiche:** Die Sicht hat nur `lastTrick`; die Sitzung hängt jeden neuen Stich an.
+  Fehlt einer (Neuladen mitten im Spiel), passt die Zahl nicht, und der Kern rät nur nach
+  Faustregeln (`basis: 'faustregel'`).
+- **Veraltete Antworten:** Jede Antwort gehört zu einer Lage (Spiel, Phase, wer dran ist, Zahl
+  der Rufe und Karten, Kontra). Ändert sich die Lage, schließt die Blase; ein Rat zu einer alten
+  Lage wird nie angezeigt. Gleiche Lage → gleicher Seed → gleiche Antwort.
+- **Automatik:** rechnet bei jeder eigenen Entscheidung im Worker mit und meldet sich bei
+  `importance.auto` – höchstens einmal je Stich (Ansage und Kontra je einmal), nie zweimal
+  hintereinander mit derselben Faustregel, nie über eine Blase, die man gerade selbst bedient.
+  Bewertungen hinterher spricht sie nur bei `review.mention` an.
+- **Hervorhebung:** `useTutor().snap.tip` – die empfohlene Karte in der Hand (`OwnSeat`), der
+  Knopf im Ansage-Dialog (`BidDialog`) bzw. „Kontra“/„Re“; erst ab der zweiten Stufe.
+- **Hochzeit:** Annehmen und Zurückgeben berät der Kern nicht; im Vorspiel sagt Max das ehrlich.
+- **Name:** Der vierte Bot heißt ebenfalls „Weber Max“ (`DEFAULT_BOT_NAMES`), sitzt aber nur an
+  einem Tisch ganz ohne Menschen. Der Trainer braucht einen Menschen am Tisch – beide kommen
+  also nie zusammen vor (geprüft in `e2e/trainer.spec.ts`).
 
 ## Installierbar und Updates (U5)
 

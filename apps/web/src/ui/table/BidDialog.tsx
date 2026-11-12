@@ -23,6 +23,7 @@ import {
   levelLabel,
 } from '../../i18n/de';
 import { bayerischTheme } from '../cardTheme';
+import { useTutor } from '../../tutor/context';
 import { Button, Dialog } from '../kit';
 import type { SeatInfo } from './layout';
 import { lastCall } from './Seats';
@@ -34,22 +35,33 @@ interface Props {
   onBid: (call: BidCall) => void;
 }
 
-/** Wahlknopf im Dialog: gedrückt = gewählt. */
+/** Empfehlung des Trainers zur Ansage (T2), sobald er sie zeigt; sonst `null`. */
+function useBidTip(): BidCall | null {
+  const tip = useTutor()?.snap.tip;
+  return tip?.type === 'bid' ? tip.call : null;
+}
+
+/** Klasse für einen Knopf, den der Trainer empfiehlt. */
+const tipClass = (on: boolean) => (on ? 'btn--tipp' : undefined);
+
+/** Wahlknopf im Dialog: gedrückt = gewählt; `tip`: empfiehlt der Trainer. */
 function Choice({
   pressed,
   disabled,
   onClick,
   children,
+  tip = false,
 }: {
   pressed: boolean;
   disabled: boolean;
   onClick: () => void;
   children: ReactNode;
+  tip?: boolean;
 }) {
   return (
     <button
       type="button"
-      className="wahl"
+      className={tip ? 'wahl wahl--tipp' : 'wahl'}
       aria-pressed={pressed}
       disabled={disabled}
       onClick={onClick}
@@ -93,11 +105,13 @@ function KindChoice({
   kind,
   available,
   onChoose,
+  tip = null,
 }: {
   view: TableView;
   kind: ContractKind | null;
   available: (k: ContractKind) => boolean;
   onChoose: (k: ContractKind) => void;
+  tip?: ContractKind | null;
 }) {
   const kinds = BID_ORDER.filter((k) => view.rules.contracts.includes(k));
   return (
@@ -105,7 +119,13 @@ function KindChoice({
       <legend className="ansage__label">{TABLE_TEXT.bidKind}</legend>
       <div className="ansage__wahl">
         {kinds.map((k) => (
-          <Choice key={k} pressed={kind === k} disabled={!available(k)} onClick={() => onChoose(k)}>
+          <Choice
+            key={k}
+            pressed={kind === k}
+            disabled={!available(k)}
+            onClick={() => onChoose(k)}
+            tip={tip === k}
+          >
             {KIND_NAME[k]}
           </Choice>
         ))}
@@ -120,11 +140,13 @@ function SuitChoice({
   selected,
   available,
   onChoose,
+  tip = null,
 }: {
   legend: string;
   selected: Suit | null;
   available: (s: Suit) => boolean;
   onChoose: (s: Suit) => void;
+  tip?: Suit | null;
 }) {
   return (
     <fieldset className="ansage__gruppe">
@@ -136,6 +158,7 @@ function SuitChoice({
             pressed={selected === s}
             disabled={!available(s)}
             onClick={() => onChoose(s)}
+            tip={tip === s}
           >
             <span className="wahl__zeichen" aria-hidden="true">
               {bayerischTheme.suit(s)}
@@ -218,6 +241,7 @@ interface StepProps {
 /** Stufe 1: „Ich würde“ oder „weiter“. */
 function InterestStep({ hand, status, onBid }: StepProps) {
   const canPlay = hand.legalCalls.some((c) => c.type === 'interest');
+  const tip = useBidTip();
   return (
     <Dialog
       className="ansage"
@@ -225,10 +249,18 @@ function InterestStep({ hand, status, onBid }: StepProps) {
       hint={status}
       actions={
         <>
-          <Button variant="secondary" onClick={() => onBid({ type: 'pass' })}>
+          <Button
+            variant="secondary"
+            className={tipClass(tip?.type === 'pass')}
+            onClick={() => onBid({ type: 'pass' })}
+          >
             {TABLE_TEXT.bidPass}
           </Button>
-          <Button disabled={!canPlay} onClick={() => onBid({ type: 'interest' })}>
+          <Button
+            disabled={!canPlay}
+            className={tipClass(tip?.type === 'interest')}
+            onClick={() => onBid({ type: 'interest' })}
+          >
             {TABLE_TEXT.interestYes}
           </Button>
         </>
@@ -249,6 +281,7 @@ function HoldStep({
   onBid,
 }: StepProps & { name: string; level: BidLevel }) {
   const canHold = hand.legalCalls.some((c) => c.type === 'hold');
+  const tip = useBidTip();
   return (
     <Dialog
       className="ansage"
@@ -256,10 +289,18 @@ function HoldStep({
       hint={status}
       actions={
         <>
-          <Button variant="secondary" onClick={() => onBid({ type: 'yield' })}>
+          <Button
+            variant="secondary"
+            className={tipClass(tip?.type === 'yield')}
+            onClick={() => onBid({ type: 'yield' })}
+          >
             {TABLE_TEXT.holdNo}
           </Button>
-          <Button disabled={!canHold} onClick={() => onBid({ type: 'hold' })}>
+          <Button
+            disabled={!canHold}
+            className={tipClass(tip?.type === 'hold')}
+            onClick={() => onBid({ type: 'hold' })}
+          >
             {TABLE_TEXT.holdYes}
           </Button>
         </>
@@ -297,6 +338,7 @@ function NameStep({
   const toutPossible =
     kind !== null && find(kind, true) !== undefined && find(kind, false) !== undefined;
   const anyTout = levels.some((l) => l.tout);
+  const tip = useBidTip();
 
   return (
     <Dialog
@@ -313,7 +355,11 @@ function NameStep({
       actions={
         <>
           {anyTout && <ToutSwitch checked={tout} enabled={toutPossible} onChange={setTout} />}
-          <Button variant="secondary" onClick={() => onBid({ type: 'yield' })}>
+          <Button
+            variant="secondary"
+            className={tipClass(tip?.type === 'yield')}
+            onClick={() => onBid({ type: 'yield' })}
+          >
             {TABLE_TEXT.duelYield}
           </Button>
           <Button
@@ -334,6 +380,7 @@ function NameStep({
           kind={kind}
           available={(k) => levels.some((l) => l.kind === k)}
           onChoose={chooseKind}
+          tip={tip?.type === 'name' ? tip.level.kind : null}
         />
       )}
     </Dialog>
@@ -417,6 +464,8 @@ function DeclareStep({
       : undefined;
   // Muss: gesperrt, wenn eine rufbare Sau dabei ist, von deren Farbe er keine Karte hat.
   const forced = hand.auction.forced;
+  const tip = useBidTip();
+  const tipContract = tip?.type === 'declare' ? tip.contract : null;
   const blocked =
     forced &&
     legal.some(
@@ -455,6 +504,7 @@ function DeclareStep({
         kind={kind}
         available={(k) => legalFor(k, null).length > 0}
         onChoose={chooseKind}
+        tip={tipContract?.kind ?? null}
       />
       {needsSuit && (
         <SuitChoice
@@ -468,6 +518,7 @@ function DeclareStep({
           selected={suit}
           available={(s) => legalFor(kind, s).length > 0}
           onChoose={chooseSuit}
+          tip={tipContract?.kind === kind ? (tipContract.suit ?? null) : null}
         />
       )}
       {needsSuit2 && suit && (

@@ -629,6 +629,26 @@ Erst die Strategien, dann die Rechnung, noch ohne Oberfläche.
 - **Abnahme:** E2E: Allein gegen Bots mit Trainer, eine Frage stellen, Antwort in drei Stufen,
   Rückblick nach dem Spiel. Am Tisch mit Freunden gibt es keinen Trainer (Test). Bildschirmfotos
   in drei Größen für Lukas.
+- **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`. Der Trainer heißt
+  **Max Weber** (in der Blase „Max Weber“, an der Figur „MW“ und „Max“). Nur allein gegen Bots
+  (eigener Tisch ohne Link, man sitzt selbst); in der Lobby Tafel „Trainer“, Standard an, mit
+  Automatik (Begründung in DESIGN.md). Rechnung im Web Worker (`apps/web/src/tutor/`), nichts
+  geht über das Netz. Figur an fester Stelle, Sprechblase liegt über dem Tisch (springt nicht,
+  Layout-Test mit auf- und zugehender Blase). Auswahlfragen aus `questionsFor` plus „War mein
+  letzter Zug gut?“; Antwort in drei Stufen, ab Stufe 2 die Empfehlung am Tisch hervorgehoben
+  (Karte, Ansage-Knopf, Kontra/Re). Automatik: nur bei `importance.auto`, höchstens einmal je
+  Stich, nie zweimal hintereinander mit derselben Faustregel, zuerst der Denkanstoß; abschaltbar
+  in der Blase und in der Lobby. Hinterher: jeder eigene Zug wird bewertet; echte Fehler spricht
+  Max im Automatikmodus an, im Rückblick „So wurde gespielt“ markiert er die teuersten drei mit
+  Satz und Faustregel. Texte in `de.ts` (`TUTOR_TEXT`). Tests: `apps/web/src/tutor/*.test.ts`,
+  `e2e/trainer.spec.ts`, `e2e/layout.spec.ts`; Bilder `docs/bilder/tutor/`.
+  - **Hochzeit:** Annehmen und Zurückgeben berät Max nicht – das bräuchte im Kern eine Bewertung
+    des Vorspiels (Probespiele mit getauschter Karte). Im Vorspiel sagt er das ehrlich. Folgepunkt.
+  - **Bot „Weber Max“:** Der vierte Bot heißt weiter so; er sitzt nur an einem Tisch ganz ohne
+    Menschen, der Trainer nur mit einem Menschen am Tisch. Beide kommen nie zusammen vor (Test).
+  - **Folgepunkt Tutor-Kern:** `karte.abspatzen` wählt bei lauter Trümpfen den schwächsten
+    Trumpf (z. B. die Herz-Sau statt des Schellen-Obers); der Begründungstext („keine Trümpfe und
+    keine Sauen“) passt dann nicht. Regel oder Text in T1 nachschärfen.
 
 ---
 

@@ -78,6 +78,8 @@ const PASS = ['weiter', 'Weiter', 'Gut', 'Aufgeben'];
  * erlaubte Karte spielen. Gibt zurück, ob etwas getan wurde.
  */
 export async function act(page: Page): Promise<boolean> {
+  // Allein gegen Bots kann sich Max Weber melden; wie ein Mensch schließt man die Blase erst.
+  await closeTutor(page);
   for (const name of PASS) {
     const button = page.getByRole('dialog').getByRole('button', { name, exact: true });
     if (await button.isVisible()) {
@@ -91,6 +93,17 @@ export async function act(page: Page): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+/** Die Sprechblase des Trainers (T2), falls sie offen ist. */
+export function tutorBubble(page: Page) {
+  return page.getByRole('region', { name: 'Max Weber, dein Trainer' });
+}
+
+/** Schließt die Sprechblase von Max Weber, falls sie offen ist. */
+export async function closeTutor(page: Page): Promise<void> {
+  const close = tutorBubble(page).getByRole('button', { name: 'Schließen' });
+  if (await close.isVisible()) await close.click();
 }
 
 export interface Ergebnis {

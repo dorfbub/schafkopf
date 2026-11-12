@@ -39,8 +39,9 @@ Spiel. Die Ausbaupakete stehen in [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md)
 | Ausfall       | Getrennte Spieler werden nach 30 s durch einen Bot vertreten, bei Rückkehr übernommen; der Gastgeber kann Spieler vom Tisch nehmen                                                                                                              |
 | Lobby         | Platzwahl, Zuschauer, Umbenennen, Tischeinstellungen                                                                                                                                                                                            |
 | Bots          | Drei Spielstärken (Lobby): Anfänger, Normal (Heuristik), Stark (Monte-Carlo-Suche über Kartenverteilungen). Die Bots kennen die Tischregeln, sagen auch Hausregeln und Hochzeiten an, spielen Ramsch und Kontra; Stärke und Regeltreue getestet |
+| Trainer       | Allein gegen Bots schaut Max Weber über die Schulter (abschaltbar): Auswahlfragen zur Lage, Antwort in drei Stufen (Denkanstoß, Empfehlung, Begründung mit Faustregel), meldet sich in wichtigen Momenten von selbst, Rückblick nach dem Spiel  |
 | App           | Installierbar (Manifest, Symbole), Offline-Start, Hinweis bei neuer Version                                                                                                                                                                     |
-| Tests         | Unit-Tests für Kern, Netz und Bots; Ende-zu-Ende-Tests mit Playwright                                                                                                                                                                           |
+| Tests         | Unit-Tests für Kern, Netz, Bots und Trainer; Ende-zu-Ende-Tests mit Playwright                                                                                                                                                                  |
 | Oberfläche    | Gestaltung „Kartentisch“ (grüner Filz, Holzrahmen), eigenes bayerisches Kartenbild, Spielschild, letzter Stich, Spielverlauf                                                                                                                    |
 
 Die genauen Regeln und alle getroffenen Annahmen stehen in [docs/REGELN.md](docs/REGELN.md).
@@ -67,6 +68,7 @@ reicht „Allein gegen Bots“.
 packages/core   Spielregeln als reine Funktionen (kein Netz, kein DOM, kein Zufall)
 packages/net    Host, Mitspieler, Protokoll und Transporte (Loopback, WebRTC)
 packages/bots   Computer-Gegner
+packages/tutor  Trainer-Kern: Rat, Bewertung, Faustregeln (Oberfläche: Max Weber in apps/web)
 apps/web        Oberfläche (React + Vite), PWA
 e2e             Ende-zu-Ende-Tests (Playwright)
 docs            Architektur, Regeln, Arbeitspakete

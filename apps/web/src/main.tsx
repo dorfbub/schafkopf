@@ -5,6 +5,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
 import './styles/table.css';
+import './styles/tutor.css';
 import './styles/screens.css';
 import { startUpdateWatch } from './updates';
 

@@ -2,7 +2,8 @@ import type { PlayerInfo, Seat, TableView } from '@schafkopf/core';
 import type { ClientSession, HostSession } from '@schafkopf/net';
 import { type FormEvent, useState, useSyncExternalStore } from 'react';
 import { inviteLink } from '../connection';
-import { LOBBY_TEXT as T, RULES_TEXT as R, START_TEXT } from '../i18n/de';
+import { LOBBY_TEXT as T, RULES_TEXT as R, START_TEXT, TUTOR_TEXT } from '../i18n/de';
+import { tutorSettings } from '../tutor/settings';
 import { formatRoomCode } from '../roomCode';
 import { Button, PlayerSeat, Tafel } from './kit';
 import { LobbySettings } from './LobbySettings';
@@ -46,6 +47,9 @@ export function Lobby({ view, client, host, roomId, onLeave }: Props) {
 
         <div className="lobby__side">
           <RenameForm key={myName} current={myName} onRename={(name) => client.rename(name)} />
+
+          {/* Trainer Max Weber (T2): nur allein gegen Bots, also am eigenen Tisch ohne Link. */}
+          {host && !roomId && <TutorSettingsPanel />}
 
           {watchers.length > 0 && (
             <Tafel tone="felt" aria-labelledby="lobby-watchers">
@@ -115,6 +119,43 @@ export function Lobby({ view, client, host, roomId, onLeave }: Props) {
         </div>
       </div>
     </main>
+  );
+}
+
+/** Ein- und Ausschalter für Max Weber und seinen Automatikmodus (Vorliebe dieses Geräts). */
+function TutorSettingsPanel() {
+  const { on, auto } = useSyncExternalStore(tutorSettings.subscribe, tutorSettings.getSnapshot);
+  return (
+    <Tafel id="tisch-trainer" aria-labelledby="lobby-tutor">
+      <h2 id="lobby-tutor" className="tafel__title tafel__title--small">
+        {TUTOR_TEXT.lobbyTitle}
+      </h2>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={on}
+          aria-describedby="lobby-tutor-hint"
+          onChange={(e) => tutorSettings.set({ on: e.target.checked })}
+        />
+        {TUTOR_TEXT.lobbyOn}
+      </label>
+      <p id="lobby-tutor-hint" className="tafel__text text-muted start__small">
+        {TUTOR_TEXT.lobbyOnHint}
+      </p>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={on && auto}
+          disabled={!on}
+          aria-describedby="lobby-tutor-auto-hint"
+          onChange={(e) => tutorSettings.set({ auto: e.target.checked })}
+        />
+        {TUTOR_TEXT.lobbyAuto}
+      </label>
+      <p id="lobby-tutor-auto-hint" className="tafel__text text-muted start__small">
+        {TUTOR_TEXT.lobbyAutoHint}
+      </p>
+    </Tafel>
   );
 }
 
