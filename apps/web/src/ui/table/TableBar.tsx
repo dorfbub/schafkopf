@@ -61,7 +61,10 @@ export function TableBar({ view, hand, seats, rulesOpen, onRules, onEvening, onL
   } else if (hand.contract && hand.declarer !== null) {
     status = (
       <>
-        <span className="tisch-leiste__wer">{seats.nameOf(hand.declarer)}</span> {TABLE_TEXT.plays}{' '}
+        <span className="tisch-leiste__wer-teil">
+          <span className="tisch-leiste__wer">{seats.nameOf(hand.declarer)}</span>{' '}
+          {TABLE_TEXT.plays}{' '}
+        </span>
         <b className="tisch-leiste__spiel">{contractLabel(hand.contract)}</b>
         {trumpsChange(hand.contract) && tricksDone >= HAWAII_SWITCH_TRICK && (
           <span className="tisch-leiste__trumpf">
@@ -97,10 +100,14 @@ export function TableBar({ view, hand, seats, rulesOpen, onRules, onEvening, onL
       <div className="tisch-leiste__links">
         <span className="tisch-leiste__marke">{TABLE_TEXT.brand}</span>
         <span className="tisch-leiste__phase">
-          {TABLE_TEXT.handNo(view.handNo)} · {phase}
-          {(view.rules.allPassed === 'stock' || view.pot > 0) && (
-            <> · {TABLE_TEXT.pot(plainMoney(view.pot))}</>
-          )}
+          <span className="tisch-leiste__nr">{TABLE_TEXT.handNo(view.handNo)}</span>
+          <span className="tisch-leiste__trenner"> · </span>
+          <span className="tisch-leiste__stich">
+            {phase}
+            {(view.rules.allPassed === 'stock' || view.pot > 0) && (
+              <> · {TABLE_TEXT.pot(plainMoney(view.pot))}</>
+            )}
+          </span>
         </span>
       </div>
       <p className="tisch-leiste__status" aria-live="polite">

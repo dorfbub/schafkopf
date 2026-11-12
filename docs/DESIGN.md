@@ -255,6 +255,20 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
 - **Leiste:** Spielnummer und Stich („Stich 4 von 8“), was gespielt wird („Xaver spielt Sauspiel
   auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Regeln“ und „Verlassen“.
+- **Die Leiste ist in jedem Zustand gleich hoch** (Ansage, Hochzeit-Vorspiel, Kontra/Re, Hawaii,
+  Ramsch, Spiel beendet, lange Bot-Namen, Dreiertisch). _Lukas soll noch bestätigen._
+  - Status und Spielstand sind genau **eine Zeile** (`white-space: nowrap`, Auslassung „…“,
+    Mindesthöhe `--leiste-zeile`); nichts bricht um. Der volle Text bleibt im DOM für Bildschirmleser.
+  - **Handy hochkant (≤ 40rem):** Zeile 1 „Spiel 7“ und die Knöpfe; Zeile 2 der Status links, „Stich 4
+    von 8“ (ggf. mit Topf) rechts. **Bis 50rem** steht „X spielt“ nicht mehr in der Zeile, sondern nur
+    die Spielart und die Marken – wer spielt, zeigt das Spielschild am Platz; für Bildschirmleser
+    bleibt „X spielt …“ erhalten (`.tisch-leiste__wer-teil`, wie `.visually-hidden`).
+  - Der eigene Platz hat im hochkant schmalen Fenster eine **feste Markenzeile** (`.eigen__marken`,
+    auch leer), damit Spielschild/Mitspieler/Kontra die Infos nicht in eine zweite Zeile schieben.
+    Kostet im schmalen Hochformat dauerhaft etwa eine Zeile Tischhöhe. _Lukas soll noch bestätigen._
+  - Bilder: `docs/bilder/kopfzeile-*.png` (ansage, stich, wenz, tout, ergebnis, hawaii-kontra; je
+    hochkant, quer, desktop). Der ungünstigste Fall (Hawaii + Kontra + Re + langer Name) ist per
+    Skript eingesetzt und ändert die Höhe nicht.
 - **Lange Namen** (Bots heißen z. B. „Lengschwendtner Sepp (Bot)“): `.player-seat__name` zeigt
   höchstens zwei Zeilen, der Rest wird mit „…“ gekürzt, der volle Name steht im Tooltip. Die Marke
   „am Zug“ sitzt immer mittig unter Name/Bild (oberer Platz im breiten Tisch: dritte Zeile unter
@@ -395,7 +409,8 @@ letzter Karte“). Deshalb bleibt die Handzeile auch ohne Karten mit ihrer Höhe
 dran“ hält unsichtbar seinen Platz, und die Leiste hat immer dieselben Knöpfe (früher erschien
 „Letzter Stich“ erst ab dem zweiten Stich und die Leiste brach am Handy anders um). Im niedrigen Fenster steht die Hand rechts neben den eigenen Infos
 (`--own-info-width`), damit diese keine Karte verdecken. Abgesichert in `e2e/layout.spec.ts`
-(360×740, 740×360, 1440×900); in der Tischprobe zeigt die Szene `letzter` den achten Stich.
+(360×740, 740×360, 1440×900) über mindestens drei Spiele, auch zusammengeworfene, und misst
+zusätzlich die Höhe der Leiste; in der Tischprobe zeigt die Szene `letzter` den achten Stich.
 
 ### Bewegung
 
