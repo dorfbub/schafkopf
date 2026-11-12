@@ -1,8 +1,10 @@
 import type { HandResult, RamschDetails, TableView } from '@schafkopf/core';
 import type { ReactNode } from 'react';
-import { TABLE_TEXT, plainMoney } from '../../i18n/de';
+import { TABLE_TEXT } from '../../i18n/de';
 import { Dialog } from '../kit';
 import type { SeatInfo } from './layout';
+import { Breakdown } from './Breakdown';
+import { PotNote } from './PotNote';
 import { Money } from './ResultDialog';
 
 interface Props {
@@ -24,7 +26,6 @@ export function RamschResult({ view, result, details, seats, actions }: Props) {
     durch !== null
       ? TABLE_TEXT.ramschDurchmarsch(seats.nameOf(durch))
       : TABLE_TEXT.ramschLoser(seats.nameOf(key));
-  const amount = result.factors.reduce((v, f) => v * f.factor, result.outcome!.value);
   const points = details.points[key]!;
   const extras = [
     TABLE_TEXT.extras.tricks(details.tricks[key]!),
@@ -58,10 +59,8 @@ export function RamschResult({ view, result, details, seats, actions }: Props) {
       >
         <span style={{ width: `${Math.round((points / 120) * 100)}%` }} />
       </div>
-      <p className="ergebnis__wert">
-        <span>{TABLE_TEXT.ramschPerPlayer}</span>
-        <span className="num">{plainMoney(amount)}</span>
-      </p>
+      <Breakdown result={result} eachLabel={TABLE_TEXT.ramschPerPlayer} />
+      <PotNote view={view} result={result} />
       <table className="ergebnis__tabelle">
         <thead>
           <tr>

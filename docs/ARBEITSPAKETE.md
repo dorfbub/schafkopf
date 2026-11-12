@@ -356,6 +356,14 @@ Abends, Endabrechnung „wer zahlt wem“. Dazu gehört die Rückzahlung eines s
 (Stock, K3c) zu gleichen Teilen in der Endabrechnung (REGELN.md, Annahme 13).
 
 - **Abhängigkeit:** K7 für den Verlauf.
+- **Stand:** umgesetzt (November 2026). Reine, getestete Rechnung im Kern
+  (`packages/core/src/settlement.ts`, Tests `core/test/settlement.test.ts`): `breakdownOf`
+  (Bestandteile → Faktoren → Betrag), `ledgerOf` (Stand nach jedem Spiel), `settleUp`
+  (Pott zurück, möglichst wenige Überweisungen). Oberfläche: Aufschlüsselung im Ergebnis-Dialog
+  (auch Ramsch), Knopf „Tabelle“ in der Leiste (Dialog „Der Abend“ mit Tabelle und „Wer zahlt
+  wem“), „Verlassen“ zeigt erst die Abrechnung. `TableView.history` reichte aus – keine
+  Protokolländerung. E2E in `e2e/abend.spec.ts`. Neue Annahmen 26–27 in `REGELN.md` (bitte
+  prüfen); Gestaltung in `DESIGN.md` („Abrechnung und Abend“, Lukas soll noch bestätigen).
 
 ### U5 · Installierbar (PWA) und Android
 

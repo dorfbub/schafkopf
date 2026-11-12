@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { TABLE_TEXT } from '../../i18n/de';
 import { Button, Dialog } from '../kit';
 import { BidDialog } from './BidDialog';
+import { EveningDialog } from './EveningDialog';
 import { LastTrickDialog } from './LastTrickDialog';
 import { LastTrickPile } from './LastTrickPile';
 import { seatInfo } from './layout';
@@ -51,6 +52,8 @@ export function TableBoard({
   const shown = useTrickDisplay(hand, view.handNo);
   const [lastOpen, setLastOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [evening, setEvening] = useState<'show' | 'leave' | null>(null);
+  const closeEvening = useCallback(() => setEvening(null), []);
   const closeRules = useCallback(() => setRulesOpen(false), []);
   const closeLast = useCallback(() => setLastOpen(false), []);
   const [removing, setRemoving] = useState<Seat | null>(null);
@@ -65,7 +68,8 @@ export function TableBoard({
   const myTurn = view.you !== null && hand.turn === view.you && hand.phase !== 'finished';
   const canSeeLast = hand.lastTrick !== null && shown.completed === null;
   const toggleLast = canSeeLast ? () => setLastOpen((open) => !open) : null;
-  const showResult = hand.phase === 'finished' && shown.completed === null && !lastOpen;
+  const showResult =
+    hand.phase === 'finished' && shown.completed === null && !lastOpen && evening === null;
 
   const play = (card: Card) => {
     shown.release();
@@ -81,7 +85,9 @@ export function TableBoard({
         seats={seats}
         rulesOpen={rulesOpen}
         onRules={() => setRulesOpen((open) => !open)}
-        onLeave={onLeave}
+        onEvening={() => setEvening((open) => (open === 'show' ? null : 'show'))}
+        // Mit gespielten Spielen erst die Abrechnung zeigen.
+        onLeave={() => (view.history.length > 0 ? setEvening('leave') : onLeave())}
       />
       <div className="tisch__raum">
         <div className="tisch__platte" aria-hidden="true" />
@@ -122,6 +128,15 @@ export function TableBoard({
         )}
         {lastOpen && hand.lastTrick && (
           <LastTrickDialog trick={hand.lastTrick} seats={seats} onClose={closeLast} />
+        )}
+        {evening !== null && (
+          <EveningDialog
+            view={view}
+            seats={seats}
+            leaving={evening === 'leave'}
+            onClose={closeEvening}
+            onLeave={onLeave}
+          />
         )}
         {rulesOpen && <RulesDialog rules={view.rules} onClose={closeRules} />}
         {removingSeat !== null && onReplaceWithBot && (

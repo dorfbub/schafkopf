@@ -8,6 +8,7 @@ export * from './allPassed';
 export * from './scoring';
 export * from './ramsch';
 export * from './log';
+export * from './settlement';
 export * from './table';
 export * from './view';
 export * from './bot';
