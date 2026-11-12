@@ -577,6 +577,11 @@ Playwright: ein Tisch mit zwei Browser-Kontexten, ein ganzes Spiel. Für CI eine
 öffentliche Relays verwenden (z. B. `BroadcastChannel`-Transport als weitere Implementierung von
 `HostTransport`/`ClientTransport`).
 
-### I3 · Lizenz
+### I3 · Lizenz (erledigt)
 
 Lizenz für das Repo festlegen (Entscheidung von Lukas) und `LICENSE` ergänzen.
+
+- **Stand:** Am 12.11.2026 entschieden: MIT für Code und selbst gezeichnete Karten. Andere sollen
+  forken und selbst betreiben dürfen, auch mit Werbung. `LICENSE`, `"license"` in allen
+  `package.json`, README und `apps/web/src/assets/LIZENZEN.md` angepasst. Fremde Bilder (etwa
+  Salzburger Karten von Wikimedia Commons) behalten ihre eigene Lizenz.

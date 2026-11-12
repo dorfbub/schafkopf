@@ -80,3 +80,10 @@ Der Workflow in `.github/workflows/ci.yml` prüft jeden Push (Typen, Lint, Tests
 Ende-zu-Ende-Tests) und veröffentlicht `main` auf GitHub Pages unter
 https://dorfbub.github.io/schafkopf/. Dafür einmalig im Repo unter **Settings → Pages → Source**
 „GitHub Actions“ auswählen.
+
+## Lizenz
+
+MIT, siehe [LICENSE](LICENSE). Forken, selbst betreiben und verändern ist ausdrücklich erlaubt.
+Die selbst gezeichneten Karten stehen ebenfalls unter MIT; Schriften (SIL OFL) und eingebundene
+fremde Bilder behalten ihre eigene Lizenz, siehe
+[apps/web/src/assets/LIZENZEN.md](apps/web/src/assets/LIZENZEN.md).
