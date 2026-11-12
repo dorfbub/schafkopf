@@ -71,7 +71,9 @@ export function PlayerSeat({
           </span>
         )}
       </span>
-      <span className="player-seat__name">{name}</span>
+      <span className="player-seat__name" title={name}>
+        {name}
+      </span>
       {info && <span className="player-seat__info">{info}</span>}
       {(marks || disconnected || turn) && (
         <span className="player-seat__marks">

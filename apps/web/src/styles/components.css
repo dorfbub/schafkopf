@@ -251,6 +251,11 @@
   line-height: var(--leading-tight);
   overflow-wrap: break-word;
   hyphens: auto;
+  /* Lange Namen kürzen: höchstens zwei Zeilen, der Rest als „…“ (voller Name im Tooltip). */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .player-seat__info {
