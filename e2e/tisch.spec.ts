@@ -97,6 +97,20 @@ test('Hausregel: Eisenbahner einschalten, der Gast sieht ihn, das Spiel läuft',
   expect(host.title).toMatch(/gewonnen|verloren/);
 });
 
+test('Spielstärke: der Gastgeber wählt „Stark“, der Gast sieht es, das Spiel läuft', async ({
+  context,
+}) => {
+  const table = await newTisch(context);
+  await seatedLobby(table);
+  const strength = table.guest.locator('dt', { hasText: 'Spielstärke der Bots' }).locator('+ dd');
+  await expect(strength).toHaveText('Normal');
+  await table.host.getByRole('radio', { name: 'Stark' }).check();
+  await expect(strength).toHaveText('Stark');
+  await startGame(table);
+  const { host } = await playUntilResult(table);
+  expect(host.title).toMatch(/gewonnen|verloren/);
+});
+
 test('Hausregel: arabische Hochzeit einschalten, der Gast sieht sie, das Spiel läuft', async ({
   context,
 }) => {

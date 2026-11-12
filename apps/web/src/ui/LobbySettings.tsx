@@ -1,6 +1,7 @@
 import {
   ALL_PASSED_RULES,
   BID_ORDER,
+  BOT_STRENGTHS,
   CLASSIC_CONTRACTS,
   LAUFENDE_KINDS,
   type ContractKind,
@@ -18,8 +19,18 @@ interface Props {
 }
 
 function options(view: TableView): RuleOptions {
-  const { contracts, allowTout, allPassed, tariff, ramsch, laufende, sie, davonlaufen, kontra } =
-    view.rules;
+  const {
+    contracts,
+    allowTout,
+    allPassed,
+    tariff,
+    ramsch,
+    laufende,
+    sie,
+    davonlaufen,
+    kontra,
+    botStrength,
+  } = view.rules;
   return {
     contracts,
     allowTout,
@@ -30,6 +41,7 @@ function options(view: TableView): RuleOptions {
     sie,
     davonlaufen,
     kontra,
+    botStrength,
   };
 }
 
@@ -37,6 +49,7 @@ function options(view: TableView): RuleOptions {
 export function LobbySettings({ view, host }: Props) {
   const current = options(view);
   const allPassedGroup = useId();
+  const strengthGroup = useId();
   const change = (patch: Partial<RuleOptions>) => host.setRules({ ...current, ...patch });
 
   const toggleContract = (kind: ContractKind, on: boolean) => {
@@ -174,6 +187,25 @@ export function LobbySettings({ view, host }: Props) {
             </label>
           </div>
         )}
+      </fieldset>
+
+      <fieldset className="regeln-einstellung__gruppe">
+        <legend>{T.botStrength}</legend>
+        <div className="row">
+          {BOT_STRENGTHS.map((strength) => (
+            <label key={strength} className="check">
+              <input
+                type="radio"
+                name={strengthGroup}
+                value={strength}
+                checked={current.botStrength === strength}
+                onChange={() => change({ botStrength: strength })}
+              />
+              {T.botStrengthName[strength]}
+            </label>
+          ))}
+        </div>
+        <p className="hint">{T.botStrengthHint[current.botStrength]}</p>
       </fieldset>
 
       <fieldset className="regeln-einstellung__gruppe">

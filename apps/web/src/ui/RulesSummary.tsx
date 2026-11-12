@@ -37,6 +37,8 @@ export function RulesSummary({ rules }: { rules: RuleSet }) {
       <dd>{yesNo(rules.davonlaufen)}</dd>
       <dt>{T.kontra}</dt>
       <dd>{yesNo(rules.kontra)}</dd>
+      <dt>{T.botStrength}</dt>
+      <dd>{T.botStrengthName[rules.botStrength]}</dd>
     </dl>
   );
 }

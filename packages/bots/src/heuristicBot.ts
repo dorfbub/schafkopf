@@ -66,7 +66,8 @@ export function createHeuristicBot(seed: number): Bot {
 // ---------------------------------------------------------------------------
 // Gedächtnis
 
-interface Memory {
+/** Gedächtnis des Heuristik-Bots; öffentlich nur für die Suche des starken Bots (B2). */
+export interface Memory {
   /** Alle Karten, die in diesem Spiel schon gefallen sind (auch eigene). */
   played: Set<Card>;
   /** Fehlfarben je Sitz (effektive Farbe, also auch 'trump'). */
@@ -77,7 +78,7 @@ interface Memory {
   deckSize: number;
 }
 
-function createMemory(): Memory {
+export function createMemory(): Memory {
   return { played: new Set(), voids: [], tricksSeen: 0, deckSize: 32 };
 }
 
@@ -100,7 +101,7 @@ function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: numb
   });
 }
 
-function updateMemory(memory: Memory, view: HandView): void {
+export function updateMemory(memory: Memory, view: HandView): void {
   const completed = tricksPlayed(view);
   // Neues Spiel: Ansage läuft, oder es sind weniger Stiche gespielt als zuletzt gesehen.
   if (
@@ -393,6 +394,14 @@ function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
   }
 
   return { view, memory, rng, me, players, contract, order, declarerSide, unseen, sideOf };
+}
+
+/**
+ * Kartenwahl des Heuristik-Bots mit einem schon nachgeführten Gedächtnis. Der starke Bot (B2)
+ * nutzt sie als Ausspielstrategie in seinen Probespielen.
+ */
+export function heuristicCard(view: HandView, memory: Memory, rng: Rng): Card {
+  return play(view, memory, rng);
 }
 
 function play(view: HandView, memory: Memory, rng: Rng): Card {

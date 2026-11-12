@@ -242,7 +242,51 @@ nach dem Verlust des Hosts ohnehin weitersucht – finden ihn unter demselben Ra
 ### packages/bots
 
 Ein Bot implementiert `decide(view: HandView): PlayerAction`. Er sieht exakt das, was ein Mensch
-sieht. `createRandomBot` ist der Platzhalter.
+sieht. `createRandomBot` ist der Platzhalter; am Tisch spielen die drei Spielstärken (B2):
+
+| Stufe (`BotStrength`) | Fabrik               | Wie er spielt                                                         |
+| --------------------- | -------------------- | --------------------------------------------------------------------- |
+| `anfaenger`           | `createBeginnerBot`  | Faustregeln, aber ohne Gedächtnis, 40 % Fehlgriffe, überreizt knapp   |
+| `normal`              | `createHeuristicBot` | Faustregeln vom Wirtshaustisch (B1), unverändert die Referenz         |
+| `stark`               | `createStrongBot`    | Monte-Carlo-Suche über mögliche Kartenverteilungen, Heuristik im Kern |
+
+`createBotOfStrength(stärke, seed, regeln, optionen)` wählt die passende Fabrik.
+
+**Stark im Einzelnen** (`strongBot.ts`):
+
+- **Wissen:** nur die eigene Sicht und die selbst gemerkten Stiche. Daraus: ungesehene Karten,
+  Fehlfarben je Sitz (Bedienpflicht), Rufsau beim bekannten Mitspieler bzw. nicht beim Ansager.
+  Fremde Karten kennt er nur als Stichprobe („Determinisierung“): Die ungesehenen Karten werden
+  passend zu Kartenzahlen und Fehlfarben zufällig verteilt (stark eingeschränkte Karten zuerst).
+- **Kartenspiel:** Jede erlaubte Karte wird auf denselben Verteilungen bis zum Ende gespielt, alle
+  Sitze nach der Heuristik (`heuristicCard` mit einem gemeinsamen, öffentlichen Gedächtnis).
+  Bewertet wird mit `scoreHand` – also in Cent samt Schneider, Laufenden, Kontra, im Ramsch ebenso.
+  Gespielt wird der beste Schnitt, bei Gleichstand der Vorschlag der Heuristik.
+- **Ansage:** Klare Blätter (Marge der Heuristik über 3) und klar schwache (unter −2) entscheidet die
+  Heuristik. Knappe spielt er durch: jedes erlaubte, simulierbare Spiel (klassisch, ohne Vorspiel,
+  ohne Tout) auf zufälligen Verteilungen; lohnt sich keines (weiter = 0), sagt er „weiter“, sonst
+  meldet er das beste an und hält es im Zweikampf. Vorspiel (Hochzeit) und Muss bleiben bei der
+  Heuristik.
+- **Aufwand:** feste Budgets in simulierten Karten (`STRONG_DEFAULTS`: 2000 je Entscheidung, Ansage
+  ebenso), deterministisch über den Seed. Eine Uhr gibt es nur von außen (`now`, `budgetMs`); die
+  Web-App gibt `performance.now` und 200 ms mit, damit auch langsame Handys unter 300 ms bleiben.
+  Auf einem Entwicklerrechner: Schnitt ≈ 16 ms, längste Entscheidung ≈ 65 ms.
+- **Nach dem Neuladen** fehlen ihm die früheren Stiche; dann spielt er das Spiel wie die Heuristik
+  zu Ende.
+- **Zeit und Zufall:** ESLint verbietet in `packages/bots/src` `Math.random`, `Date.now` und
+  `performance`.
+
+**Einstellung:** `RuleSet.botStrength` (Standard `normal`) stellt der Gastgeber in der Lobby für
+alle Bots ein. Sie reist mit den Regeln in Sicht, Protokoll und Speicherstand und wird mit
+`parseRuleOptions` geprüft. `HostOptions.createBot(seat, rules)` bekommt die Regeln beim Erzeugen;
+daraus nimmt die Web-App die Stärke (Bots entstehen erst beim Start bzw. beim Wiederherstellen,
+die Regeln stehen dann fest). Auch Vertretungen getrennter Spieler spielen in dieser Stärke.
+
+**Tests:** `strength.test.ts` und `strengthBeginner.test.ts` (Stärkevergleich gepaart: dieselbe Verteilung einmal mit Prüfling,
+einmal nur mit Referenz-Bots; Laufzeit; Uhr; Neuladen), `strengthLegality.test.ts` (alle Stufen
+über viele Spiele in sieben Regelvarianten mit einem „Wildfang“, der Hochzeiten, Sonderspiele und
+Kontra herbeiführt). Große Läufe mit den eigentlichen Schwellen: `BOTS_FULL=1 npx vitest run
+packages/bots`.
 
 ### apps/web
 
@@ -305,7 +349,7 @@ Bot-Vertretung (N3) – und vergleichen.
 | Neue Tischregel sonst          | Feld in `RuleSet` + `parseRuleOptions`, Auswahl in Lobby                   |
 | Kurzes Blatt / 3 Spieler       | `RuleSet.deck` / `RuleSet.players` (im Kern schon parametrisiert)          |
 | Anderes Kartenset              | Weiteres `CardTheme`                                                       |
-| Stärkerer Bot                  | Weitere `Bot`-Implementierung in `packages/bots`                           |
+| Stärkerer Bot                  | Weitere `Bot`-Implementierung in `packages/bots`, Stufe in `BOT_STRENGTHS` |
 | Anderer Verbindungsweg         | Weitere Implementierung von `HostTransport`/`ClientTransport`              |
 | Android                        | PWA, später ggf. Hülle (Capacitor/Tauri) um `apps/web`                     |
 

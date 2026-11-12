@@ -4,7 +4,7 @@
  * alle anderen sind reine Mitspieler über WebRTC.
  */
 
-import { createHeuristicBot } from '@schafkopf/bots';
+import { createBotOfStrength } from '@schafkopf/bots';
 import {
   ClientSession,
   type HostOptions,
@@ -265,6 +265,9 @@ function e2eSeed(): (() => number) | undefined {
   return () => next!++;
 }
 
+/** Zeitbudget je Entscheidung für „Stark“; zusammen mit dem Rest bleibt es unter 300 ms. */
+const STRONG_BOT_BUDGET_MS = 200;
+
 function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
   return {
     ...(E2E
@@ -275,7 +278,15 @@ function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
           seed: e2eSeed(),
         }
       : {}),
-    createBot: (seat) => createHeuristicBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),
+    // Stärke aus den Tischregeln (B2). Die Uhr begrenzt die Suche von „Stark“ auf langsamen
+    // Geräten; ohne sie bliebe es beim festen Rechenbudget.
+    createBot: (seat, rules) =>
+      createBotOfStrength(
+        rules.botStrength,
+        crypto.getRandomValues(new Uint32Array(1))[0]! + seat,
+        rules,
+        { now: () => performance.now(), budgetMs: STRONG_BOT_BUDGET_MS },
+      ),
   };
 }
 
