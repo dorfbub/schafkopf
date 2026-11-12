@@ -445,6 +445,7 @@ der Lobby als kleiner Tisch, Einladung ganz oben mit großem Tisch-Code, Fehler 
 | `apps/web/src/ui/Lobby.tsx`             | Lobby: Einladung, Tisch mit Plätzen, Name, Zuschauer, Einstellungen        |
 | `apps/web/src/ui/ConnectStatus.tsx`     | Tisch suchen / nicht gefunden; Zettel „Verbindung verloren“                |
 | `apps/web/src/ui/Notice.tsx`            | Hinweis-Zettel unten für `ERROR_TEXT`                                      |
+| `apps/web/src/ui/JoinRequests.tsx`      | Beitrittsanfragen beim Gastgeber (N6), Zettel oben über Lobby und Tisch    |
 | `apps/web/src/styles/screens.css`       | Stile dieser Ansichten; die alten Übergangsstile aus `styles.css` sind weg |
 | `apps/web/src/muster/Ansichtsprobe.tsx` | Ansichtsprobe mit festen Zuständen, nur im Entwicklungsserver (unten)      |
 
@@ -489,6 +490,15 @@ Loopback-Verbindungen, ohne Relays.
 - **Verbindung verloren:** Messing-Zettel oben über Lobby und Tisch („Verbindung zum Gastgeber
   verloren – suche Tisch …“ mit kleinem Ring; danach „Gastgeber nicht mehr erreichbar.“ und
   „Erneut versuchen“). Nicht modal.
+- **Neue Mitspieler bestätigen (N6):** In „Einstellungen“ unter „Zuschauer zulassen“ ein zweites
+  Kästchen mit Erklärung (ohne Einladungslink gesperrt). Beim Gast statt „Suche Tisch …“ dieselbe
+  Papiertafel mit Ring: „Warte auf Zusage von Hanni …“, Code, Erklärung, „Abbrechen“. Abgewiesen:
+  rotes „!“, „Nicht zugelassen“, Hauptknopf „Zurück zum Start“. Beim Gastgeber je Anfrage ein
+  Papierzettel oben mittig (`JoinRequests.tsx`, `.join-requests`): Messingkante links, „Sepp
+  möchte an den Tisch.“, „Abweisen“ (sekundär) und „Zulassen“ (Hauptknopf), beide klein und für
+  Bildschirmleser mit Namen beschriftet. Die Zettel liegen fest über Lobby und Tisch (unter der
+  Leiste, `--join-requests-offset`), verschieben nichts und verschwinden erst mit der
+  Entscheidung (oder wenn der Gast geht). Am Handy decken sie solange die oberen Plätze ab.
 - **Hinweise** (`ERROR_TEXT`): kleiner Papierzettel unten mittig, blendet ein, verschwindet nach
   5 s (`NOTICE_MS`) oder mit ×; `role="status"`. Am Tisch steht er über der Hand
   (`--hand-card-h` × `--hand-visible`).

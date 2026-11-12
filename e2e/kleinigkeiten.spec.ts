@@ -50,9 +50,12 @@ for (const size of SIZES) {
     const table = await newTisch(context);
     await table.guest.setViewportSize(size);
     const link = await hostOpens(table.host, 'Hanni');
-    // Alle Optionen an: Ramsch mit Unteroptionen, alle Spielarten, Kontra, Hausregeln.
+    // Alle Optionen an: Ramsch mit Unteroptionen, alle Spielarten, Kontra, Hausregeln. Nicht
+    // „Neue Mitspieler bestätigen“ – dann müsste der Gast erst zugelassen werden.
     await table.host.getByRole('radio', { name: 'Ramsch', exact: true }).check();
     for (const box of await table.host.getByRole('checkbox').all()) {
+      const label = await box.evaluate((el) => el.closest('label')?.textContent ?? '');
+      if (label.includes('Neue Mitspieler bestätigen')) continue;
       if (!(await box.isChecked())) await box.check();
     }
     await guestJoins(table.guest, link, 'Sepp');

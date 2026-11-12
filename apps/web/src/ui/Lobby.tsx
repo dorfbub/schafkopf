@@ -87,6 +87,19 @@ export function Lobby({ view, client, host, roomId, onLeave }: Props) {
               <p id="lobby-spectators-hint" className="tafel__text text-muted start__small">
                 {roomId ? T.spectatorsHint : T.spectatorsHintLocal}
               </p>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={snapshot.lobby?.requireApproval ?? false}
+                  disabled={!roomId}
+                  aria-describedby="lobby-approval-hint"
+                  onChange={(e) => host.setRequireApproval(e.target.checked)}
+                />
+                {T.approval}
+              </label>
+              <p id="lobby-approval-hint" className="tafel__text text-muted start__small">
+                {roomId ? T.approvalHint : T.spectatorsHintLocal}
+              </p>
             </Tafel>
           )}
 
