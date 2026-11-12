@@ -21,8 +21,8 @@ import {
 export type RateFn = (hand: readonly Card[], contract: Contract, deckSize: number) => number;
 
 /** Re: Spieler mit deutlich mehr als dem Nötigen, Mitspieler mit gutem Sauspiel-Blatt. */
-const RE_MARGIN_DECLARER = 2.0;
-const RE_MARGIN_PARTNER = 1.0;
+export const RE_MARGIN_DECLARER = 2.0;
+export const RE_MARGIN_PARTNER = 1.0;
 /** Kontra gegen Partnerspiele: ein Blatt, mit dem man selbst ein gutes Sauspiel spielte. */
 const KONTRA_TEAM = 6.4;
 /**

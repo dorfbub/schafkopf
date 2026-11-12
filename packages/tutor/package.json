@@ -1,0 +1,14 @@
+{
+  "name": "@schafkopf/tutor",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@schafkopf/bots": "*",
+    "@schafkopf/core": "*"
+  }
+}

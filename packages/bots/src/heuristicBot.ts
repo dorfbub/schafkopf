@@ -196,7 +196,7 @@ function suitVariants(kind: ContractKind, hand: readonly Card[]): Contract[] {
 }
 
 /** Alle Spiele, die mit diesem Blatt nach den Tischregeln möglich wären. */
-function candidateContracts(
+export function candidateContracts(
   hand: readonly Card[],
   rules: RuleSet,
   failed: readonly ContractKind[],
@@ -266,7 +266,7 @@ function topSequenceValue(hand: readonly Card[], order: CardOrder): number {
 }
 
 /** Bettel ist nur sicher, wenn in jeder Farbe die k-t-niedrigste Karte niedrig genug ist. */
-function bettelSafe(hand: readonly Card[], order: CardOrder, deckSize: number): boolean {
+export function bettelSafe(hand: readonly Card[], order: CardOrder, deckSize: number): boolean {
   const ranksLowFirst = [...order.rankOrder].reverse().filter((r) => {
     if (deckSize < 32) return r !== '7' && r !== '8';
     return true;
@@ -282,7 +282,7 @@ function bettelSafe(hand: readonly Card[], order: CardOrder, deckSize: number): 
 }
 
 /** Tout nur, wenn das Blatt praktisch sicher alle Stiche macht. */
-function toutSafe(hand: readonly Card[], contract: Contract, order: CardOrder): boolean {
+export function toutSafe(hand: readonly Card[], contract: Contract, order: CardOrder): boolean {
   const mine = (c: Card) => hand.includes(c);
   const allTrump = hand.every((c) => order.trumps.includes(c));
   if (contract.kind === 'wenz' || contract.kind === 'geier' || contract.kind === 'eisenbahner') {

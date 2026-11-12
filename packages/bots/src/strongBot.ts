@@ -76,6 +76,12 @@ export interface StrongBotOptions {
   now?: () => number;
   /** Zeitbudget je Entscheidung in Millisekunden (nur mit `now`). */
   budgetMs?: number;
+  /**
+   * Verteilungen, in denen der Ansager sein Spiel nach der Heuristik gar nicht angesagt hätte,
+   * werden verworfen (bis `PLAUSIBLE_TRIES` Versuche). Der starke Bot am Tisch rechnet ohne das;
+   * der Tutor (T1) schaltet es ein, damit er gegen ein Solo nicht mit einem schwachen Ansager rechnet.
+   */
+  respectBids?: boolean;
 }
 
 /**
@@ -338,15 +344,21 @@ interface Knowledge {
   allowedFor: Map<Card, Seat[]>;
   /** Rufsau im Sauspiel, solange sie nicht gefallen ist. */
   calledAce: Card | null;
+  /** Nur mit `respectBids`: Hätte der Ansager mit dieser Verteilung so angesagt? */
+  plausible: ((hands: Card[][]) => boolean) | null;
 }
 
-function knowledge(view: HandView, log: TrickLog, options: StrongBotOptions): Knowledge {
+function knowledge(
+  view: HandView,
+  log: TrickLog,
+  options: StrongBotOptions,
+  me: Seat = view.turn,
+): Knowledge {
   const contract = view.contract!;
   const players = view.handSizes.length;
   const deckSize = view.handSizes.reduce((a, b) => a + b, 0) + playedCount(view, log);
   const deck = createDeck(deckSize < 32 ? 'kurz' : 'lang');
   const rules = rulesFor(options, players, deckSize);
-  const me = view.turn;
   const voids = view.handSizes.map(() => new Set<EffectiveSuit>());
   const playedBy: Card[][] = view.handSizes.map(() => []);
   const played = new Set<Card>();
@@ -380,7 +392,35 @@ function knowledge(view: HandView, log: TrickLog, options: StrongBotOptions): Kn
       );
     }
   }
-  return { me, players, rules, unseen, voids, playedBy, allowedFor, calledAce };
+  const plausible = options.respectBids ? bidPlausibility(view, me, playedBy, deckSize) : null;
+  return { me, players, rules, unseen, voids, playedBy, allowedFor, calledAce, plausible };
+}
+
+/** Mindestmarge der Heuristik, mit der ein Ansager sein Spiel plausibel angesagt hat. */
+const PLAUSIBLE_MARGIN = -2.0;
+/** So oft wird höchstens neu verteilt, bis der Ansager ein passendes Blatt hat. */
+const PLAUSIBLE_TRIES = 20;
+
+/**
+ * Prüft, ob der Ansager (nicht man selbst) mit seinem Blatt aus dieser Verteilung sein Spiel
+ * angesagt hätte: Marge der Heuristik für sein Ausgangsblatt (verbleibende plus gespielte Karten)
+ * mindestens `PLAUSIBLE_MARGIN`. Ohne Ansager, für einen selbst, bei Spielen mit Vorspiel
+ * (Hochzeit: getauschte Karten unbekannt) und im Bettel gibt es keine Prüfung.
+ */
+function bidPlausibility(
+  view: HandView,
+  me: Seat,
+  playedBy: Card[][],
+  deckSize: number,
+): ((hands: Card[][]) => boolean) | null {
+  const contract = view.contract;
+  const declarer = view.declarer;
+  if (!contract || declarer === null || declarer === me) return null;
+  // Bettel bewertet die Heuristik nur als sicher/unsicher – zu streng als Filter.
+  if (MODES[contract.kind].prelude || MODES[contract.kind].goal !== 'points') return null;
+  const base: Contract = { ...contract, tout: false };
+  return (hands) =>
+    rateContract([...hands[declarer]!, ...playedBy[declarer]!], base, deckSize) >= PLAUSIBLE_MARGIN;
 }
 
 function playedCount(view: HandView, log: TrickLog): number {
@@ -392,6 +432,15 @@ function playedCount(view: HandView, log: TrickLog): number {
  * Karten zuerst; geht es nicht auf, neuer Versuch, zuletzt ohne die Fehlfarben-Schlüsse.
  */
 function sampleHands(view: HandView, k: Knowledge, rng: Rng): Card[][] {
+  if (!k.plausible) return sampleOnce(view, k, rng);
+  for (let i = 0; i < PLAUSIBLE_TRIES; i++) {
+    const hands = sampleOnce(view, k, rng);
+    if (k.plausible(hands)) return hands;
+  }
+  return sampleOnce(view, k, rng);
+}
+
+function sampleOnce(view: HandView, k: Knowledge, rng: Rng): Card[][] {
   const order = orderFor(view.contract!, tricksPlayed(view));
   const others = Array.from({ length: k.players }, (_, s) => s).filter((s) => s !== k.me);
   const candidatesFor = (c: Card, useVoids: boolean) => {
@@ -587,7 +636,30 @@ function search(
   options: StrongBotOptions,
 ): Card {
   const legal = view.legalCards;
-  const k = knowledge(view, log, options);
+  const { totals, done } = sampleCards(view, log, view.turn, rng, options);
+  if (done === 0) return suggestion;
+  // Beste Summe; Gleichstand (auch „egal“) zugunsten der Heuristik.
+  let best = legal.indexOf(suggestion);
+  if (best < 0) best = 0;
+  legal.forEach((_, j) => {
+    if (totals[j]! > totals[best]! + 1e-9) best = j;
+  });
+  return legal[best]!;
+}
+
+/**
+ * Probespiele für jede erlaubte Karte auf denselben Verteilungen; Summen der Ergebnisse von
+ * `me` in Cent. Gemeinsamer Kern von `search` (Stark) und `evaluateCards` (Tutor).
+ */
+function sampleCards(
+  view: HandView,
+  log: TrickLog,
+  me: Seat,
+  rng: Rng,
+  options: StrongBotOptions,
+): { totals: number[]; done: number; values: number[][] } {
+  const legal = view.legalCards;
+  const k = knowledge(view, log, options, me);
   const remaining = view.handSizes.reduce((a, b) => a + b, 0);
   const budget = options.playBudget ?? STRONG_DEFAULTS.playBudget;
   const minSamples = options.minSamples ?? STRONG_DEFAULTS.minSamples;
@@ -599,6 +671,7 @@ function search(
   const clock = startClock(options);
 
   const totals = legal.map(() => 0);
+  const values: number[][] = legal.map(() => []);
   let done = 0;
   for (let i = 0; i < samples; i++) {
     if (i >= 2 && clock.expired()) break;
@@ -607,16 +680,139 @@ function search(
       const state = cloneState(base);
       const memory = memoryOf(state, k);
       playInPlace(state, memory, k.me, c);
-      totals[j]! += rollout(state, memory, k.me, rng);
+      const v = rollout(state, memory, k.me, rng);
+      totals[j]! += v;
+      values[j]!.push(v);
     });
     done++;
   }
-  if (done === 0) return suggestion;
-  // Beste Summe; Gleichstand (auch „egal“) zugunsten der Heuristik.
-  let best = legal.indexOf(suggestion);
-  if (best < 0) best = 0;
-  legal.forEach((_, j) => {
-    if (totals[j]! > totals[best]! + 1e-9) best = j;
-  });
-  return legal[best]!;
+  return { totals, done, values };
+}
+
+// ---------------------------------------------------------------------------
+// Bewertung für den Tutor (T1): dieselbe Suche, aber mit den Werten aller Möglichkeiten
+
+/** Erwarteter Wert einer Möglichkeit in Cent aus Sicht des Fragenden, gemittelt über Verteilungen. */
+export interface Evaluation<T> {
+  option: T;
+  cents: number;
+  /** Zahl der Kartenverteilungen, über die gemittelt wurde. */
+  samples: number;
+  /**
+   * Ergebnis je Verteilung (gleiche Reihenfolge für alle Möglichkeiten einer Bewertung) – damit
+   * lässt sich prüfen, ob ein Unterschied mehr ist als Zufall (gepaarter Vergleich).
+   */
+  values: number[];
+}
+
+/**
+ * Bewertet jede erlaubte Karte (`view.legalCards`) wie der starke Bot: Probespiele auf
+ * zufälligen, zur Sicht passenden Verteilungen, alle Sitze nach der Heuristik. `tricks` sind die
+ * fertigen Stiche des Spiels in Reihenfolge – öffentlich, jeder am Tisch hat sie gesehen. Fehlen
+ * welche (`tricks.length` passt nicht zu `view.tricksWon`), gibt es keine Bewertung (leere Liste).
+ */
+export function evaluateCards(
+  view: HandView,
+  tricks: readonly CompletedTrick[],
+  rng: Rng,
+  options: StrongBotOptions = {},
+): Evaluation<Card>[] {
+  if (view.phase !== 'playing' || !view.contract || view.legalCards.length === 0) return [];
+  if (tricks.length !== tricksPlayed(view)) return [];
+  const log: TrickLog = { tricks: [...tricks], complete: true };
+  const { totals, done, values } = sampleCards(view, log, view.turn, rng, options);
+  if (done === 0) return [];
+  return view.legalCards.map((c, j) => ({
+    option: c,
+    cents: totals[j]! / done,
+    samples: done,
+    values: values[j]!,
+  }));
+}
+
+/**
+ * Bewertet Kontra bzw. Re für `seat` vor der ersten Karte: dasselbe Probespiel einmal mit
+ * (`option: true`) und einmal ohne Doppeln (`false`) abgerechnet. Nicht berücksichtigt: dass auf ein Kontra ein Re folgen
+ * kann und dass ein Kontra etwas über das eigene Blatt verrät.
+ */
+export function evaluateDouble(
+  view: HandView,
+  seat: Seat,
+  rng: Rng,
+  options: StrongBotOptions = {},
+): Evaluation<boolean>[] {
+  if (view.phase !== 'playing' || !view.contract || view.declarer === null) return [];
+  if (tricksPlayed(view) > 0 || view.currentTrick.cards.length > 0) return [];
+  const log: TrickLog = { tricks: [], complete: true };
+  const k = knowledge(view, log, options, seat);
+  const remaining = view.handSizes.reduce((a, b) => a + b, 0);
+  const budget = options.playBudget ?? STRONG_DEFAULTS.playBudget;
+  const samples = Math.max(
+    options.minSamples ?? STRONG_DEFAULTS.minSamples,
+    Math.min(options.maxSamples ?? STRONG_DEFAULTS.maxSamples, Math.floor(budget / remaining)),
+  );
+  const inParty = seat === view.declarer || seat === view.partner;
+  const doubled = inParty ? { ...view.doubling, re: seat } : { ...view.doubling, kontra: seat };
+  const clock = startClock(options);
+  const pass: number[] = [];
+  const double: number[] = [];
+  let done = 0;
+  for (let i = 0; i < samples; i++) {
+    if (i >= 2 && clock.expired()) break;
+    const state = determinize(view, log, k, sampleHands(view, k, rng));
+    const memory = memoryOf(state, k);
+    rollout(state, memory, seat, rng);
+    pass.push(scoreHand(state).payments[seat]!);
+    double.push(scoreHand({ ...state, doubling: doubled }).payments[seat]!);
+    done++;
+  }
+  if (done === 0) return [];
+  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  return [
+    { option: true, cents: mean(double), samples: done, values: double },
+    { option: false, cents: mean(pass), samples: done, values: pass },
+  ];
+}
+
+/**
+ * Bewertet Spiele, die `view.turn` selbst ansagen würde: jedes auf denselben zufälligen
+ * Verteilungen der übrigen Karten mit der Heuristik bis zum Ende gespielt (wie die Ansage des
+ * starken Bots). Spiele mit Vorspiel (Hochzeit) lassen sich so nicht simulieren und fehlen.
+ * „Weiter“ gilt als 0 – eine Näherung: Spielt dann ein anderer, kann man auch gewinnen oder
+ * verlieren.
+ */
+export function evaluateContracts(
+  view: HandView,
+  contracts: readonly Contract[],
+  rng: Rng,
+  options: StrongBotOptions = {},
+): Evaluation<Contract>[] {
+  const playable = contracts.filter((c) => !MODES[c.kind].prelude && c.kind !== 'ramsch');
+  if (playable.length === 0 || view.hand.length === 0) return [];
+  const players = view.handSizes.length;
+  const deckSize = view.handSizes.reduce((a, b) => a + b, 0);
+  const rules = rulesFor(options, players, deckSize);
+  const bidBudget = options.bidBudget ?? STRONG_DEFAULTS.bidBudget;
+  const samples = Math.max(
+    options.minBidSamples ?? STRONG_DEFAULTS.minBidSamples,
+    Math.floor(bidBudget / (playable.length * deckSize)),
+  );
+  const clock = startClock(options);
+  const values: number[][] = playable.map(() => []);
+  let done = 0;
+  for (let i = 0; i < samples; i++) {
+    if (i >= 2 && clock.expired()) break;
+    const hands = dealRest(view, rules, rng);
+    playable.forEach((contract, j) => {
+      values[j]!.push(simulateContract(view, hands, contract, rules, rng));
+    });
+    done++;
+  }
+  if (done === 0) return [];
+  return playable.map((contract, j) => ({
+    option: contract,
+    cents: values[j]!.reduce((a, b) => a + b, 0) / done,
+    samples: done,
+    values: values[j]!,
+  }));
 }
