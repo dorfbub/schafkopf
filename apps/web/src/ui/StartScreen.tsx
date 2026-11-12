@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react';
-import { type SavedTable, loadName, normalizeRoom, roomFromUrl } from '../connection';
-import { RESUME_TEXT, START_TEXT as T, spacedCode } from '../i18n/de';
+import { type SavedTable, loadName, roomFromUrl } from '../connection';
+import { RESUME_TEXT, START_TEXT as T } from '../i18n/de';
+import { formatRoomCode, isValidRoomId, normalizeRoom } from '../roomCode';
 import { Button, Tafel, TextField } from './kit';
 
 interface Props {
@@ -21,11 +22,16 @@ interface Props {
 export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard, invite }: Props) {
   const [name, setName] = useState(loadName);
   const [invited] = useState(() => (invite === undefined ? roomFromUrl() : invite));
-  const [showInvite, setShowInvite] = useState(invited !== null);
+  const [showInvite, setShowInvite] = useState(
+    invited !== null && isValidRoomId(normalizeRoom(invited)),
+  );
   const [room, setRoom] = useState(invited ?? '');
   const [nameError, setNameError] = useState(false);
   const trimmed = name.trim();
   const roomId = normalizeRoom(room);
+  const [codeError, setCodeError] = useState(false);
+  /** Einladungslink mit altem, kurzem oder zerstümmeltem Code. */
+  const inviteBroken = invited !== null && !isValidRoomId(normalizeRoom(invited));
 
   /** Ohne Namen geht nichts: Hinweis am Feld statt stummer, gesperrter Knöpfe. */
   const withName = (go: (name: string) => void) => () => {
@@ -59,7 +65,11 @@ export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard, invite
 
   const submitJoin = (e: FormEvent) => {
     e.preventDefault();
-    if (roomId) withName((n) => onJoin(n, roomId))();
+    if (!isValidRoomId(roomId)) {
+      setCodeError(true);
+      return;
+    }
+    withName((n) => onJoin(n, roomId))();
   };
 
   return (
@@ -75,7 +85,9 @@ export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard, invite
             {RESUME_TEXT.title}
           </h2>
           <p className="tafel__text">
-            {saved.snapshot.roomId ? RESUME_TEXT.online(saved.snapshot.roomId) : RESUME_TEXT.local}{' '}
+            {saved.snapshot.roomId
+              ? RESUME_TEXT.online(formatRoomCode(saved.snapshot.roomId))
+              : RESUME_TEXT.local}{' '}
             {RESUME_TEXT.progress(
               saved.snapshot.table.handNo,
               Math.max(1, Math.round((Date.now() - saved.savedAt) / 60_000)),
@@ -96,7 +108,7 @@ export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard, invite
             <h2 id="start-invite" className="tafel__title">
               {T.inviteTitle}{' '}
               <span className="start__invite-to">
-                {T.inviteTo} <span className="code">{spacedCode(roomId)}</span>
+                {T.inviteTo} <span className="code">{formatRoomCode(roomId)}</span>
               </span>
             </h2>
             <p className="tafel__text text-muted">{T.inviteHint}</p>
@@ -137,6 +149,12 @@ export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard, invite
             </div>
           </Tafel>
 
+          {inviteBroken && (
+            <p className="tafel__text" role="alert">
+              {T.inviteOutdated}
+            </p>
+          )}
+
           <Tafel tone="felt" aria-labelledby="start-join">
             <form className="start__join" onSubmit={submitJoin} noValidate>
               <h2 id="start-join" className="tafel__title tafel__title--small">
@@ -151,6 +169,7 @@ export function StartScreen({ onOpen, onJoin, saved, onResume, onDiscard, invite
                   autoCapitalize="off"
                   spellCheck={false}
                   placeholder={T.joinPlaceholder}
+                  error={codeError && !isValidRoomId(roomId) ? T.joinCodeInvalid : undefined}
                   onChange={(e) => setRoom(e.target.value)}
                 />
                 <Button type="submit" variant="secondary" disabled={!roomId}>

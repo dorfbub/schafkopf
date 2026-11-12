@@ -397,6 +397,27 @@ Spielern die Wahrscheinlichkeit 4 · 1/C(32,8) ≈ 3,8 · 10⁻⁷ je Spiel, als
 Millionen Spielen. Das lässt sich mit vertretbarer Laufzeit nicht statistisch prüfen; die
 Gleichverteilung der Karten (oben) deckt es mit ab.
 
+## Tisch-Code (N5)
+
+Erzeugung, Anzeige und Eingabe: `apps/web/src/roomCode.ts`. 10 Zeichen aus 31 (ohne i, l, o, 0,
+1), rund 49,5 Bit, mit Rejection Sampling gezogen (Bytes ab 248 werden verworfen, kein
+`b % 31`). Angezeigt als `k7mq-x2pd-hn`; bei der Eingabe zählen Bindestriche, Leerzeichen und
+Groß-/Kleinschreibung nicht. Alte, kurze Codes (6 Zeichen) sind ungültig; der Einladungslink
+zeigt dann eine Meldung.
+
+**Was der Code schützt:** Wer den Code nicht kennt, findet den Tisch nicht. Raten ist bei 2^49
+Möglichkeiten und einem Tisch, der nur kurz offen ist, aussichtslos. Beim Nostr-Signalweg steht
+der Raumname nicht im Klartext bei den Relays: Trystero veröffentlicht nur
+`sha1("Trystero@<appId>@<roomId>")` als Themen-Etikett (`x`-Tag, Event-Art daraus abgeleitet).
+Ein eigener Hash ist deshalb nicht nötig. Der Hash ist ungesalzen; ein Relay-Betreiber könnte
+Codes offline durchprobieren, bei 49 Bit ist das unpraktisch.
+
+**Was er nicht schützt:** Der Code ist ein Geheimnis, das man weitergibt. Wer ihn hat (Link in
+einem Gruppenchat, Bildschirmfoto, Browserverlauf), sitzt ohne Rückfrage am Tisch, und die
+Beitrittsanfragen (SDP) sind nicht mit dem Code verschlüsselt. Der Host prüft Nachrichten, aber
+nicht, *wer* beitritt. Abhilfe wäre die Bestätigung neuer Mitspieler (Paket N6).
+Der Broadcast-Transport (nur E2E und Tests) hat keinerlei Schutz.
+
 ## Bekannte Grenzen des Grundgerüsts
 
 - Lädt der Gastgeber neu, geht der Tisch weiter – aber nur im selben Browser. Wechselt der

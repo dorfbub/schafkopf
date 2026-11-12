@@ -2,7 +2,8 @@ import type { PlayerInfo, Seat, TableView } from '@schafkopf/core';
 import type { ClientSession, HostSession } from '@schafkopf/net';
 import { type FormEvent, useState, useSyncExternalStore } from 'react';
 import { inviteLink } from '../connection';
-import { LOBBY_TEXT as T, RULES_TEXT as R, START_TEXT, spacedCode } from '../i18n/de';
+import { LOBBY_TEXT as T, RULES_TEXT as R, START_TEXT } from '../i18n/de';
+import { formatRoomCode } from '../roomCode';
 import { Button, PlayerSeat, Tafel } from './kit';
 import { LobbySettings } from './LobbySettings';
 import { RulesSummary } from './RulesSummary';
@@ -32,7 +33,7 @@ export function Lobby({ view, client, host, roomId, onLeave }: Props) {
         <span className="brand brand--small" aria-hidden="true">
           {START_TEXT.brand}
         </span>
-        <h1 className="lobby__title">{roomId ? T.title(spacedCode(roomId)) : T.titleLocal}</h1>
+        <h1 className="lobby__title">{roomId ? T.title(formatRoomCode(roomId)) : T.titleLocal}</h1>
         <Button variant="secondary" size="small" onClick={onLeave}>
           {T.leave}
         </Button>
@@ -125,7 +126,7 @@ function Invite({ roomId }: { roomId: string }) {
       </h2>
       <p className="lobby__code-row">
         <span className="lobby__code-label">{T.inviteCode}</span>
-        <span className="code code--large">{spacedCode(roomId)}</span>
+        <span className="code code--large">{formatRoomCode(roomId)}</span>
       </p>
       <p className="tafel__text text-muted start__small">{T.inviteHint}</p>
       <div className="lobby__link">

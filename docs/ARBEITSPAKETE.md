@@ -309,6 +309,25 @@ ungleich verteilt. Wer einen Code errät, sitzt ohne Rückfrage am Tisch.
   Bestätigung an den Tisch (Einstellung in der Lobby).
 - **Abnahme:** Test für Länge, Alphabet und Gleichverteilung des Codes; Einladungslink und E2E
   funktionieren weiter; ARCHITEKTUR.md beschreibt, was der Code schützt und was nicht.
+- **Stand:** umgesetzt (November 2026). Code mit 10 Zeichen aus 31 (rund 49,5 Bit), Rejection
+  Sampling, Anzeige `k7mq-x2pd-hn`, tolerante Eingabe; Code und Tests in `apps/web/src/roomCode.ts`
+  und `roomCode.test.ts`, E2E in `e2e/tisch.spec.ts`. Alte, kurze Links zeigen eine Meldung
+  („veraltet“). Der Raumname steht bei den Relays nicht im Klartext (siehe ARCHITEKTUR.md,
+  „Tisch-Code“). Entscheidung ohne Rückfrage bei Lukas: Die optionale Einstellung „Neue
+  Mitspieler bestätigen“ ist **nicht** umgesetzt, weil sie Protokoll, Host-Zustand und eine neue
+  Lobby-Oberfläche berührt (Folgepaket N6).
+
+### N6 · Neue Mitspieler bestätigen (Folgepaket zu N5)
+
+Einstellung in der Lobby: Der Gastgeber lässt Unbekannte erst nach einem Klick an den Tisch.
+Wer schon einen Platz hatte (gleiche `clientId`), kommt ohne Rückfrage zurück. Nötig sind ein
+Wartezustand im Host (Beitritt angefragt, nicht zugelassen), eine Nachricht des Gastes
+„warte auf Zusage“, Befehle zulassen/abweisen und eine Anzeige beim Gastgeber;
+`PROTOCOL_VERSION` erhöhen, der Host validiert alles.
+
+- **Modell:** Opus.
+- **Abnahme:** Netz-Tests für zulassen, abweisen und Rückkehr eines bekannten Gastes; E2E mit
+  zwei Tabs.
 
 ---
 
