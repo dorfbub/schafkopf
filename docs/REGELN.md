@@ -288,10 +288,11 @@ Alle Hausregeln (Eisenbahner, Hawaii-Habicht, Arabische Hochzeit) sind Optionen 
 Eisenbahner und Hawaii-Habicht haben eine eigene Schwelle in `laufende`. Fest bleiben die
 Bettel-Reihenfolge und die Rangfolge der Spielarten (feste Regeln).
 
-## Annahmen – bitte prüfen
+## Annahmen
 
 Diese Punkte wurden nicht abgefragt und nach gängiger Spielweise festgelegt. Jede Runde spielt
-etwas anders; Abweichungen bitte hier korrigieren.
+etwas anders; Abweichungen bitte hier korrigieren. Stand 12.11.2026: Die Annahmen 10–74 hat Lukas
+bestätigt; 1–9 stammen aus dem Grundgerüst und gelten, solange niemand widerspricht.
 
 1. **Ansage zweistufig** (Ablauf oben von Lukas festgelegt). Angenommen: Im Zweikampf fordert der
    nächste Interessent in Sitzreihenfolge den bisherigen Sieger; „ich auch“ und das Nennen sind nur
@@ -337,10 +338,10 @@ vorgeschlagen. **Von Lukas am 11.11.2026 bestätigt** – sie gelten damit als f
     Einzelspielen. Im Hawaii-Habicht gilt die Bedienpflicht je Stich nach der gerade gültigen
     Trumpffarbe.
 
-### Annahmen aus der Umsetzung (K3b–K3d) – bitte prüfen
+### Annahmen aus der Umsetzung (K3b–K3d)
 
 Bei der Umsetzung aufgetaucht, in REGELN.md bisher nicht entschieden; nach gängiger Spielweise
-gewählt. **Noch nicht von Lukas bestätigt.**
+gewählt. **Von Lukas am 12.11.2026 bestätigt.**
 
 20. **Ramsch, Gleichstand nach allen Stufen aus Annahme 10:** Haben die Gleichstehenden gleich viele
     Augen und Stiche und keiner von ihnen einen Trumpf in seinen Stichen (selten, aber möglich),
@@ -352,7 +353,7 @@ gewählt. **Noch nicht von Lukas bestätigt.**
 
 ### Annahmen zum Eisenbahner (H1)
 
-Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
+Bei der Umsetzung festgelegt, ohne Rückfrage. **Von Lukas am 12.11.2026 bestätigt** (31, 32).
 
 31. **Eisenbahner, Farbkarten und Bedienen:** Die vier Zehner sind eine eigene Farbe beim Bedienen
     (wer einen Zehner hat, muss ihn auf einen angespielten Zehner zugeben; ein Zehner bedient
@@ -363,7 +364,7 @@ Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
 
 ### Annahmen zum Hawaii-Habicht (H2)
 
-Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
+Bei der Umsetzung festgelegt, ohne Rückfrage. **Von Lukas am 12.11.2026 bestätigt** (33–36).
 
 33. **Hawaii-Habicht, Laufende gegen den Spieler:** Wie bei allen Spielen zählen Laufende auch
     „ohne“: Haben die Gegenspieler den Eichel- und den Gras-König, sind es zwei Laufende gegen den
@@ -376,12 +377,13 @@ Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
     bedient, kann er ab Stich 5 trotzdem Trümpfe (Könige ausgeschlossen) der zweiten Farbe haben.
 36. **Hawaii-Habicht und Bots:** Der Heuristik-Bot sagt ihn an, wenn er am Tisch erlaubt ist und
     das Blatt reicht; er wählt das beste der zwölf Farbpaare (B3, Annahme 73). Er rechnet ab
-    Stich 5 mit der zweiten Farbe. Beim kurzen Blatt (K6,
-    sechs Stiche) wechselt die Farbe vorerst ebenfalls nach dem vierten Stich; das klärt K6.
+    Stich 5 mit der zweiten Farbe. Mit kurzer Karte zu viert gibt es den Hawaii-Habicht nicht
+    (Annahme 58).
 
 ### Annahmen zu Kontra und Re (K4)
 
-Bei der Umsetzung von K4 offen geblieben und ohne Rückfrage festgelegt. **Bitte prüfen.**
+Bei der Umsetzung von K4 offen geblieben und ohne Rückfrage festgelegt. **Von Lukas am 12.11.2026
+bestätigt.**
 
 22. **Außerhalb der Reihe:** Kontra und Re sind an keinen Zug gebunden. Jeder Berechtigte darf sie
     sagen, solange die erste Karte nicht liegt – auch der Herauskommende, bevor er ausspielt.
@@ -396,7 +398,7 @@ Bei der Umsetzung von K4 offen geblieben und ohne Rückfrage festgelegt. **Bitte
 ### Annahmen zur Hochzeit (K5)
 
 Bei der Umsetzung von K5 offen geblieben und ohne Rückfrage nach gängiger Spielweise festgelegt.
-**Bitte prüfen.**
+**Von Lukas am 12.11.2026 bestätigt.**
 
 26. **Tausch, Reihenfolge:** Der Annehmende bekommt den Trumpf des Hochzeiters zuerst auf die Hand
     und wählt danach die Karte, die er zurückgibt. Zurückgeben muss er eine Karte, die kein Trumpf
@@ -418,7 +420,7 @@ Bei der Umsetzung von K5 offen geblieben und ohne Rückfrage nach gängiger Spie
 
 ### Annahmen zur Arabischen Hochzeit (H3)
 
-Ohne Rückfrage nach gängiger Spielweise festgelegt. **Bitte prüfen.**
+Ohne Rückfrage nach gängiger Spielweise festgelegt. **Von Lukas am 12.11.2026 bestätigt** (40–42).
 
 40. **Zu wenige Nicht-Trümpfe beim Zurückgeben:** Hat der Annehmende nach dem Erhalt der zwei
     Trümpfe weniger als zwei Karten, die keine Trümpfe sind, gibt er alle seine Nicht-Trümpfe und
@@ -433,7 +435,7 @@ Ohne Rückfrage nach gängiger Spielweise festgelegt. **Bitte prüfen.**
 ### Annahmen zu kurzer Karte und Dreier (K6)
 
 Ohne Rückfrage nach gängiger Spielweise beim „Kurzen“ und beim Dreier-Schafkopf festgelegt.
-**Bitte prüfen.**
+**Von Lukas am 12.11.2026 bestätigt.**
 
 50. **Besetzungen:** Vier mit langer Karte (Standard), vier mit kurzer oder drei mit kurzer Karte.
     Der Gastgeber wählt in der Lobby; nach Spielbeginn ist nichts mehr änderbar. Wechselt er auf
@@ -472,7 +474,7 @@ Ohne Rückfrage nach gängiger Spielweise beim „Kurzen“ und beim Dreier-Scha
 ### Annahmen zu den Bots (B3)
 
 Bei der Umsetzung von B3 ohne Rückfrage festgelegt. Spielregeln ändern sie nicht, nur wie die Bots
-spielen. **Bitte prüfen.**
+spielen. **Von Lukas am 12.11.2026 bestätigt.**
 
 70. **Tischregeln:** Ein Bot kennt die Tischregeln wie jeder Mensch am Tisch (sie sind öffentlich)
     und sagt nur Spielarten an, die dort erlaubt sind, Tout nur mit „Tout erlaubt“. „Ich würde“

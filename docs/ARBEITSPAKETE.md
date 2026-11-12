@@ -149,7 +149,7 @@ sie sind nicht Teil dieses Pakets – der Entwurf hält nur den Platz frei (`Han
   Tout; kein Kontra im Ramsch; Pott wird nicht verdoppelt.
 - **Stand:** umgesetzt (November 2026). Tests in `packages/core/test/kontra.test.ts`,
   `packages/net/test/kontra.test.ts` und E2E „Kontra“; neue Annahmen 22–25 in `REGELN.md`
-  (bitte prüfen). Der Ramsch-Fall ist bis K3b nur mit einem Spiel ohne Ansager nachgestellt.
+  (von Lukas am 12.11.2026 bestätigt). Der Ramsch-Fall ist bis K3b nur mit einem Spiel ohne Ansager nachgestellt.
 
 ### K5 · Hochzeit (Vorspiel-Hook)
 
@@ -168,7 +168,7 @@ am Tisch; Bots lehnen ab bzw. geben die niedrigsten Karten zurück.
 - **Stand:** umgesetzt (November 2026). Tests in `packages/core/test/hochzeit.test.ts`,
   `packages/net/test/hochzeit.test.ts` (Host mit Menschen und mit vier Bots, Speicherstand) und
   E2E „Hochzeit“ (`e2e/hochzeit.spec.ts`, feste Karten über `?seed=`). Neue Annahmen 26–30 in
-  `REGELN.md` (bitte prüfen). Eigene Laufende-Schwelle `laufende.hochzeit` (Standard 3).
+  `REGELN.md` (von Lukas am 12.11.2026 bestätigt). Eigene Laufende-Schwelle `laufende.hochzeit` (Standard 3).
   H3 braucht nur noch den Eintrag mit `weddingPrelude(2)`.
 
 ### K6 · Kurzes Blatt und Dreier-Modus
