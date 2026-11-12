@@ -1,7 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
 Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung), K3b (Ramsch), K3c (Stock),
-K3d (Muss) und K4 (Kontra/Re), siehe §12. Die
+K3d (Muss), K4 (Kontra/Re) und K5 (Hochzeit), siehe §12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -541,3 +541,26 @@ bei „gesperrt“, Tischleiste „Muss – … hat den Eichel-Ober“, eigener 
 Der Heuristik-Bot bewertet in Stufe 3 jetzt genau die erlaubten Spiele (auch gelockerte Rufe).
 `PROTOCOL_VERSION` 9, `HOST_SNAPSHOT_VERSION` 9. Abweichung: `fallback` trägt die Regel als
 `Exclude<AllPassedRule, 'muss'>`, damit kein Kreis entstehen kann.
+
+**K5 (Hochzeit, November 2026)** hat eingezogen: Phase `'prelude'`, Aktion `prelude` mit
+`PreludeMove`, `PreludeState`/`PreludeDefinition`/`PreludeStep` und `weddingPrelude(n)` in eigener
+Datei `prelude.ts`; `ModeDefinition.prelude`; Spielart `hochzeit` (zwischen Sauspiel und Bettel,
+`parties: 'prelude'`, `eligible`: genau ein Sauspiel-Trumpf); `HandState.prelude`,
+`Auction.yielded`; `legalPreludeMoves`; `HandView.prelude`/`legalMoves`; `RuleSet.laufende.hochzeit`.
+`PROTOCOL_VERSION` 12, `HOST_SNAPSHOT_VERSION` 11. Abweichungen und Ergänzungen:
+
+- **`PreludeStep.continue` mit `hands`.** Der Partner bekommt den Trumpf schon bei `accept` (§4,
+  Schritt 2); dafür trägt `continue` optional die neuen Hände. `HandState.partner` ist ab der
+  Annahme gesetzt (öffentlich, `parties: 'prelude'`).
+- **Kein `dealtHands`.** Der Stand vor dem Tausch ist über das Spielprotokoll (Seed + Aktionen)
+  jederzeit nachzubauen; ein eigenes Feld hätte keinen Leser. `initialHands` ist nach dem Tausch
+  der Stand danach.
+- **`Auction.failed`.** Statt die gescheiterte Spielart irgendwo implizit zu sperren, steht sie in
+  einer Liste, die `playable` liest – so bleibt H3 (zwei Hochzeitsarten) ohne Sonderfall.
+- **Wer nachrückt:** nur Spieler aus `yielded`, die (ohne die gescheiterte Spielart) noch etwas
+  spielen dürften; die Ansage beginnt ohne Mindest-Spielart neu (Annahme 27).
+- **Fehlercode `illegal_move`** für unerlaubte Vorspiel-Züge (neben `illegal_bid`, `illegal_card`).
+- **Bots:** `preludeMove` in `packages/bots/src/prelude.ts` für beide Bots (ablehnen; sonst die
+  billigsten erlaubten Karten). Der Heuristik-Bot sagt die Hochzeit nicht selbst an.
+- **Protokoll:** `applyTableAction` schreibt Vorspiel-Züge bereinigt ins `HandLog`; Kontra wird
+  dort jetzt ausdrücklich als `double` erkannt statt als Rest-Fall.

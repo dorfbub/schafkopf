@@ -250,8 +250,8 @@ export function signalingOptions(): TrysteroOptions {
 
 /**
  * Einstellungen nur für die Ende-zu-Ende-Tests (I2): ein Transport ohne Relays
- * (`?transport=broadcast`) und verkürzte Zeiten (`?botDelay=`, `?standIn=`, `?kontraWindow=`,
- * in ms).
+ * (`?transport=broadcast`), verkürzte Zeiten (`?botDelay=`, `?standIn=`, `?kontraWindow=`,
+ * in ms) und feste Karten (`?seed=`).
  * Gibt es nur in einem Build mit `VITE_E2E=1`; sonst entfernt der Build den Zweig samt Transport.
  */
 const E2E = import.meta.env.VITE_E2E === '1';
@@ -264,6 +264,13 @@ function e2eNumber(key: string): number | undefined {
   return Number.isFinite(n) && n >= 0 ? n : undefined;
 }
 
+/** Fester Seed für das erste Spiel (`?seed=`), danach fortlaufend – für Szenarien mit festen Karten. */
+function e2eSeed(): (() => number) | undefined {
+  let next = e2eNumber('seed');
+  if (next === undefined) return undefined;
+  return () => next!++;
+}
+
 function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
   return {
     ...(E2E
@@ -271,6 +278,7 @@ function hostOptions(): Omit<HostOptions, 'rules' | 'roomId'> {
           botDelayMs: e2eNumber('botDelay'),
           standInDelayMs: e2eNumber('standIn'),
           kontraWindowMs: e2eNumber('kontraWindow'),
+          seed: e2eSeed(),
         }
       : {}),
     createBot: (seat) => createHeuristicBot(crypto.getRandomValues(new Uint32Array(1))[0]! + seat),

@@ -16,7 +16,11 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
 /** 9: Muss (K3d): `Auction.forced` in der Sicht, `allPassed: 'muss'`. */
 /** 10: Kontra und Re (K4): Aktion `double`, `HandView.doubling`/`canDouble`, `RuleSet.kontra`. */
 /** 11: Spielverlauf: `HandView.tricks` mit allen Stichen, erst nach Spielende. */
-export const PROTOCOL_VERSION = 11;
+/**
+ * 12: Hochzeit (K5): Phase `prelude`, Aktion `prelude`, `HandView.prelude`/`legalMoves`,
+ * `Auction.yielded`/`failed`, `RuleSet.laufende.hochzeit`, Fehler `illegal_move`.
+ */
+export const PROTOCOL_VERSION = 12;
 
 export type ClientMessage =
   | {
@@ -39,6 +43,7 @@ export type HostErrorCode =
   | 'wrong_phase'
   | 'not_your_turn'
   | 'illegal_bid'
+  | 'illegal_move'
   | 'illegal_card'
   | 'illegal_double'
   | 'no_hand'

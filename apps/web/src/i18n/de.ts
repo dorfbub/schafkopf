@@ -9,6 +9,7 @@ import type {
   BidLevel,
   Contract,
   ContractKind,
+  PreludeMove,
   Rank,
   Suit,
 } from '@schafkopf/core';
@@ -36,6 +37,7 @@ export function contractLabel(contract: Contract): string {
   const suit = contract.suit ? SUIT_NAME[contract.suit] : '';
   const base = {
     sauspiel: `Sauspiel auf die ${suit}-Sau`,
+    hochzeit: 'Hochzeit',
     solo: `${suit}-Solo`,
     farbwenz: `${suit}-Farbwenz`,
     wenz: 'Wenz',
@@ -53,6 +55,7 @@ export const ERROR_TEXT: Record<HostErrorCode, string> = {
   wrong_phase: 'Das geht gerade nicht.',
   not_your_turn: 'Du bist nicht an der Reihe.',
   illegal_bid: 'Diese Ansage ist nicht erlaubt.',
+  illegal_move: 'Das geht bei der Hochzeit gerade nicht.',
   illegal_card: 'Diese Karte darfst du nicht spielen.',
   illegal_double: 'Kontra bzw. Re geht jetzt nicht mehr.',
   no_hand: 'Es läuft gerade kein Spiel.',
@@ -147,6 +150,7 @@ export const UI_TEXT = {
 /** Name einer Spielart ohne Farbe, für den Ansage-Dialog. */
 export const KIND_NAME: Record<ContractKind, string> = {
   sauspiel: 'Sauspiel',
+  hochzeit: 'Hochzeit',
   solo: 'Solo',
   wenz: 'Wenz',
   farbwenz: 'Farbwenz',
@@ -175,6 +179,18 @@ export function callLabel(call: BidCall): string {
       return 'gut';
     case 'declare':
       return contractLabel(call.contract);
+  }
+}
+
+/** Was ein Spieler im Vorspiel der Hochzeit laut sagt bzw. tut. */
+export function preludeMoveLabel(move: PreludeMove['type']): string {
+  switch (move) {
+    case 'accept':
+      return 'nehme an';
+    case 'decline':
+      return 'nein';
+    case 'give':
+      return 'gibt zurück';
   }
 }
 
@@ -247,6 +263,23 @@ export const TABLE_TEXT = {
   mussYou: 'Muss – du hast den Eichel-Ober',
   mussTitle: 'Du musst spielen',
   mussBody: 'Alle haben „weiter“ gesagt. Du hast den Eichel-Ober und musst ein Sauspiel spielen.',
+  // Hochzeit (K5)
+  wedding: 'Hochzeit',
+  yourTurnWedding: 'Du bist gefragt',
+  weddingStatus: (declarer: string, asked: string) =>
+    `${declarer} macht Hochzeit – ${asked} ist gefragt`,
+  weddingStatusYou: (declarer: string) => `${declarer} macht Hochzeit – du bist gefragt`,
+  weddingExchange: (partner: string) => `${partner} nimmt an und gibt eine Karte zurück`,
+  weddingOfferTitle: (declarer: string) => `${declarer} macht Hochzeit`,
+  weddingOfferBody: (declarer: string) =>
+    `${declarer} hat nur einen Trumpf. Wer annimmt, bekommt ihn verdeckt, gibt dafür eine Karte zurück, die kein Trumpf ist, und spielt mit ${declarer} gegen die anderen zwei.`,
+  weddingAccept: 'Ich nehme an',
+  weddingDecline: 'Nein',
+  weddingGiveTitle: (n: number) =>
+    n === 1 ? 'Welche Karte gibst du zurück?' : `Welche ${n} Karten gibst du zurück?`,
+  weddingGiveHint: (declarer: string, n: number) =>
+    `Du hast ${n === 1 ? 'den Trumpf' : 'die Trümpfe'} von ${declarer} bekommen. Zurück geht, was kein Trumpf ist – nur wenn du keine andere Karte hast, auch ein Trumpf.`,
+  weddingGive: 'Zurückgeben',
   mussBlocked:
     'Du bist gesperrt: Du darfst auch eine Sau rufen, von deren Farbe du keine Karte hast.',
   // Ergebnis
@@ -362,7 +395,8 @@ export const RULES_TEXT = {
   info: 'Regeln',
   close: 'Schließen',
   contracts: 'Spielarten',
-  contractsHint: 'Das Sauspiel ist immer dabei.',
+  contractsHint:
+    'Das Sauspiel ist immer dabei. Hochzeit: Wer genau einen Trumpf hat, sucht sich einen Partner, der ihn gegen eine andere Karte nimmt.',
   tout: 'Tout erlaubt',
   sie: 'Sie (alle Ober und Unter) wird bezahlt',
   davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',

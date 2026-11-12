@@ -10,6 +10,7 @@
 
 import { type Card, type Rank, type Suit, RANKS, SUITS, card, rankOf, suitOf } from './cards';
 import type { HandState } from './hand';
+import { type PreludeDefinition, weddingPrelude } from './prelude';
 import type { Tariff } from './rules';
 import { ramschOutcome } from './ramsch';
 import type { Outcome } from './scoring';
@@ -21,6 +22,7 @@ import { type CardOrder, effectiveSuit } from './trick';
  */
 export const CONTRACT_KINDS = [
   'sauspiel',
+  'hochzeit',
   'bettel',
   'geier',
   'farbwenz',
@@ -116,6 +118,8 @@ export interface ModeDefinition {
   restrictLegal?(ctx: LegalContext, candidates: Card[]): Card[];
   /** Eigene Auswertung statt der Partei-Abrechnung (Stufe 1, z. B. Ramsch). */
   outcome?(state: HandState): Outcome;
+  /** Ablauf zwischen Ansage und erstem Stich (Hochzeit), siehe `prelude.ts`. */
+  prelude?: PreludeDefinition;
 }
 
 const OBER: Card[] = SUITS.map((s) => card(s, 'O'));
@@ -129,6 +133,13 @@ function suitCards(suit: Suit, without: readonly Rank[]): Card[] {
 /** Trümpfe wie im Sauspiel: Ober, Unter, Herz. */
 function sauspielTrumps(): Card[] {
   return [...OBER, ...UNTER, ...suitCards('herz', ['O', 'U'])];
+}
+
+/** Anzahl der Sauspiel-Trümpfe in einer Hand (Liste erst beim ersten Aufruf gebaut). */
+let sauspielTrumpList: readonly Card[] | null = null;
+function countSauspielTrumps(hand: readonly Card[]): number {
+  sauspielTrumpList ??= sauspielTrumps();
+  return hand.filter((c) => sauspielTrumpList!.includes(c)).length;
 }
 
 function requireSuit(contract: Contract): Suit {
@@ -190,6 +201,19 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     trumps: () => sauspielTrumps(),
     suitChoices: rufbar,
     restrictLegal: restrictRufsau,
+  },
+  hochzeit: {
+    kind: 'hochzeit',
+    biddable: true,
+    suitRole: 'none',
+    parties: 'prelude',
+    tariff: 'sauspiel',
+    canTout: false,
+    goal: 'points',
+    hasLaufende: true,
+    trumps: () => sauspielTrumps(),
+    eligible: (hand) => countSauspielTrumps(hand) === 1,
+    prelude: weddingPrelude(1),
   },
   bettel: {
     kind: 'bettel',

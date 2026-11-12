@@ -92,6 +92,7 @@ describe('DEFAULT_RULES', () => {
       wenz: 2,
       geier: 2,
       farbwenz: 3,
+      hochzeit: 3,
     });
     expect(DEFAULT_RULES.contracts).toEqual([
       'sauspiel',
@@ -247,7 +248,15 @@ describe('Regeln prüfen', () => {
 
 describe('Rangfolge', () => {
   it('BID_ORDER enthält die ansagbaren Spielarten, niedrigste zuerst', () => {
-    expect(BID_ORDER).toEqual(['sauspiel', 'bettel', 'geier', 'farbwenz', 'wenz', 'solo']);
+    expect(BID_ORDER).toEqual([
+      'sauspiel',
+      'hochzeit',
+      'bettel',
+      'geier',
+      'farbwenz',
+      'wenz',
+      'solo',
+    ]);
     expect(BID_ORDER.every((k) => MODES[k].biddable)).toBe(true);
   });
 

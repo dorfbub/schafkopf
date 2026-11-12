@@ -37,7 +37,11 @@ import {
 /** 8: Stock (K3c): `tariff.stock`; `TableState.pot` kann jetzt gefüllt sein. */
 /** 9: Muss (K3d): `Auction.forced` in `HandState`. */
 /** 10: Kontra und Re (K4): `RuleSet.kontra`, `HandState.doubling`. */
-export const HOST_SNAPSHOT_VERSION = 10;
+/**
+ * 11: Hochzeit (K5): `HandState.prelude`, Phase `prelude`, `Auction.yielded`/`failed`,
+ * `RuleSet.laufende.hochzeit`.
+ */
+export const HOST_SNAPSHOT_VERSION = 11;
 
 export interface HostSnapshot {
   v: number;

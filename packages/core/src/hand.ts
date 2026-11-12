@@ -20,6 +20,7 @@ import {
   orderFor,
   sameContract,
 } from './modes';
+import type { PreludeMove, PreludeState } from './prelude';
 import { createRng, shuffle, type SeedInput } from './rng';
 import type { AllPassedRule, RuleSet } from './rules';
 import { type HandResult, scoreHand } from './scoring';
@@ -45,6 +46,8 @@ export type BidCall =
 
 export type PlayerAction =
   | { type: 'bid'; call: BidCall }
+  /** Zug im Vorspiel (Hochzeit: annehmen, ablehnen, Karten zurückgeben). */
+  | { type: 'prelude'; move: PreludeMove }
   | { type: 'play'; card: Card }
   /** Kontra bzw. Re (K4) – außerhalb der Reihe, solange die erste Karte nicht liegt. */
   | { type: 'double' };
@@ -72,6 +75,13 @@ export interface Auction {
   level: BidLevel | null;
   /** Muss: `holder` muss ein Sauspiel nennen (Stufe 3 ohne „weiter“). */
   forced: boolean;
+  /**
+   * Wer in einem Zweikampf aufgegeben hat, in zeitlicher Folge. Scheitert das Vorspiel (keiner
+   * nimmt die Hochzeit an), rücken diese Spieler nach (Annahme 27).
+   */
+  yielded: Seat[];
+  /** Spielarten, deren Vorspiel in diesem Spiel gescheitert ist; sie sind nicht mehr ansagbar. */
+  failed: ContractKind[];
 }
 
 export interface Trick {
@@ -85,7 +95,7 @@ export interface CompletedTrick extends Trick {
   points: number;
 }
 
-export type HandPhase = 'bidding' | 'playing' | 'finished';
+export type HandPhase = 'bidding' | 'prelude' | 'playing' | 'finished';
 
 /**
  * Was der Tisch dem Spiel mitgibt (siehe docs/entwurf-sonderspiele.md, §7). Reine Daten;
@@ -114,7 +124,10 @@ export interface HandState {
   /** Wer ist an der Reihe (Ansage oder Karte). */
   turn: Seat;
   hands: Card[][];
-  /** Hände direkt nach dem Geben – für Laufende, Sie und Nachvollziehbarkeit. */
+  /**
+   * Hände zu Beginn des Kartenspiels – für Laufende und Sie. Direkt nach dem Geben; nach einem
+   * Tausch im Vorspiel (Hochzeit) der Stand danach (Annahme 15).
+   */
   initialHands: Card[][];
   /** Alle Rufe der Ansage in zeitlicher Folge. */
   bids: Bid[];
@@ -122,8 +135,10 @@ export interface HandState {
   contract: Contract | null;
   /** Ansager; `null` auch bei laufendem Spiel, wenn die Spielart keinen hat (Ramsch). */
   declarer: Seat | null;
-  /** Mitspieler im Sauspiel (Besitzer der Rufsau); sonst null. */
+  /** Mitspieler im Sauspiel (Besitzer der Rufsau) bzw. aus dem Vorspiel (Hochzeit); sonst null. */
   partner: Seat | null;
+  /** Stand des Vorspiels, nur in der Phase `prelude`. */
+  prelude: PreludeState | null;
   tricks: CompletedTrick[];
   currentTrick: Trick;
   /** Übertrag vom Tisch (Pott, Faktor). */
@@ -134,7 +149,12 @@ export interface HandState {
 }
 
 export type RuleError =
-  'wrong_phase' | 'not_your_turn' | 'illegal_bid' | 'illegal_card' | 'illegal_double';
+  | 'wrong_phase'
+  | 'not_your_turn'
+  | 'illegal_bid'
+  | 'illegal_move'
+  | 'illegal_card'
+  | 'illegal_double';
 
 export type ActionResult = { ok: true; state: HandState } | { ok: false; error: RuleError };
 
@@ -166,10 +186,13 @@ export function dealHand(
       waiting: [],
       level: null,
       forced: false,
+      yielded: [],
+      failed: [],
     },
     contract: null,
     declarer: null,
     partner: null,
+    prelude: null,
     tricks: [],
     currentTrick: { leader: first, cards: [] },
     carry: { pot: carry.pot, factor: carry.factor },
@@ -208,14 +231,16 @@ export function allLevels(rules: RuleSet): BidLevel[] {
 
 /**
  * Spiele, die `seat` mit seinem Blatt spielen dürfte, ab dem Rang `minValue`. Im Muss
- * (`auction.forced`) nur Sauspiele, mit gelockerter Ruf-Bedingung.
+ * (`auction.forced`) nur Sauspiele, mit gelockerter Ruf-Bedingung. Spielarten, deren Vorspiel
+ * gescheitert ist, nicht mehr.
  */
 function playable(state: HandState, seat: Seat, minValue: number): Contract[] {
   const hand = state.hands[seat]!;
-  const forced = state.auction.forced;
+  const { forced, failed } = state.auction;
   return allContracts(state.rules).filter((contract) => {
     if (bidValue(contract) < minValue) return false;
     if (forced && contract.kind !== 'sauspiel') return false;
+    if (failed.includes(contract.kind)) return false;
     const mode = MODES[contract.kind];
     if (mode.eligible && !mode.eligible(hand)) return false;
     return !mode.suitChoices || mode.suitChoices(hand, { forced }).includes(contract.suit!);
@@ -284,6 +309,21 @@ function cleanCall(call: BidCall): BidCall {
   }
 }
 
+/** Züge, die `seat` im Vorspiel jetzt machen darf (leer, wenn nicht am Zug). Passiv zuerst. */
+export function legalPreludeMoves(state: HandState, seat: Seat): PreludeMove[] {
+  if (state.phase !== 'prelude' || !state.contract) return [];
+  return MODES[state.contract.kind].prelude?.legalMoves(state, seat) ?? [];
+}
+
+/** Gleicher Zug? Karten beim Zurückgeben ohne Rücksicht auf die Reihenfolge. */
+function sameMove(a: PreludeMove, b: PreludeMove): boolean {
+  if (a.type !== b.type) return false;
+  if (a.type === 'give' && b.type === 'give') {
+    return [...a.cards].sort().join() === [...b.cards].sort().join();
+  }
+  return true;
+}
+
 /** Karten, die `seat` jetzt spielen darf (leer, wenn nicht an der Reihe). */
 export function legalCards(state: HandState, seat: Seat): Card[] {
   if (state.phase !== 'playing' || state.turn !== seat || !state.contract) return [];
@@ -333,6 +373,16 @@ function nextDuel(next: HandState): void {
     auction.challenger = challenger;
     next.turn = challenger;
   }
+}
+
+/** Die angesagte Spielart hat ein Vorspiel (Hochzeit): dorthin statt zum Kartenspiel. */
+function startPrelude(next: HandState, declarer: Seat, contract: Contract): void {
+  const prelude = MODES[contract.kind].prelude!;
+  next.contract = contract;
+  next.declarer = declarer;
+  next.phase = 'prelude';
+  next.prelude = prelude.start(next);
+  next.turn = prelude.turn(next);
 }
 
 function startPlay(next: HandState, declarer: Seat | null, contract: Contract): void {
@@ -412,10 +462,77 @@ function applyBid(state: HandState, seat: Seat, raw: BidCall): ActionResult {
     case 'yield':
       // Gibt der Haltende auf, hält ab jetzt der Forderer.
       if (seat === auction.holder) auction.holder = auction.challenger;
+      auction.yielded.push(seat);
       nextDuel(next);
       return { ok: true, state: next };
     case 'declare':
-      startPlay(next, seat, call.contract);
+      if (MODES[call.contract.kind].prelude) startPrelude(next, seat, call.contract);
+      else startPlay(next, seat, call.contract);
+      return { ok: true, state: next };
+  }
+}
+
+/**
+ * Das Vorspiel ist gescheitert (keiner nimmt die Hochzeit an): Der Ansager gilt als „weiter“.
+ * Wer vorher in einem Zweikampf aufgegeben hat, rückt nach und trägt es neu aus – ohne
+ * Mindest-Spielart, aber ohne die gescheiterte (Annahmen 16, 27). Gibt es niemanden, gilt die
+ * Regel für alle „weiter“. Ändert `next`.
+ */
+function preludeFailed(next: HandState): void {
+  const players = next.rules.players;
+  const auction = next.auction;
+  const failedSeat = next.declarer;
+  auction.failed.push(next.contract!.kind);
+  next.phase = 'bidding';
+  next.contract = null;
+  next.declarer = null;
+  next.partner = null;
+  next.prelude = null;
+
+  const first = (next.dealer + 1) % players;
+  const back = Array.from({ length: players }, (_, i) => (first + i) % players).filter(
+    (s) => s !== failedSeat && auction.yielded.includes(s) && playable(next, s, 0).length > 0,
+  );
+  auction.yielded = [];
+  auction.level = null;
+  auction.challenger = null;
+  if (back.length === 0) {
+    auction.holder = null;
+    auction.waiting = [];
+    allPassed(next);
+    return;
+  }
+  auction.holder = back[0]!;
+  auction.waiting = back.slice(1);
+  nextDuel(next);
+}
+
+function applyPrelude(state: HandState, seat: Seat, raw: PreludeMove): ActionResult {
+  if (!legalPreludeMoves(state, seat).some((m) => sameMove(m, raw))) {
+    return { ok: false, error: 'illegal_move' };
+  }
+  // Nur die bekannten Felder übernehmen – Züge kommen aus dem Netz.
+  const move: PreludeMove =
+    raw.type === 'give' ? { type: 'give', cards: [...raw.cards] } : { type: raw.type };
+  const definition = MODES[state.contract!.kind].prelude!;
+  const step = definition.apply(state, seat, move);
+  const next = structuredClone(state);
+  switch (step.type) {
+    case 'continue':
+      next.prelude = step.prelude;
+      next.partner = step.prelude.partner;
+      if (step.hands) next.hands = step.hands;
+      next.turn = definition.turn(next);
+      return { ok: true, state: next };
+    case 'play':
+      next.hands = step.hands;
+      next.initialHands = step.hands.map((h) => [...h]);
+      next.prelude = null;
+      startPlay(next, next.declarer, next.contract!);
+      next.partner = step.partner;
+      return { ok: true, state: next };
+    case 'failed':
+      preludeFailed(next);
       return { ok: true, state: next };
   }
 }
@@ -459,10 +576,16 @@ export function applyAction(state: HandState, action: Action): ActionResult {
     if (state.phase !== 'playing') return { ok: false, error: 'wrong_phase' };
     return applyDouble(state, action.seat);
   }
-  const expected = action.type === 'bid' ? 'bidding' : 'playing';
+  const expected =
+    action.type === 'bid' ? 'bidding' : action.type === 'prelude' ? 'prelude' : 'playing';
   if (state.phase !== expected) return { ok: false, error: 'wrong_phase' };
   if (state.turn !== action.seat) return { ok: false, error: 'not_your_turn' };
-  return action.type === 'bid'
-    ? applyBid(state, action.seat, action.call)
-    : applyPlay(state, action.seat, action.card);
+  switch (action.type) {
+    case 'bid':
+      return applyBid(state, action.seat, action.call);
+    case 'prelude':
+      return applyPrelude(state, action.seat, action.move);
+    case 'play':
+      return applyPlay(state, action.seat, action.card);
+  }
 }

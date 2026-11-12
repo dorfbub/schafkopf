@@ -9,6 +9,7 @@ import {
   type SeedInput,
   pick,
 } from '@schafkopf/core';
+import { preludeMove } from './prelude';
 
 /**
  * Einfachster Bot: spielt regelkonform, aber zufällig. Will nur ein Sauspiel spielen,
@@ -51,6 +52,7 @@ export function createRandomBot(seed: SeedInput, minTrumps = 5): Bot {
   return {
     decide(view: HandView): PlayerAction {
       if (view.phase === 'bidding') return { type: 'bid', call: bid(view) };
+      if (view.phase === 'prelude') return { type: 'prelude', move: preludeMove(view) };
       return { type: 'play', card: pick(view.legalCards, rng) };
     },
   };

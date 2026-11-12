@@ -25,12 +25,24 @@ export function TableBar({ view, hand, seats, rulesOpen, onRules, onLeave }: Pro
   const phase =
     hand.phase === 'bidding'
       ? TABLE_TEXT.bidding
-      : hand.phase === 'finished'
-        ? TABLE_TEXT.finished
-        : TABLE_TEXT.trickNo(Math.min(tricksDone + 1, allTricks), allTricks);
+      : hand.phase === 'prelude'
+        ? TABLE_TEXT.wedding
+        : hand.phase === 'finished'
+          ? TABLE_TEXT.finished
+          : TABLE_TEXT.trickNo(Math.min(tricksDone + 1, allTricks), allTricks);
 
   let status;
-  if (hand.contract && hand.declarer !== null) {
+  if (hand.phase === 'prelude' && hand.prelude && hand.declarer !== null) {
+    const declarer = seats.nameOf(hand.declarer);
+    status =
+      hand.prelude.step === 'exchange' ? (
+        TABLE_TEXT.weddingExchange(seats.nameOf(hand.turn))
+      ) : hand.turn === view.you ? (
+        <b className="tisch-leiste__spiel">{TABLE_TEXT.weddingStatusYou(declarer)}</b>
+      ) : (
+        TABLE_TEXT.weddingStatus(declarer, seats.nameOf(hand.turn))
+      );
+  } else if (hand.contract && hand.declarer !== null) {
     status = (
       <>
         <span className="tisch-leiste__wer">{seats.nameOf(hand.declarer)}</span> {TABLE_TEXT.plays}{' '}

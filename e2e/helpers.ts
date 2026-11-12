@@ -24,8 +24,8 @@ export async function openStart(page: Page, query = E2E_QUERY): Promise<void> {
 }
 
 /** Gastgeber eröffnet einen Tisch mit Einladungslink; gibt den Link zurück. */
-export async function hostOpens(page: Page, name: string): Promise<string> {
-  await openStart(page);
+export async function hostOpens(page: Page, name: string, query = E2E_QUERY): Promise<string> {
+  await openStart(page, query);
   await page.getByLabel('Dein Name').fill(name);
   await page.getByRole('button', { name: 'Mit Freunden spielen' }).click();
   const link = page.getByLabel('Einladungslink');
@@ -55,8 +55,8 @@ export async function newTisch(context: BrowserContext): Promise<Tisch> {
 }
 
 /** Gastgeber und Gast sitzen in der Lobby; der Gast hat einen Platz genommen. */
-export async function seatedLobby(table: Tisch): Promise<void> {
-  const link = await hostOpens(table.host, 'Hanni');
+export async function seatedLobby(table: Tisch, query = E2E_QUERY): Promise<void> {
+  const link = await hostOpens(table.host, 'Hanni', query);
   await guestJoins(table.guest, link, 'Sepp');
   await table.guest
     .getByRole('button', { name: /Platz \d ist frei – hier sitzen/ })

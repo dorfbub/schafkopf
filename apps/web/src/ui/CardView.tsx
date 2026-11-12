@@ -19,8 +19,13 @@ interface Props {
   theme?: CardTheme;
 }
 
+/** Name einer Karte für Bildschirmleser, z. B. „Gras-Sau“. */
+export function cardLabel(card: Card): string {
+  return `${SUIT_NAME[suitOf(card)]}-${RANK_NAME[rankOf(card)]}`;
+}
+
 export function CardView({ card, onPlay, state, theme = bayerischTheme }: Props) {
-  const label = `${SUIT_NAME[suitOf(card)]}-${RANK_NAME[rankOf(card)]}`;
+  const label = cardLabel(card);
   const face = theme.face(card);
   const shown = state ?? (onPlay ? 'playable' : 'open');
   if (shown !== 'playable' || !onPlay) {

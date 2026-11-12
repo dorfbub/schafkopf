@@ -72,7 +72,12 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
   const myTurn = hand.turn === me && hand.phase !== 'finished';
   const cards = sortHand(hand.hand, hand.contract, tricksPlayed(hand));
   const n = cards.length;
-  const turnText = hand.phase === 'bidding' ? TABLE_TEXT.yourTurnBid : TABLE_TEXT.yourTurnPlay;
+  const turnText =
+    hand.phase === 'bidding'
+      ? TABLE_TEXT.yourTurnBid
+      : hand.phase === 'prelude'
+        ? TABLE_TEXT.yourTurnWedding
+        : TABLE_TEXT.yourTurnPlay;
 
   return (
     <footer

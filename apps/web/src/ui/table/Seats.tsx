@@ -1,7 +1,7 @@
 import type { BidCall, HandView, Seat, TableView } from '@schafkopf/core';
 import type { AbsentSeatInfo } from '@schafkopf/net';
 import { useEffect, useState } from 'react';
-import { TABLE_TEXT, callLabel, money } from '../../i18n/de';
+import { TABLE_TEXT, callLabel, money, preludeMoveLabel } from '../../i18n/de';
 import { Button, CardBack, PlayerSeat } from '../kit';
 import { GameSign, gameSign } from './GameSign';
 import type { SeatInfo } from './layout';
@@ -93,9 +93,14 @@ export function inParty(hand: HandView, seat: Seat): boolean {
   return hand.declarer === seat || hand.partner === seat;
 }
 
-/** Was ein Sitz in der Ansage zuletzt gesagt hat; `null`, wenn er noch nichts gesagt hat. */
+/**
+ * Was ein Sitz in der Ansage zuletzt gesagt hat; `null`, wenn er noch nichts gesagt hat. Ist ein
+ * Vorspiel gescheitert (keiner nahm die Hochzeit an), zählt nur, was seit der Wiederaufnahme
+ * gesagt wurde – sonst stünde beim Nachrücker noch sein altes „gut“.
+ */
 export function lastCall(hand: HandView, seat: Seat): BidCall | null {
-  return hand.bids.findLast((b) => b.seat === seat)?.call ?? null;
+  const since = hand.bids.findLastIndex((b) => b.call.type === 'declare') + 1;
+  return hand.bids.slice(since).findLast((b) => b.seat === seat)?.call ?? null;
 }
 
 /** Ist der Sitz mit diesem Ruf aus der Ansage ausgestiegen („weiter“, „gut“)? */
@@ -112,6 +117,9 @@ export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
         if (seat === view.you) return null;
         const turn = hand.turn === seat && hand.phase !== 'finished';
         const bid = hand.phase === 'bidding' ? lastCall(hand, seat) : null;
+        // Im Vorspiel der Hochzeit: „nein“ bzw. „nehme an“.
+        const said =
+          hand.phase === 'prelude' ? hand.prelude?.log.findLast((e) => e.seat === seat) : undefined;
         const size = hand.handSizes[seat]!;
         const away = absent.find((a) => a.seat === seat);
         const name = seats.nameOf(seat);
@@ -163,7 +171,14 @@ export function Seats({ view, hand, seats, absent, hostActions }: SeatProps) {
               )
             }
             bubble={
-              bid && <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>
+              (bid && (
+                <span className={isOut(bid) ? 'blase--weiter' : ''}>{callLabel(bid)}</span>
+              )) ||
+              (said && (
+                <span className={said.move === 'decline' ? 'blase--weiter' : ''}>
+                  {preludeMoveLabel(said.move)}
+                </span>
+              ))
             }
             cards={
               size > 0 &&
