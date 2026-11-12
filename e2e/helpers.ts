@@ -71,7 +71,8 @@ export async function startGame(table: Tisch): Promise<void> {
   await expect(table.guest.getByRole('group', { name: 'Deine Karten' })).toBeVisible();
 }
 
-const PASS = ['weiter', 'Weiter', 'Gut', 'Aufgeben'];
+// „Nein“: seit B3 bieten Bots Hochzeiten an; der Mensch im Test lehnt ab.
+const PASS = ['weiter', 'Weiter', 'Gut', 'Aufgeben', 'Nein'];
 
 /**
  * Ein Zug für einen menschlichen Spieler: aussteigen, wenn angesagt wird, sonst die erste
