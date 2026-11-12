@@ -115,4 +115,5 @@ Säue) bewegen sich in passenden Momenten. Beispiel: Wird die Eichel-Sau gerufen
   neue Abhängigkeit.
 - **Zu klären:** bei welchen Momenten (gerufene Sau, Stich mit dem Eichel-Ober, Laufende, Tout);
   nur kurz und selten, damit es nicht nervt; „Bewegung reduzieren“ schaltet alles ab.
-- **Hängt zusammen mit U6 (Atmosphäre):** Töne und Animationen gemeinsam einstellbar machen.
+- **Ohne Ton:** U6 (Töne, Sprüche) ist gestrichen, das Spiel bleibt tonlos und einfach. Animationen
+  deshalb sparsam halten.
