@@ -21,6 +21,7 @@ import {
   createDeck,
   createRng,
   effectiveSuit,
+  kindFitsPlayers,
   orderFor,
   pointsOf,
   rankOf,
@@ -85,7 +86,11 @@ function resetMemory(memory: Memory, view: HandView): void {
   memory.played = new Set();
   memory.voids = view.handSizes.map(() => new Set());
   memory.tricksSeen = 0;
-  memory.deckSize = view.handSizes.reduce((a, b) => a + b, 0);
+  // Auch mitten im Spiel richtig (Vertretung): Karten auf der Hand plus alle gefallenen.
+  memory.deckSize =
+    view.handSizes.reduce((a, b) => a + b, 0) +
+    tricksPlayed(view) * view.handSizes.length +
+    view.currentTrick.cards.length;
 }
 
 function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: number): void {
@@ -129,11 +134,14 @@ function updateMemory(memory: Memory, view: HandView): void {
  */
 const KNOWN_KINDS: readonly ContractKind[] = CLASSIC_CONTRACTS;
 
-/** Alle Spiele, die mit diesem Blatt formal möglich wären (Tischregeln unbekannt). */
-function candidateContracts(hand: readonly Card[]): Contract[] {
+/**
+ * Alle Spiele, die mit diesem Blatt formal möglich wären (Tischregeln unbekannt). Zu dritt
+ * keine Partnerspiele (Annahme 59).
+ */
+function candidateContracts(hand: readonly Card[], players: number): Contract[] {
   const out: Contract[] = [];
   for (const kind of BID_ORDER) {
-    if (!KNOWN_KINDS.includes(kind)) continue;
+    if (!KNOWN_KINDS.includes(kind) || !kindFitsPlayers(kind, players)) continue;
     const mode = MODES[kind];
     if (mode.eligible && !mode.eligible(hand)) continue;
     const suits = mode.suitRole === 'none' ? [undefined] : (mode.suitChoices?.(hand) ?? SUITS);
@@ -235,8 +243,11 @@ function toutSafe(hand: readonly Card[], contract: Contract, order: CardOrder): 
  * Die Gewichte sind von Hand gesetzt und über Simulationen grob abgestimmt.
  */
 export function rateContract(hand: readonly Card[], contract: Contract, deckSize = 32): number {
-  // Bewertet wird das Blatt vor dem ersten Stich.
+  // Bewertet wird das Blatt vor dem ersten Stich. Die Schwellen gelten für acht Karten; mit
+  // kurzer Karte zu viert (sechs Karten) schrumpfen sie im selben Verhältnis (Annahme 59).
   const order = orderFor(contract, 0);
+  const scale = Math.min(1, hand.length / 8);
+  const need = (n: number) => Math.ceil(n * scale);
   const trumps = hand.filter((c) => order.trumps.includes(c));
   const t = trumps.length;
   const sides = SUITS.filter((s) => isSideSuit(order, s));
@@ -258,17 +269,17 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
         0.5 * voidCount(hand, order, contract.suit) -
         0.2 * (called.length - 1) -
         (called.some((c) => rankOf(c) === '10') ? 0.2 : 0);
-      return t < 4 ? -10 : score - 5.2;
+      return t < need(4) ? -10 : score - 5.2 * scale;
     }
     case 'solo': {
       const w = trumpWeights(order, [2.3, 2.1, 2.0, 1.9, 1.6, 1.5, 1.4, 1.4, 1.3, 1.2], 1.0);
       const score = trumps.reduce((s, c) => s + w(c), 0) + sideSum() + 0.6 * voidCount(hand, order);
-      return t < 6 ? -10 : score - 10.8;
+      return t < need(6) ? -10 : score - 10.8 * scale;
     }
     case 'farbwenz': {
       const w = trumpWeights(order, [2.2, 2.0, 1.7, 1.5, 1.3, 1.2, 1.0], 0.9);
       const score = trumps.reduce((s, c) => s + w(c), 0) + sideSum() + 0.6 * voidCount(hand, order);
-      return t < 6 ? -10 : score - 10.8;
+      return t < need(6) ? -10 : score - 10.8 * scale;
     }
     case 'wenz':
     case 'geier': {
@@ -278,7 +289,7 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
         topSequenceValue(hand, order) +
         0.4 * voidCount(hand, order);
       const top = hand.includes(order.trumps[0]!);
-      return t < 2 || (t === 2 && !top) ? -10 : score - 8.3;
+      return t < 2 || (t === 2 && !top) ? -10 : score - 8.3 * scale;
     }
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
@@ -305,7 +316,7 @@ function bid(view: HandView, rng: Rng): BidCall {
   const calls = view.legalCalls;
   const passive = calls[0]!;
   const deckSize = view.handSizes.reduce((a, b) => a + b, 0);
-  const rated = candidateContracts(view.hand).map((contract) => ({
+  const rated = candidateContracts(view.hand, view.handSizes.length).map((contract) => ({
     contract,
     margin: rateContract(view.hand, contract, deckSize),
   }));

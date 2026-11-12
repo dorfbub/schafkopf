@@ -43,7 +43,8 @@ import {
  */
 /** 12: Eisenbahner (H1): `RuleSet.laufende.eisenbahner`. */
 /** 13: Arabische Hochzeit (H3): `RuleSet.laufende.arabischeHochzeit`. */
-export const HOST_SNAPSHOT_VERSION = 13;
+/** 14: Kurze Karte und Dreier (K6): `RuleSet.players`/`deck` einstellbar, Tische mit drei Plätzen. */
+export const HOST_SNAPSHOT_VERSION = 14;
 
 export interface HostSnapshot {
   v: number;

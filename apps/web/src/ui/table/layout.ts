@@ -14,6 +14,15 @@ import { TABLE_TEXT } from '../../i18n/de';
 export const POSITIONS = ['bottom', 'left', 'top', 'right'] as const;
 export type Position = (typeof POSITIONS)[number];
 
+/** Zu dritt bleibt oben frei: links und rechts sitzen die zwei anderen (K6). */
+const POSITIONS_THREE: readonly Position[] = ['bottom', 'left', 'right'];
+
+/** Position von `seat` aus Sicht von `me` bei `players` Plätzen. */
+export function positionOf(seat: Seat, me: Seat, players: number): Position {
+  const order = players === 3 ? POSITIONS_THREE : POSITIONS;
+  return order[(seat - me + players) % players]!;
+}
+
 /** Hilfsfunktionen rund um die Sitze, aus Sicht des eigenen Platzes. */
 export interface SeatInfo {
   /** Eigener Sitz; Zuschauer sehen den Tisch aus Sicht von Platz 1. */
@@ -29,7 +38,7 @@ export function seatInfo(view: TableView): SeatInfo {
   return {
     me,
     players,
-    position: (seat) => POSITIONS[(seat - me + players) % players]!,
+    position: (seat) => positionOf(seat, me, players),
     nameOf: (seat) => view.seats[seat]?.name ?? TABLE_TEXT.seatFallback(seat),
   };
 }

@@ -79,8 +79,6 @@ describe('Kontra und Re über das Netz', () => {
     const { host } = createHost(3, DEFAULT_RULES);
     const anna = join(host, 'Anna');
     const options = { ...DEFAULT_RULES, kontra: true } as Partial<typeof DEFAULT_RULES>;
-    delete options.players;
-    delete options.deck;
     expect(host.setRules(options as RuleOptions)).toBe(true);
     expect(anna.getSnapshot().view!.rules.kontra).toBe(true);
     delete options.kontra;
