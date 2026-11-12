@@ -17,7 +17,7 @@ Pakete verschiedener Buchstaben können parallel laufen, sofern keine Abhängigk
 | ----- | ------------------------- | ---------------------------------- |
 | 1     | Mit Freunden gut spielbar | D1, D2, D3, K1, N1, N2, U2, B1, I1 |
 | 2     | Komfort und Tischregeln   | D4, K2, N3, N4, U4, U5, I2         |
-| 3     | Ausbau                    | K3a–K3d, K4, K5, K6, U7, B2        |
+| 3     | Ausbau                    | K3a–K3d, K4, K5, K6, B2            |
 | 4     | Hausregeln                | H1, H2, H3, B3                     |
 
 ## Welches Modell für welches Paket
@@ -30,7 +30,7 @@ Haiku für rein mechanische Handgriffe.
 | ------ | ------------------------------------------------------------ | ----------------------------------------------------------- |
 | Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt)                         |
 | Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, H2 |
-| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, U7, I2, H1, H3            |
+| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3                |
 | Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                      |
 
 Hinweise dazu:
@@ -447,9 +447,10 @@ Web-App-Manifest, Icons, Service Worker für Offline-Start. Danach prüfen, ob e
 Töne und Sprüche/Emotes am Tisch. Am 12.11.2026 von Lukas gestrichen: Das Spiel soll tonlos und
 einfach bleiben.
 
-### U7 · Mehrsprachigkeit
+### U7 · Mehrsprachigkeit (gestrichen)
 
-`i18n/de.ts` zu austauschbaren Sprachdateien ausbauen (Hochdeutsch, Bairisch, Englisch).
+Sprachdateien für Hochdeutsch, Bairisch, Englisch. Am 12.11.2026 von Lukas gestrichen: Die App
+bleibt deutsch.
 
 ### U8 · Kleinigkeiten vom Testabend (12.11.2026)
 
