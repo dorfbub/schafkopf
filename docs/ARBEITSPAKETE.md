@@ -19,6 +19,7 @@ Pakete verschiedener Buchstaben können parallel laufen, sofern keine Abhängigk
 | 2     | Komfort und Tischregeln   | D4, K2, N3, N4, U4, U5, I2         |
 | 3     | Ausbau                    | K3a–K3d, K4, K5, K6, B2            |
 | 4     | Hausregeln                | H1, H2, H3, B3                     |
+| 5     | Besser werden             | T1, T2                             |
 
 ## Welches Modell für welches Paket
 
@@ -26,12 +27,12 @@ Grundsatz: **Opus ist der Standard.** Fable nur dort, wo eine Entscheidung das g
 prägt und ein Fehler teuer wird. Sonnet für klar umrissene Pakete, bei denen der Weg feststeht.
 Haiku für rein mechanische Handgriffe.
 
-| Modell | Wofür                                                        | Pakete                                                      |
-| ------ | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt)                         |
-| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, H2 |
-| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3                |
-| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                      |
+| Modell | Wofür                                                        | Pakete                                                              |
+| ------ | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt)                                 |
+| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, H2, T1, T2 |
+| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3                        |
+| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                              |
 
 Hinweise dazu:
 
@@ -197,8 +198,8 @@ Jedes Spiel als Seed + Aktionsliste festhalten; daraus Wiederholung und „letzt
 
 Spielarten aus Lukas' Runde; Regeln in [REGELN.md](REGELN.md), „Hausregeln“. Alle sind einzeln in
 `RuleSet.contracts` einschaltbar und standardmäßig aus. Es gilt der Vorspann von K3 (nacheinander,
-Annahmen bestätigen, Versionen erhöhen). Weitere Hausregeln beschreibt Lukas zuerst in REGELN.md;
-passen sie in die sechs Erweiterungspunkte des Entwurfs, ist jede ein Paket nach dem Muster von H1.
+Annahmen bestätigen, Versionen erhöhen). Weitere Hausregeln gibt es nicht (Lukas, 12.11.2026);
+kämen doch welche, wäre jede ein Paket nach dem Muster von H1.
 
 ### H1 · Eisenbahner (erledigt)
 
@@ -559,6 +560,65 @@ spielt Ramsch mit Blick auf Jungfrau und Durchmarsch, sagt Kontra bei starkem Bl
   Lange Läufe: `BOT_LONG=1 npx vitest run packages/bots` (Zahlen mit `BOT_REPORT=1`).
   Annahmen 32, 36, 42 und 70–74. Offen: Bots sagen Kontra/Re nur, wenn sie am Zug sind
   (Annahme 71) – Kontra außer der Reihe bräuchte einen eigenen Weg im Host.
+
+## T – Trainer (`packages/tutor`, `apps/web`)
+
+Ein Tutor, der Leute, die Schafkopf schon können, zu besseren Spielern macht. Er sitzt als Figur
+mit Sprechblase am Tisch und zeigt, was sinnvoll wäre und warum. Lukas' Vorgaben vom 12.11.2026:
+
+- **Nur beim Spiel allein gegen Bots.** Am Tisch mit Freunden gibt es ihn nicht.
+- **Vorher und hinterher:** Man kann ihn vor einem Zug fragen und bekommt danach eine kurze
+  Bewertung. Dazu gibt es Auswahlfragen, etwa „Soll ich mit diesen Karten spielen?“, „Ein anderer
+  spielt schon – lohnt sich jetzt ein Wenz?“ oder „Welche Karte ist sinnvoll und welche Strategie
+  steckt dahinter?“.
+- **Automatikmodus wie ein Lehrer:** Von selbst meldet er sich nur in wichtigen Momenten, und dann
+  lieber mit einer Frage als mit der Lösung: „Dein Vordermann hält den Stich. Was wäre hier
+  sinnvoll?“ Erst wer will, bekommt die Antwort mit Begründung. Wie genau, entscheidet die
+  Umsetzung nach dem, was pädagogisch am meisten bringt.
+- **Umfang:** Ansage, Kartenspiel, Kontra und Re sowie ein Rückblick nach dem Spiel. Im Rückblick
+  zeigt „So wurde gespielt“, wo man anders hätte spielen sollen.
+
+### T1 · Strategien sammeln und Tutor-Kern
+
+Erst die Strategien, dann die Rechnung, noch ohne Oberfläche.
+
+- **Strategie-Katalog:** neues Dokument `docs/STRATEGIEN.md`. Darin steht, was die Bots schon
+  können (Heuristik aus B1/B3, Monte-Carlo-Suche „Stark“ aus B2), dazu eine Recherche im Netz zu
+  gängigen Strategien und Faustregeln. Themen: Ansage nach Blattstärke, Zweikampf, Tout, Trumpf
+  ziehen, Schmieren, Rufsau suchen und davonlaufen, Abwerfen und Farben freispielen, Stich halten
+  oder übernehmen, Spatzen, Bettel, Wenz und Geier, Hochzeit, Ramsch, Kontra und Re. Jede
+  Faustregel bekommt eine Kennung, eine Bedingung, eine kurze Begründung für Spieler und die
+  Quelle. Fremde Texte werden nicht abgeschrieben, nur eigene Zusammenfassungen mit Quellenangabe.
+- **Tutor-Kern** als neues Paket `packages/tutor` (hängt nur von `core` und `bots` ab), rein und
+  über einen Seed bestimmt:
+  - Er bewertet Ansage, Karten und Kontra aus der eigenen Sicht (`HandView` plus Tischregeln) mit
+    der Suche des starken Bots.
+  - Er erkennt, welche Faustregeln in der Lage greifen, und begründet damit.
+  - Er stuft ein, wie wichtig der Moment ist (für den Automatikmodus).
+  - Er bewertet einen gemachten Zug hinterher und sagt, wie viel er gekostet hat.
+  - Er hat nie mehr Wissen als die eigene Sicht.
+- **Modell:** Opus (Recherche, Urteilsvermögen, Schnittstelle).
+- **Abnahme:** `docs/STRATEGIEN.md` mit mindestens 25 Faustregeln. Tests mit festen Lagen je
+  Faustregel (Lage → Empfehlung und Kennung der Regel). Test, dass der Tutor nichts Verdecktes
+  nutzt. Entscheidungszeit unter 300 ms. `npm run check` sauber.
+
+### T2 · Tutor am Tisch
+
+- **Figur:** am Tisch mit Sprechblase, ruhig, ohne Ton und ohne springende Flächen. Ein- und
+  ausschaltbar beim Start „Allein gegen Bots“.
+- **Fragen auf Knopfdruck:** Auswahlfragen passend zur Lage (Ansage, Zweikampf, Kartenwahl,
+  Kontra). Die Antwort kommt in Stufen: erst ein Denkanstoß, dann die Empfehlung, dann die
+  Begründung mit Faustregel.
+- **Automatikmodus:** nur in wichtigen Momenten (Schwelle aus T1), zuerst als Frage.
+- **Hinterher:** eine kurze Bewertung, wenn ein anderer Zug klar besser gewesen wäre. Nach dem
+  Spiel markiert der Rückblick in „So wurde gespielt“ diese Stellen, mit kurzer Erklärung.
+- Gestaltung nach DESIGN.md, Texte in `de.ts`. Die Rechnung läuft im eigenen Browser, in einem
+  Web Worker, wenn es nötig ist.
+- **Modell:** Opus (Gestaltung und Didaktik).
+- **Abhängigkeit:** T1.
+- **Abnahme:** E2E: Allein gegen Bots mit Trainer, eine Frage stellen, Antwort in drei Stufen,
+  Rückblick nach dem Spiel. Am Tisch mit Freunden gibt es keinen Trainer (Test). Bildschirmfotos
+  in drei Größen für Lukas.
 
 ---
 

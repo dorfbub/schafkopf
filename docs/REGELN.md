@@ -243,7 +243,7 @@ sind die der Hochzeit (Annahmen 15, 16, 26–30), nur mit zwei Karten statt eine
 Sauspiel < Arabische Hochzeit < Hochzeit < Bettel < Eisenbahner < Geier < Hawaii-Habicht <
 Farbwenz < Wenz < Solo. Jede Tout-Ansage schlägt jede Ansage ohne Tout.
 
-Weitere Hausregeln der Runde („u. a.“ im Backlog) sind noch nicht beschrieben.
+Weitere Hausregeln gibt es nicht (Lukas, 12.11.2026).
 
 ## Einstellbare Tischregeln
 
