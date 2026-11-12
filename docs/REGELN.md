@@ -180,9 +180,9 @@ in den Pott; dann gibt der Nächste.
   den Pott (Annahmen 12, 18, 20–23).
 - Legen und Bockrunden spielt Lukas' Runde nicht; sie bleiben mögliche spätere Tischregeln.
 
-## Hausregeln (geplant)
+## Hausregeln
 
-Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben. **Eisenbahner (Paket H1) und Arabische Hochzeit (Paket H3) sind umgesetzt**, Hawaii-Habicht noch nicht (Paket H2). Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
+Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben. **Eisenbahner (H1), Hawaii-Habicht (H2) und Arabische Hochzeit (H3) sind umgesetzt.** Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
 
 | Spielart           | Trümpfe (hoch → niedrig)                                      | Farbkarten (hoch → niedrig) | Allein | Tout | Laufende ab    |
 | ------------------ | ------------------------------------------------------------- | --------------------------- | ------ | ---- | -------------- |
@@ -201,7 +201,11 @@ Trumpffarben: Der Spieler nennt beim Ansagen eine Trumpffarbe für die **Stiche 
 **andere** für die **Stiche 5–8**. Die Könige sind in allen acht Stichen die höchsten Trümpfe; nach
 dem vierten Stich wird die erste Farbe wieder gewöhnliche Farbe und die zweite Trumpf.
 Einzelspiel-Tarif, Schneider, Schwarz und Tout wie beim Farbwenz. Laufende zählen nur über die
-vier Könige, ab zwei.
+vier Könige, ab zwei – also höchstens vier. Umgesetzt (H2): in der Lobby unter „Hausregeln“
+einschaltbar, Standard aus; Laufende ab 2 (`RuleSet.laufende.hawaii`). Beim Ansagen wählt der
+Spieler erst die Farbe für die Stiche 1–4, dann eine andere für die Stiche 5–8; am Tisch zeigt das
+Spielschild die gerade gültige Trumpffarbe, und nach dem vierten Stich meldet die Tischleiste den
+Wechsel (Annahmen 33–36).
 
 **Arabische Hochzeit.** Wie die Hochzeit, nur mit genau **zwei Trümpfen**: Beide gehen verdeckt an
 den, der annimmt; er gibt zwei Karten zurück, die keine Trümpfe sind. Sie steht im Rang über dem
@@ -247,8 +251,8 @@ Die Unteroptionen für Ramsch gelten nur bei `allPassed: 'ramsch'`, der Stock-Ei
 `'stock'`; sie bleiben aber gespeichert.
 Werte, die nicht passen, lehnt der Host ab; alles andere bleibt unverändert.
 
-Noch keine Optionen sind die übrigen Hausregeln (siehe „Hausregeln“; Pakete H2, H3). Der
-Eisenbahner ist eine Option in `contracts`. Fest bleiben die
+Noch keine Option ist die arabische Hochzeit (siehe „Hausregeln“; Paket H3). Eisenbahner und
+Hawaii-Habicht sind Optionen in `contracts`, mit eigener Schwelle in `laufende`. Fest bleiben die
 Bettel-Reihenfolge, die Rangfolge der Spielarten und die Zahl der Spieler (feste Regeln).
 
 ## Annahmen – bitte prüfen
@@ -323,6 +327,23 @@ Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
     über die Zehner in der Reihenfolge Eichel, Gras, Herz, Schellen, mit oder gegen die Zehner.
 32. **Eisenbahner und Bots:** Die Bots sagen ihn von sich aus nie an (Paket B3), spielen ihn aber
     regelgerecht mit.
+
+### Annahmen zum Hawaii-Habicht (H2)
+
+Bei der Umsetzung festgelegt, ohne Rückfrage. **Bitte prüfen.**
+
+33. **Hawaii-Habicht, Laufende gegen den Spieler:** Wie bei allen Spielen zählen Laufende auch
+    „ohne“: Haben die Gegenspieler den Eichel- und den Gras-König, sind es zwei Laufende gegen den
+    Spieler. Die Trümpfe der beiden Farben zählen nie mit.
+34. **Hawaii-Habicht, Rang der Farbpaare:** Alle zwölf Paare (erste und zweite Farbe) sind gleich
+    viel wert; im Zweikampf wird nur „Hawaii-Habicht“ genannt, die Farben erst beim Ansagen.
+35. **Hawaii-Habicht, Bedienen beim Wechsel:** Ein Stich gehört immer ganz zu einer Phase. Ab
+    Stich 5 ist die erste Farbe eine gewöhnliche Farbe (A 10 O U 9 8 7, ohne König); wer sie dann
+    nicht mehr hat, muss nicht mit Trumpf bedienen. Hat ein Spieler in Stich 1–4 nicht Trumpf
+    bedient, kann er ab Stich 5 trotzdem Trümpfe (Könige ausgeschlossen) der zweiten Farbe haben.
+36. **Hawaii-Habicht und Bots:** Die Bots sagen ihn von sich aus nie an (Paket B3), spielen ihn
+    aber regelgerecht mit und rechnen ab Stich 5 mit der zweiten Farbe. Beim kurzen Blatt (K6,
+    sechs Stiche) wechselt die Farbe vorerst ebenfalls nach dem vierten Stich; das klärt K6.
 
 ### Annahmen zu Kontra und Re (K4)
 

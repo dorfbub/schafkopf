@@ -1,5 +1,18 @@
-import type { HandView, TableView } from '@schafkopf/core';
-import { KIND_NAME, RULES_TEXT, TABLE_TEXT, contractLabel, plainMoney } from '../../i18n/de';
+import {
+  type HandView,
+  type TableView,
+  HAWAII_SWITCH_TRICK,
+  trumpSuitFor,
+  trumpsChange,
+} from '@schafkopf/core';
+import {
+  KIND_NAME,
+  RULES_TEXT,
+  SUIT_NAME,
+  TABLE_TEXT,
+  contractLabel,
+  plainMoney,
+} from '../../i18n/de';
 import { Button } from '../kit';
 import type { SeatInfo } from './layout';
 import { DoublingTag } from './Seats';
@@ -50,6 +63,12 @@ export function TableBar({ view, hand, seats, rulesOpen, onRules, onEvening, onL
       <>
         <span className="tisch-leiste__wer">{seats.nameOf(hand.declarer)}</span> {TABLE_TEXT.plays}{' '}
         <b className="tisch-leiste__spiel">{contractLabel(hand.contract)}</b>
+        {trumpsChange(hand.contract) && tricksDone >= HAWAII_SWITCH_TRICK && (
+          <span className="tisch-leiste__trumpf">
+            {' · '}
+            {TABLE_TEXT.trumpNow(SUIT_NAME[trumpSuitFor(hand.contract, tricksDone)!])}
+          </span>
+        )}
         {hand.doubling.kontra !== null && <DoublingTag className="tisch-leiste__kontra" />}
         {hand.doubling.re !== null && <DoublingTag re className="tisch-leiste__kontra" />}
       </>

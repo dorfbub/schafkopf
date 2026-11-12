@@ -301,3 +301,68 @@ describe('Heuristik-Bot im Muss', () => {
     });
   });
 });
+
+describe('Heuristik-Bot im Hawaii-Habicht', () => {
+  const HAWAII: HandState['contract'] = { kind: 'hawaii', suit: 'gras', suit2: 'herz' };
+  const RULES: RuleSet = { ...DEFAULT_RULES, contracts: [...DEFAULT_RULES.contracts, 'hawaii'] };
+
+  /** `done` Stiche sind gespielt, Sitz 0 (Spieler) hat die Eichel-Sau angespielt. */
+  function afterLead(done: number): HandState {
+    const hands: Card[][] = [['E7'], ['G7', 'H7'], ['S7', 'S8'], ['S9', 'SA']];
+    const state: HandState = {
+      ...dealHand(RULES, 3, 1),
+      phase: 'playing',
+      contract: HAWAII,
+      declarer: 0,
+      hands,
+      tricks: Array.from({ length: done }, () => ({ leader: 0, cards: [], winner: 0, points: 0 })),
+      turn: 0,
+      currentTrick: { leader: 0, cards: [] },
+    };
+    return play({ ...state, hands: [['EA', ...hands[0]!], ...hands.slice(1)] }, 'EA');
+  }
+
+  it('sticht in Stich 4 mit der ersten, in Stich 5 mit der zweiten Trumpffarbe', () => {
+    expect(decideFor(afterLead(3))).toEqual({ type: 'play', card: 'G7' });
+    expect(decideFor(afterLead(4))).toEqual({ type: 'play', card: 'H7' });
+  });
+
+  it('merkt sich Fehlfarben über den Trumpfwechsel hinweg richtig', () => {
+    // Sitz 3 spielt, Sitz 2 (Bot) und Sitz 1 sind Gegenspieler. Erstes Spiel nach dem Geben:
+    // Der Bot sieht die Ansage und kennt damit das ganze Blatt.
+    const bot = createHeuristicBot(5);
+    const base = dealHand(RULES, 1, 1);
+    expect(base.turn).toBe(2);
+    bot.decide(handViewFor(base, 2));
+
+    const trick = (cards: Card[]) => ({ leader: 1, cards, winner: 1, points: 0 });
+    const playing = (tricks: ReturnType<typeof trick>[], lead: Card, own: Card[]): HandState => ({
+      ...base,
+      phase: 'playing',
+      contract: HAWAII,
+      declarer: 3,
+      partner: null,
+      // Nur die eigene Hand zählt; die anderen sind Platzhalter für die Kartenzahl.
+      hands: [['HK'], ['HO'], own, ['HU']],
+      tricks,
+      turn: 2,
+      currentTrick: { leader: 1, cards: [lead] },
+    });
+    // Stich 2: Gras (Trumpf) angespielt, der Spieler gibt Schellen zu – kein König, kein Gras.
+    const t1 = trick(['GO', 'G9', 'S7', 'E7']);
+    const t0 = trick(['HA', 'H9', 'H10', 'H7']);
+    bot.decide(handViewFor(playing([t0, t1], 'SA', ['S9', 'GA', 'G7']), 2));
+    // Stich 4: Eichel angespielt, der Spieler gibt Schellen zu – keine Eichel.
+    const t3 = trick(['EA', 'E8', 'G8', 'S8']);
+    const t2 = trick(['SO', 'SU', 'S9', 'SA']);
+    // Stich 5: Der Partner spielt die Eichel-Zehn an. Herz ist jetzt Trumpf, und davon kann der
+    // Spieler noch welche haben – der Stich ist nicht sicher, also nicht schmieren.
+    const action = bot.decide(handViewFor(playing([t0, t1, t2, t3], 'E10', ['GA', 'G7', 'GU']), 2));
+    expect(action).not.toEqual({ type: 'play', card: 'GA' });
+  });
+
+  it('sagt ihn nicht selbst an (B3)', () => {
+    const hand: Card[] = ['EK', 'GK', 'HK', 'SK', 'GA', 'G10', 'HA', 'H10'];
+    expect(rateContract(hand, { kind: 'hawaii', suit: 'gras', suit2: 'herz' })).toBeLessThan(0);
+  });
+});

@@ -213,6 +213,24 @@ die Form (`isWellFormedMove`), der Kern die Regel (Fehler `illegal_move`).
 - **E2E:** Der E2E-Build kennt `?seed=` für feste Karten (`connection.ts`); das Szenario
   `e2e/hochzeit.spec.ts` nutzt es.
 
+**Trumpfwechsel (Hawaii-Habicht, H2).** Eine Spielart mit `suitCount: 2` trägt zwei Farben
+(`Contract.suit`, `Contract.suit2`, verschieden); `allContracts` bildet alle Paare, `cleanCall`
+und `sameContract` kennen `suit2`, also prüft der Host die zweite Farbe ohne eigenen Code über
+`legalCalls`. Die Trümpfe hängen am Stich-Index (`trumps(contract, trick)`, Wechsel ab
+`HAWAII_SWITCH_TRICK` = 4); `trumpSuitFor(contract, trick)` liefert die gültige Farbe,
+`trumpsChange(contract)` sagt, ob sie wechselt. Wer eine Kartenordnung behält, muss das
+berücksichtigen:
+
+- **Kern:** `legalCards` und `applyPlay` rechnen jedes Mal mit `state.tricks.length`; Laufende über
+  `laufendeTrumps` (nur die Könige). Vorspiel und Ramsch nutzen Index 0 – sie haben keinen Wechsel.
+- **Bot-Gedächtnis:** Der Heuristik-Bot merkt sich Fehlfarben als Karten, die ein Sitz sicher
+  nicht hat (`Memory.absent`), und fragt `isVoid` mit der Ordnung des laufenden Stichs. Eine
+  gemerkte Farbe wäre nach dem Wechsel falsch („kein Trumpf“ hieß vorher König oder erste Farbe).
+- **Oberfläche:** `sortHand(hand, contract, tricksPlayed(view))` sortiert bei jedem Zeichnen neu;
+  das Spielschild zeigt das Zeichen der gültigen Farbe und als Zusatz „ab Stich 5: …“ bzw.
+  „Trumpf gewechselt“, die Tischleiste nach dem Wechsel „Trumpf jetzt …“. Der Ansage-Dialog hat
+  bei `suitCount: 2` einen zweiten Farbschritt.
+
 **Neuladen des Gastgebers (N2).** Der Tisch lebt im Speicher des Gastgeber-Tabs. Damit ein
 Neuladen ihn nicht beendet, schreibt `apps/web/src/connection.ts` nach jeder Änderung
 `HostSession.exportSnapshot()` in den localStorage (`schafkopf.host`): `TableState`,

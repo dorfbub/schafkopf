@@ -114,6 +114,40 @@ function KindChoice({
   );
 }
 
+/** Wahl einer Farbe (Rufsau bzw. Trumpf); gesperrt ist, wofür `available` nichts hergibt. */
+function SuitChoice({
+  legend,
+  selected,
+  available,
+  onChoose,
+}: {
+  legend: string;
+  selected: Suit | null;
+  available: (s: Suit) => boolean;
+  onChoose: (s: Suit) => void;
+}) {
+  return (
+    <fieldset className="ansage__gruppe">
+      <legend className="ansage__label">{legend}</legend>
+      <div className="ansage__wahl">
+        {SUITS.map((s) => (
+          <Choice
+            key={s}
+            pressed={selected === s}
+            disabled={!available(s)}
+            onClick={() => onChoose(s)}
+          >
+            <span className="wahl__zeichen" aria-hidden="true">
+              {bayerischTheme.suit(s)}
+            </span>
+            {SUIT_NAME[s]}
+          </Choice>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 /** Anker für den Fokus: Beim Erscheinen springt er in den Dialog, aber nicht auf einen Knopf. */
 function FocusAnchor() {
   const ref = useRef<HTMLDivElement>(null);
@@ -321,13 +355,19 @@ function DeclareStep({
   const [suit, setSuit] = useState<Suit | null>(
     forcedSuits.length === 1 ? (forcedSuits[0] ?? null) : null,
   );
+  // Zweite Trumpffarbe (Hawaii-Habicht, `suitCount: 2`): eigener Schritt nach der ersten.
+  const [suit2, setSuit2] = useState<Suit | null>(null);
   const [tout, setTout] = useState(false);
 
   const needsSuit = kind !== null && MODES[kind].suitRole !== 'none';
-  const legalFor = (k: ContractKind, s: Suit | null, t?: boolean) =>
+  const needsSuit2 = kind !== null && MODES[kind].suitCount === 2;
+  const legalFor = (k: ContractKind, s: Suit | null, t?: boolean, s2: Suit | null = null) =>
     legal.filter(
       (c) =>
-        c.kind === k && (s === null || c.suit === s) && (t === undefined || Boolean(c.tout) === t),
+        c.kind === k &&
+        (s === null || c.suit === s) &&
+        (s2 === null || c.suit2 === s2) &&
+        (t === undefined || Boolean(c.tout) === t),
     );
 
   const chooseKind = (k: ContractKind) => {
@@ -337,25 +377,43 @@ function DeclareStep({
     const nextSuit =
       MODES[k].suitRole === 'none' ? null : keep ? suit : suits.length === 1 ? suits[0]! : null;
     setSuit(nextSuit);
+    const nextSuit2 = MODES[k].suitCount === 2 && suit2 !== nextSuit ? suit2 : null;
+    setSuit2(nextSuit2);
     // Geht die Spielart nur als Tout (sie liegt unter dem Gehaltenen), ist Tout gleich an.
     if (legalFor(k, null, false).length === 0) setTout(true);
-    else if (tout && legalFor(k, nextSuit, true).length === 0) setTout(false);
+    else if (tout && legalFor(k, nextSuit, true, nextSuit2).length === 0) setTout(false);
   };
 
   const chooseSuit = (s: Suit) => {
     setSuit(s);
-    if (kind && tout && legalFor(kind, s, true).length === 0) setTout(false);
+    // Beide Farben müssen verschieden sein.
+    const nextSuit2 = suit2 === s ? null : suit2;
+    setSuit2(nextSuit2);
+    if (kind && tout && legalFor(kind, s, true, nextSuit2).length === 0) setTout(false);
+  };
+
+  const chooseSuit2 = (s: Suit) => {
+    setSuit2(s);
+    if (kind && tout && legalFor(kind, suit, true, s).length === 0) setTout(false);
   };
 
   const suitFilter = needsSuit ? suit : null;
+  const suit2Filter = needsSuit2 ? suit2 : null;
   const toutPossible =
     kind !== null &&
-    legalFor(kind, suitFilter, true).length > 0 &&
-    legalFor(kind, suitFilter, false).length > 0;
+    legalFor(kind, suitFilter, true, suit2Filter).length > 0 &&
+    legalFor(kind, suitFilter, false, suit2Filter).length > 0;
   const anyTout = legal.some((c) => c.tout);
   const chosen: Contract | undefined =
-    kind && (!needsSuit || suit)
-      ? legal.find((c) => sameContract(c, { kind, ...(suit && needsSuit ? { suit } : {}), tout }))
+    kind && (!needsSuit || suit) && (!needsSuit2 || suit2)
+      ? legal.find((c) =>
+          sameContract(c, {
+            kind,
+            ...(suit && needsSuit ? { suit } : {}),
+            ...(suit2 && needsSuit2 ? { suit2 } : {}),
+            tout,
+          }),
+        )
       : undefined;
   // Muss: gesperrt, wenn eine rufbare Sau dabei ist, von deren Farbe er keine Karte hat.
   const forced = hand.auction.forced;
@@ -399,26 +457,26 @@ function DeclareStep({
         onChoose={chooseKind}
       />
       {needsSuit && (
-        <fieldset className="ansage__gruppe">
-          <legend className="ansage__label">
-            {MODES[kind].suitRole === 'called' ? TABLE_TEXT.bidSuitCalled : TABLE_TEXT.bidSuitTrump}
-          </legend>
-          <div className="ansage__wahl">
-            {SUITS.map((s) => (
-              <Choice
-                key={s}
-                pressed={suit === s}
-                disabled={legalFor(kind, s).length === 0}
-                onClick={() => chooseSuit(s)}
-              >
-                <span className="wahl__zeichen" aria-hidden="true">
-                  {bayerischTheme.suit(s)}
-                </span>
-                {SUIT_NAME[s]}
-              </Choice>
-            ))}
-          </div>
-        </fieldset>
+        <SuitChoice
+          legend={
+            needsSuit2
+              ? TABLE_TEXT.bidSuitTrumpFirst
+              : MODES[kind].suitRole === 'called'
+                ? TABLE_TEXT.bidSuitCalled
+                : TABLE_TEXT.bidSuitTrump
+          }
+          selected={suit}
+          available={(s) => legalFor(kind, s).length > 0}
+          onChoose={chooseSuit}
+        />
+      )}
+      {needsSuit2 && suit && (
+        <SuitChoice
+          legend={TABLE_TEXT.bidSuitTrumpSecond}
+          selected={suit2}
+          available={(s) => s !== suit && legalFor(kind, suit, undefined, s).length > 0}
+          onChoose={chooseSuit2}
+        />
       )}
     </Dialog>
   );

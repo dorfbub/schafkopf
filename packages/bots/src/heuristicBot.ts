@@ -69,23 +69,31 @@ export function createHeuristicBot(seed: number): Bot {
 interface Memory {
   /** Alle Karten, die in diesem Spiel schon gefallen sind (auch eigene). */
   played: Set<Card>;
-  /** Fehlfarben je Sitz (effektive Farbe, also auch 'trump'). */
-  voids: Set<EffectiveSuit>[];
+  /**
+   * Karten, die ein Sitz sicher nicht hat: alle Karten der angespielten Farbe, wenn er nicht
+   * bedient hat. Als Karten statt als Farbe gemerkt, weil sich die Farben mitten im Spiel ändern
+   * können (Hawaii-Habicht): Wer in Stich 2 nicht Trumpf bedient, hat danach trotzdem vielleicht
+   * Trümpfe der zweiten Farbe. Fehlfarbe siehe `isVoid`.
+   */
+  absent: Set<Card>[];
   /** Anzahl abgeschlossener Stiche beim letzten Aufruf. */
   tricksSeen: number;
   /** Kartenzahl des ganzen Blatts (32 oder 24). */
   deckSize: number;
+  /** Das ganze Blatt, einmal je Spiel gebaut. */
+  deck: readonly Card[];
 }
 
 function createMemory(): Memory {
-  return { played: new Set(), voids: [], tricksSeen: 0, deckSize: 32 };
+  return { played: new Set(), absent: [], tricksSeen: 0, deckSize: 32, deck: createDeck('lang') };
 }
 
 function resetMemory(memory: Memory, view: HandView): void {
   memory.played = new Set();
-  memory.voids = view.handSizes.map(() => new Set());
+  memory.absent = view.handSizes.map(() => new Set());
   memory.tricksSeen = 0;
   memory.deckSize = view.handSizes.reduce((a, b) => a + b, 0);
+  memory.deck = createDeck(memory.deckSize < 32 ? 'kurz' : 'lang');
 }
 
 function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: number): void {
@@ -95,9 +103,18 @@ function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: numb
   trick.cards.forEach((c, i) => {
     memory.played.add(c);
     if (i > 0 && effectiveSuit(c, order) !== leadSuit) {
-      memory.voids[(trick.leader + i) % players]!.add(leadSuit);
+      const absent = memory.absent[(trick.leader + i) % players]!;
+      for (const d of memory.deck) if (effectiveSuit(d, order) === leadSuit) absent.add(d);
     }
   });
+}
+
+/** Hat `seat` sicher keine Karte der Farbe `suit` (nach der Ordnung `order`)? */
+function isVoid(memory: Memory, seat: Seat, suit: EffectiveSuit, order: CardOrder): boolean {
+  const absent = memory.absent[seat]!;
+  if (absent.size === 0) return false;
+  const cards = memory.deck.filter((c) => effectiveSuit(c, order) === suit);
+  return cards.length > 0 && cards.every((c) => absent.has(c));
 }
 
 function updateMemory(memory: Memory, view: HandView): void {
@@ -106,7 +123,7 @@ function updateMemory(memory: Memory, view: HandView): void {
   if (
     view.phase === 'bidding' ||
     completed < memory.tricksSeen ||
-    memory.voids.length !== view.handSizes.length
+    memory.absent.length !== view.handSizes.length
   ) {
     resetMemory(memory, view);
     if (view.phase === 'bidding') return;
@@ -244,7 +261,7 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
     sides.filter((s) => s !== skip).reduce((sum, s) => sum + sideStrength(hand, order, s), 0);
 
   if (contract.tout) {
-    const base = rateContract(hand, { kind: contract.kind, suit: contract.suit }, deckSize);
+    const base = rateContract(hand, { ...contract, tout: false }, deckSize);
     return base >= 0 && toutSafe(hand, contract, order) ? base + 1 : -10;
   }
 
@@ -283,8 +300,9 @@ export function rateContract(hand: readonly Card[], contract: Contract, deckSize
     case 'bettel':
       return bettelSafe(hand, order, deckSize) ? 0.5 : -10;
     case 'hochzeit': // bietet der Bot nicht an (nicht in `KNOWN_KINDS`)
-    case 'arabischeHochzeit': // Hausregel: sagt der Bot nie an
-    case 'eisenbahner': // Hausregel: sagt der Bot nie an (B3)
+    case 'arabischeHochzeit':
+    case 'eisenbahner':
+    case 'hawaii': // Hausregeln: sagt der Bot nie an (B3)
     case 'ramsch': // nicht ansagbar
       return -10;
   }
@@ -372,7 +390,7 @@ function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
   const order = orderFor(contract, tricksPlayed(view));
   const players = view.handSizes.length;
   const me = view.turn;
-  const deck = createDeck(memory.deckSize < 32 ? 'kurz' : 'lang');
+  const deck = memory.deck;
   const unseen = deck.filter((c) => !view.hand.includes(c) && !memory.played.has(c));
   // Im Ramsch gibt es keinen Ansager; dann ist jeder Gegner (`sideOf` liefert 'unknown').
   const declarer = view.declarer;
@@ -407,6 +425,9 @@ function play(view: HandView, memory: Memory, rng: Rng): Card {
 const isTrump = (ctx: Ctx, c: Card) => ctx.order.trumps.includes(c);
 const eff = (ctx: Ctx, c: Card) => effectiveSuit(c, ctx.order);
 const str = (ctx: Ctx, c: Card) => strength(c, ctx.order);
+/** Fehlfarbe nach der Ordnung des laufenden Stichs. */
+const voidOf = (ctx: Ctx, seat: Seat, suit: EffectiveSuit) =>
+  isVoid(ctx.memory, seat, suit, ctx.order);
 
 /** Wie teuer es ist, einen Trumpf herzugeben (hohe Trümpfe sind Stiche wert). */
 function trumpCost(ctx: Ctx, c: Card): number {
@@ -446,14 +467,13 @@ function isTopOfSuit(ctx: Ctx, c: Card): boolean {
  * Fehlfarbe (und damit Einstechen) gerechnet.
  */
 function canBeat(ctx: Ctx, seat: Seat, best: Card, leadSuit: EffectiveSuit): boolean {
-  const voids = ctx.memory.voids[seat]!;
   const higherInLead = ctx.unseen.some(
     (u) => eff(ctx, u) === leadSuit && eff(ctx, best) === leadSuit && str(ctx, u) > str(ctx, best),
   );
-  if (!voids.has(leadSuit) && higherInLead) return true;
-  if (leadSuit === 'trump' || voids.has('trump')) return false;
+  if (!voidOf(ctx, seat, leadSuit) && higherInLead) return true;
+  if (leadSuit === 'trump' || voidOf(ctx, seat, 'trump')) return false;
   const leadLeft = ctx.unseen.filter((u) => eff(ctx, u) === leadSuit).length;
-  const mayBeVoid = voids.has(leadSuit) || leadLeft < 3;
+  const mayBeVoid = voidOf(ctx, seat, leadSuit) || leadLeft < 3;
   if (!mayBeVoid) return false;
   return ctx.unseen.some(
     (u) => isTrump(ctx, u) && (!isTrump(ctx, best) || str(ctx, u) > str(ctx, best)),
@@ -513,7 +533,7 @@ function lead(ctx: Ctx, legal: readonly Card[]): Card {
     (c) =>
       isTopOfSuit(ctx, c) &&
       (unseenTrumps.length === 0 ||
-        (foes.every((s) => !ctx.memory.voids[s]!.has(eff(ctx, c))) &&
+        (foes.every((s) => !voidOf(ctx, s, eff(ctx, c))) &&
           ctx.unseen.filter((u) => eff(ctx, u) === eff(ctx, c)).length >= 3)),
   );
 
@@ -551,7 +571,7 @@ function lead(ctx: Ctx, legal: readonly Card[]): Card {
   // Sonst eine billige Farbkarte – bevorzugt in einer Farbe, die der Spieler noch hat.
   if (sideCards.length > 0) {
     const declarer = ctx.view.declarer!;
-    const notVoid = sideCards.filter((c) => !ctx.memory.voids[declarer]!.has(eff(ctx, c)));
+    const notVoid = sideCards.filter((c) => !voidOf(ctx, declarer, eff(ctx, c)));
     const pool = notVoid.length > 0 ? notVoid : sideCards;
     return minBy(pool, (c) => pointsOf(c) + ctx.rng() * 0.01);
   }
@@ -634,7 +654,7 @@ function bettelCard(ctx: Ctx, legal: readonly Card[]): Card {
   }
 
   if (trick.cards.length === 0) {
-    const notVoid = legal.filter((c) => !ctx.memory.voids[declarer]!.has(eff(ctx, c)));
+    const notVoid = legal.filter((c) => !voidOf(ctx, declarer, eff(ctx, c)));
     return low(notVoid.length > 0 ? notVoid : legal);
   }
   const offset = (declarer - trick.leader + ctx.players) % ctx.players;

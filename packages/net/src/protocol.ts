@@ -22,7 +22,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  */
 /** 13: Eisenbahner (H1): Spielart `eisenbahner`, `RuleSet.laufende.eisenbahner`. */
 /** 14: Arabische Hochzeit (H3): Spielart `arabischeHochzeit`, `RuleSet.laufende.arabischeHochzeit`. */
-export const PROTOCOL_VERSION = 14;
+/** 15: Hawaii-Habicht (H2): Spielart `hawaii`, `Contract.suit2`, `RuleSet.laufende.hawaii`. */
+export const PROTOCOL_VERSION = 15;
 
 export type ClientMessage =
   | {

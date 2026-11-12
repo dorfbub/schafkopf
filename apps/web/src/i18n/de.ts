@@ -13,6 +13,7 @@ import type {
   Rank,
   Suit,
 } from '@schafkopf/core';
+import { HAWAII_SWITCH_TRICK } from '@schafkopf/core';
 import type { HostErrorCode } from '@schafkopf/net';
 
 export const SUIT_NAME: Record<Suit, string> = {
@@ -35,6 +36,7 @@ export const RANK_NAME: Record<Rank, string> = {
 
 export function contractLabel(contract: Contract): string {
   const suit = contract.suit ? SUIT_NAME[contract.suit] : '';
+  const suit2 = contract.suit2 ? SUIT_NAME[contract.suit2] : '';
   const base = {
     sauspiel: `Sauspiel auf die ${suit}-Sau`,
     hochzeit: 'Hochzeit',
@@ -44,6 +46,7 @@ export function contractLabel(contract: Contract): string {
     wenz: 'Wenz',
     eisenbahner: 'Eisenbahner',
     geier: 'Geier',
+    hawaii: `Hawaii-Habicht (${suit}, ab Stich ${HAWAII_SWITCH_TRICK + 1} ${suit2})`,
     bettel: 'Bettel',
     ramsch: 'Ramsch',
   }[contract.kind];
@@ -158,6 +161,7 @@ export const KIND_NAME: Record<ContractKind, string> = {
   farbwenz: 'Farbwenz',
   eisenbahner: 'Eisenbahner',
   geier: 'Geier',
+  hawaii: 'Hawaii-Habicht',
   bettel: 'Bettel',
   ramsch: 'Ramsch',
 };
@@ -245,6 +249,12 @@ export const TABLE_TEXT = {
   bidKind: 'Spielart',
   bidSuitCalled: 'Auf welche Sau?',
   bidSuitTrump: 'Welche Farbe ist Trumpf?',
+  bidSuitTrumpFirst: `Trumpf in Stich 1–${HAWAII_SWITCH_TRICK}`,
+  bidSuitTrumpSecond: `Trumpf ab Stich ${HAWAII_SWITCH_TRICK + 1} (eine andere Farbe)`,
+  // Hawaii-Habicht: Trumpffarbe wechselt nach dem vierten Stich (`HAWAII_SWITCH_TRICK`)
+  trumpNext: (suit: string) => `ab Stich ${HAWAII_SWITCH_TRICK + 1}: ${suit}`,
+  trumpSwitched: 'Trumpf gewechselt',
+  trumpNow: (suit: string) => `Trumpf jetzt ${suit}`,
   bidTout: 'Tout',
   bidTouthint: 'alle Stiche',
   bidPass: 'Weiter',
@@ -451,7 +461,7 @@ export const RULES_TEXT = {
     'Das Sauspiel ist immer dabei. Hochzeit: Wer genau einen Trumpf hat, sucht sich einen Partner, der ihn gegen eine andere Karte nimmt.',
   houseRules: 'Hausregeln',
   houseRulesHint:
-    'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe. Arabische Hochzeit: wie die Hochzeit, aber mit genau zwei Trümpfen und zwei Karten zurück.',
+    'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe. Hawaii-Habicht: vier Könige, dazu eine Trumpffarbe für die Stiche 1–4 und eine andere ab Stich 5. Arabische Hochzeit: wie die Hochzeit, aber mit genau zwei Trümpfen und zwei Karten zurück.',
   tout: 'Tout erlaubt',
   sie: 'Sie (alle Ober und Unter) wird bezahlt',
   davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',

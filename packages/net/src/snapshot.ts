@@ -43,7 +43,8 @@ import {
  */
 /** 12: Eisenbahner (H1): `RuleSet.laufende.eisenbahner`. */
 /** 13: Arabische Hochzeit (H3): `RuleSet.laufende.arabischeHochzeit`. */
-export const HOST_SNAPSHOT_VERSION = 13;
+/** 14: Hawaii-Habicht (H2): `Contract.suit2`, `RuleSet.laufende.hawaii`. */
+export const HOST_SNAPSHOT_VERSION = 14;
 
 export interface HostSnapshot {
   v: number;

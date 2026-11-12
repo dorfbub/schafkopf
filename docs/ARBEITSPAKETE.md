@@ -213,7 +213,7 @@ Geier, Laufende-Schwelle 2 in `RuleSet.laufende`, Bereich „Hausregeln“ in de
   `HOST_SNAPSHOT_VERSION` 12 (nach K5). Tests: `packages/core/test/eisenbahner.test.ts`,
   Zufallsspiele über den Host in `packages/net/test/eisenbahner.test.ts`. Annahmen 31–32.
 
-### H2 · Hawaii-Habicht
+### H2 · Hawaii-Habicht (erledigt)
 
 Eintrag `hawaii` mit `suitCount: 2`, `Contract.suit2`, Trumpfwechsel nach dem vierten Stich über
 `trumps(contract, trick)`, Laufende nur über die Könige; zweiter Farbschritt im Ansage-Dialog;
@@ -226,6 +226,17 @@ Farbe; Bots zählen Trümpfe je Stich richtig.
   Stich 4 nach der ersten, in Stich 5 nach der zweiten Farbe; Könige durchgehend höchste Trümpfe;
   Laufende zählen höchstens vier; Rang zwischen Geier und Farbwenz; Tout. Zufallsspiel-Test über
   Host mit Bots.
+- **Stand:** umgesetzt. Kern: `Contract.suit2`, `ModeDefinition.suitCount`, Eintrag `hawaii` in
+  `CONTRACT_KINDS`/`MODES` (zwischen Geier und Farbwenz, `laufendeTrumps` = Könige),
+  `HAWAII_SWITCH_TRICK`, `trumpSuitFor`, `trumpsChange`; `allContracts` bildet die Farbpaare,
+  `cleanCall`/`sameContract` kennen `suit2`; `RuleSet.laufende.hawaii` = 2. Bot-Gedächtnis merkt
+  Fehlfarben als Karten (`Memory.absent`), damit sie den Wechsel überstehen; der Bot sagt ihn nicht
+  an (B3). Oberfläche: zweiter Farbschritt im Ansage-Dialog, Spielschild mit gültiger Farbe und
+  Wechsel, Tischleiste „Trumpf jetzt …“, Lobby-Text. `PROTOCOL_VERSION` 14,
+  `HOST_SNAPSHOT_VERSION` 13. Tests: `packages/core/test/hawaii.test.ts`,
+  `packages/net/test/hawaii.test.ts` (Zufallsspiele über den Host, Prüfung von `suit2`), Bot und
+  Sortierung in `packages/bots/test`, `apps/web/src/ui/table/*.test.ts`, E2E
+  `e2e/hawaii.spec.ts`. Annahmen 33–36.
 
 ### H3 · Arabische Hochzeit (erledigt)
 
