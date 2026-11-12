@@ -41,7 +41,8 @@ import {
  * 11: Hochzeit (K5): `HandState.prelude`, Phase `prelude`, `Auction.yielded`/`failed`,
  * `RuleSet.laufende.hochzeit`.
  */
-export const HOST_SNAPSHOT_VERSION = 11;
+/** 12: Eisenbahner (H1): `RuleSet.laufende.eisenbahner`. */
+export const HOST_SNAPSHOT_VERSION = 12;
 
 export interface HostSnapshot {
   v: number;

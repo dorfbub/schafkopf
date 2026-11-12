@@ -30,7 +30,7 @@ Spiel. Die Ausbaupakete stehen in [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md)
 
 | Bereich       | Stand                                                                                                                              |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und „Sie“ (einstellbar)                                                   |
+| Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und „Sie“ (einstellbar); Hausregel Eisenbahner (Lobby, Standard aus)      |
 | Tischregeln   | In der Lobby einstellbar: erlaubte Spielarten, Tout, Tarif, Schwellen für Laufende, „Sie“, Davonlaufen                             |
 | Abrechnung    | Grundtarif, Schneider, Schwarz, Laufende                                                                                           |
 | Alle „weiter“ | Zusammenwerfen (weitere Varianten Ramsch, Stock, Muss sind als Tischregel geplant)                                                 |

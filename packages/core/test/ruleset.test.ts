@@ -93,6 +93,7 @@ describe('DEFAULT_RULES', () => {
       geier: 2,
       farbwenz: 3,
       hochzeit: 3,
+      eisenbahner: 2,
     });
     expect(DEFAULT_RULES.contracts).toEqual([
       'sauspiel',
@@ -252,6 +253,7 @@ describe('Rangfolge', () => {
       'sauspiel',
       'hochzeit',
       'bettel',
+      'eisenbahner',
       'geier',
       'farbwenz',
       'wenz',

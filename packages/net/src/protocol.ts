@@ -20,7 +20,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * 12: Hochzeit (K5): Phase `prelude`, Aktion `prelude`, `HandView.prelude`/`legalMoves`,
  * `Auction.yielded`/`failed`, `RuleSet.laufende.hochzeit`, Fehler `illegal_move`.
  */
-export const PROTOCOL_VERSION = 12;
+/** 13: Eisenbahner (H1): Spielart `eisenbahner`, `RuleSet.laufende.eisenbahner`. */
+export const PROTOCOL_VERSION = 13;
 
 export type ClientMessage =
   | {

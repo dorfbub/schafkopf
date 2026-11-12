@@ -81,6 +81,20 @@ test('Lobby: Platz wechseln und Regel ändern sieht der Gast', async ({ context 
     .not.toEqual(before);
 });
 
+test('Hausregel: Eisenbahner einschalten, der Gast sieht ihn, das Spiel läuft', async ({
+  context,
+}) => {
+  const table = await newTisch(context);
+  await seatedLobby(table);
+  const kinds = table.guest.locator('dt', { hasText: 'Spielarten' }).locator('+ dd');
+  await expect(kinds).not.toContainText('Eisenbahner');
+  await table.host.getByRole('checkbox', { name: 'Eisenbahner' }).check();
+  await expect(kinds).toContainText('Eisenbahner');
+  await startGame(table);
+  const { host } = await playUntilResult(table);
+  expect(host.title).toMatch(/gewonnen|verloren/);
+});
+
 test('Kontra: der Gastgeber schaltet es ein, ein Gegenspieler sagt es, beide sehen es', async ({
   context,
 }) => {
