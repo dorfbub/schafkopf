@@ -6,19 +6,21 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
+Entschieden am 12.11.2026: Gemischt wird weiter fair und zufällig (`docs/ARCHITEKTUR.md`,
+„Mischen“); „Mischen wie am echten Tisch“ kommt nicht.
+
 Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „Wer spielt was“,
 „Letzten Stich besser zeigen“, „Spielverlauf nach dem Spiel“ – beschrieben in
 [DESIGN.md](DESIGN.md), Abschnitt „Spieltisch“.
 
-| Thema                       | Größe                     | Klären                               |
-| --------------------------- | ------------------------- | ------------------------------------ |
-| Mehrere Kartensets          | mittel                    | Welche Sets zuerst; Lizenzen         |
-| Watten                      | groß                      | Variante(n); integrieren oder forken |
-| Android-App                 | klein bis mittel          | Reicht die installierbare Web-App?   |
-| Weitere Hausregeln          | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Mischen wie am echten Tisch | klein                     | –                                    |
-| Kopfzeile bricht um         | klein                     | –                                    |
-| Lebendige Bildkarten        | mittel                    | Welche Momente; wie viel Bewegung    |
+| Thema                | Größe                     | Klären                               |
+| -------------------- | ------------------------- | ------------------------------------ |
+| Mehrere Kartensets   | mittel                    | Welche Sets zuerst; Lizenzen         |
+| Watten               | groß                      | Variante(n); integrieren oder forken |
+| Android-App          | klein bis mittel          | Reicht die installierbare Web-App?   |
+| Weitere Hausregeln   | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
+| Kopfzeile bricht um  | klein                     | –                                    |
+| Lebendige Bildkarten | mittel                    | Welche Momente; wie viel Bewegung    |
 
 ---
 
@@ -90,12 +92,6 @@ Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
   unter „Hausregeln“, dann ein Paket nach dem Muster von H1.
 - **Legen und Bockrunden:** spielt Lukas' Runde nicht. Der Entwurf hält den Platz frei
   (`Factor`, `HandCarry.factor`); ein Paket gibt es erst, wenn eine Runde sie wünscht.
-
-## Mischen wie am echten Tisch
-
-Manche Runden wollen „echtes“ Mischen wie am Tisch, bei dem Stiche teilweise zusammenbleiben. Das
-ist bewusst nicht zufällig und wäre eine eigene Tischregel (`RuleSet`). Das faire, zufällige
-Mischen ist beschrieben in `docs/ARCHITEKTUR.md`, „Mischen“.
 
 ## Kopfzeile bricht um
 
