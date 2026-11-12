@@ -409,7 +409,7 @@ Töne (Karte legen, Stich), kurze Sprüche/Emotes an den Tisch, Einstellungen da
 
 ### U8 · Kleinigkeiten vom Testabend (12.11.2026)
 
-Drei kleine Funde, die zusammen ein Paket ergeben.
+Vier kleine Funde, die zusammen ein Paket ergeben.
 
 - **Bot-Namen:** Die Bots heißen „Saller Wolfe“, „Lengschwendtner Sepp“ und „Ziegler Fritz“
   (bisher `DEFAULT_BOT_NAMES` in `packages/net/src/host.ts`), der vierte (nur für den Fall ohne
@@ -419,11 +419,18 @@ Drei kleine Funde, die zusammen ein Paket ergeben.
   Namen bzw. Bild. In allen drei Größen (hochkant, quer, Desktop) prüfen.
 - **Spielverlauf auch im Ramsch:** Nach einem Ramsch fehlt „So wurde gespielt“; den Verlauf
   (`GameHistory.tsx`) auch in `RamschResult.tsx` zeigen. Hängt mit U4 zusammen, das dieselben
-  Dialoge anfasst – nach U4 umsetzen oder dort mitnehmen.
+  Dialoge anfasst; U4 ist inzwischen in main.
+- **Regel-Tafel des Gastes läuft über:** In der Lobby ragt beim Gast die rechte Spalte der Tafel
+  „Regeln“ (`RulesSummary`, `#lobby-rules`) über den rechten Rand hinaus. Die Werte brechen
+  wortweise um, stehen aber außerhalb der Tafel (Bildschirmfoto vom Testabend, Desktop etwa
+  1500 px breit). Die Werte müssen innerhalb der Tafel umbrechen. Bei vielen Einstellungen
+  (Ramsch mit Unteroptionen, Laufende je Spielart, Hausregeln) bleibt alles lesbar, in allen drei
+  Größen.
 
 - **Modell:** Sonnet.
 - **Abnahme:** Bot-Namen in Lobby, Tisch und Ergebnis; E2E prüft den Verlauf nach einem Ramsch;
-  Bildschirmfotos der Marke „am Zug“ in drei Größen.
+  Bildschirmfotos der Marke „am Zug“ und der Regel-Tafel des Gastes (alle Optionen an) in drei
+  Größen; ein E2E- oder Layout-Test prüft, dass die Regel-Tafel nicht über ihren Rand ragt.
 
 ---
 
