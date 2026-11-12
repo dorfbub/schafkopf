@@ -182,8 +182,7 @@ in den Pott; dann gibt der Nächste.
 
 ## Hausregeln (geplant)
 
-Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben. **Eisenbahner ist umgesetzt
-(Paket H1)**, Hawaii-Habicht und Arabische Hochzeit noch nicht (Pakete H2, H3). Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
+Spielarten aus Lukas' Runde, von ihm im November 2026 beschrieben. **Eisenbahner (Paket H1) und Arabische Hochzeit (Paket H3) sind umgesetzt**, Hawaii-Habicht noch nicht (Paket H2). Jede ist einzeln in `RuleSet.contracts` einschaltbar, Standard „aus“.
 
 | Spielart           | Trümpfe (hoch → niedrig)                                      | Farbkarten (hoch → niedrig) | Allein | Tout | Laufende ab    |
 | ------------------ | ------------------------------------------------------------- | --------------------------- | ------ | ---- | -------------- |
@@ -205,8 +204,10 @@ Einzelspiel-Tarif, Schneider, Schwarz und Tout wie beim Farbwenz. Laufende zähl
 vier Könige, ab zwei.
 
 **Arabische Hochzeit.** Wie die Hochzeit, nur mit genau **zwei Trümpfen**: Beide gehen verdeckt an
-den, der annimmt; er gibt zwei Karten zurück, die keine Trümpfe sind. Sie steht im Rang unter der
-Hochzeit.
+den, der annimmt; er gibt zwei Karten zurück, die keine Trümpfe sind. Sie steht im Rang über dem
+Sauspiel und unter der Hochzeit. Umgesetzt (H3): in der Lobby unter „Hausregeln“ einschaltbar,
+Standard aus; Laufende ab 3 (`RuleSet.laufende.arabischeHochzeit`). Ablauf, Vorspiel und Anzeige
+sind die der Hochzeit (Annahmen 15, 16, 26–30), nur mit zwei Karten statt einer.
 
 **Rangfolge mit allen Varianten und Hausregeln:**
 Sauspiel < Arabische Hochzeit < Hochzeit < Bettel < Eisenbahner < Geier < Hawaii-Habicht <
@@ -238,7 +239,7 @@ Voreinstellung `DEFAULT_RULES` entspricht genau den Werten dieses Dokuments.
 | `kontra`              | Kontra und Re erlaubt                                | aus              | an/aus                                      |
 
 Reihenfolge der Schwellen: Sauspiel, Farb-Solo (`solo`), Wenz, Geier, Farbwenz, Hochzeit →
-3, 3, 2, 2, 3, 3. Die klassischen sechs Spielarten sind Sauspiel, Bettel, Geier, Farbwenz, Wenz
+3, 3, 2, 2, 3, 3; dazu `eisenbahner` 2 und `arabischeHochzeit` 3. Die klassischen sechs Spielarten sind Sauspiel, Bettel, Geier, Farbwenz, Wenz
 und Solo; die Hochzeit ist zusätzlich wählbar und standardmäßig aus.
 Ist `sie` aus, wird ein Solo mit allen Obern und Unter wie jedes andere Solo abgerechnet
 (Laufende zählen dann). Ist `davonlaufen` aus, darf die Ruffarbe nur mit der Sau angespielt werden.
@@ -359,3 +360,16 @@ Bei der Umsetzung von K5 offen geblieben und ohne Rückfrage nach gängiger Spie
 30. **Herauskommen:** Wie immer der Spieler links vom Geber, auch wenn er an der Hochzeit beteiligt
     ist (Annahme 9). Ist „alle weiter“ auf Muss gestellt und scheitert eine Hochzeit ohne
     Nachrücker, muss der Besitzer des Eichel-Obers spielen – auch wenn es der Hochzeiter ist.
+
+### Annahmen zur Arabischen Hochzeit (H3)
+
+Ohne Rückfrage nach gängiger Spielweise festgelegt. **Bitte prüfen.**
+
+40. **Zu wenige Nicht-Trümpfe beim Zurückgeben:** Hat der Annehmende nach dem Erhalt der zwei
+    Trümpfe weniger als zwei Karten, die keine Trümpfe sind, gibt er alle seine Nicht-Trümpfe und
+    dazu so viele Trümpfe, wie zur zweiten Karte fehlen (Verallgemeinerung von Annahme 15: er gibt
+    immer so wenige Trümpfe zurück wie möglich).
+41. **Laufende:** Schwelle 3 wie bei Sauspiel und Hochzeit; gezählt wird nach dem Tausch wie bei
+    der Hochzeit. Tarif wie Sauspiel, kein Tout.
+42. **Bots:** Sie sagen die arabische Hochzeit nie an, lehnen sie ab und geben, wenn sie als
+    Vertretung annehmen mussten, die zwei niedrigsten erlaubten Karten zurück.

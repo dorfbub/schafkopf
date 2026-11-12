@@ -28,19 +28,19 @@ von allein, damit ein laufender Tisch nicht abbricht.
 Spielbar: Tisch eröffnen, Freunde per Link einladen, ansagen, Stiche spielen, abrechnen, nächstes
 Spiel. Die Ausbaupakete stehen in [docs/ARBEITSPAKETE.md](docs/ARBEITSPAKETE.md).
 
-| Bereich       | Stand                                                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und „Sie“ (einstellbar); Hausregel Eisenbahner (Lobby, Standard aus)      |
-| Tischregeln   | In der Lobby einstellbar: erlaubte Spielarten, Tout, Tarif, Schwellen für Laufende, „Sie“, Davonlaufen                             |
-| Abrechnung    | Grundtarif, Schneider, Schwarz, Laufende                                                                                           |
-| Alle „weiter“ | Zusammenwerfen (weitere Varianten Ramsch, Stock, Muss sind als Tischregel geplant)                                                 |
-| Netz          | WebRTC über Trystero; Platz wird nach Verbindungsabbruch wiedergefunden; Gastgeber-Tisch übersteht Neuladen (Zustand im Browser)   |
-| Ausfall       | Getrennte Spieler werden nach 30 s durch einen Bot vertreten, bei Rückkehr übernommen; der Gastgeber kann Spieler vom Tisch nehmen |
-| Lobby         | Platzwahl, Zuschauer, Umbenennen, Tischeinstellungen                                                                               |
-| Bots          | Heuristik-Bot: sagt nach Blattstärke an, spielt Partner-/Gegner-Taktik; gegen den Zufalls-Bot getestet                             |
-| App           | Installierbar (Manifest, Symbole), Offline-Start, Hinweis bei neuer Version                                                        |
-| Tests         | Unit-Tests für Kern, Netz und Bots; Ende-zu-Ende-Tests mit Playwright (zwei Spieler, ein ganzes Spiel)                             |
-| Oberfläche    | Funktional, Platzhalter-Gestaltung und Kartenbild (Gestaltung ist ein eigenes Paket)                                               |
+| Bereich       | Stand                                                                                                                                              |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spielarten    | Sauspiel, Wenz, Geier, Farbwenz, Farb-Solo, Bettel; Tout und „Sie“ (einstellbar); Hausregeln Eisenbahner, Arabische Hochzeit (Lobby, Standard aus) |
+| Tischregeln   | In der Lobby einstellbar: erlaubte Spielarten, Tout, Tarif, Schwellen für Laufende, „Sie“, Davonlaufen                                             |
+| Abrechnung    | Grundtarif, Schneider, Schwarz, Laufende                                                                                                           |
+| Alle „weiter“ | Zusammenwerfen (weitere Varianten Ramsch, Stock, Muss sind als Tischregel geplant)                                                                 |
+| Netz          | WebRTC über Trystero; Platz wird nach Verbindungsabbruch wiedergefunden; Gastgeber-Tisch übersteht Neuladen (Zustand im Browser)                   |
+| Ausfall       | Getrennte Spieler werden nach 30 s durch einen Bot vertreten, bei Rückkehr übernommen; der Gastgeber kann Spieler vom Tisch nehmen                 |
+| Lobby         | Platzwahl, Zuschauer, Umbenennen, Tischeinstellungen                                                                                               |
+| Bots          | Heuristik-Bot: sagt nach Blattstärke an, spielt Partner-/Gegner-Taktik; gegen den Zufalls-Bot getestet                                             |
+| App           | Installierbar (Manifest, Symbole), Offline-Start, Hinweis bei neuer Version                                                                        |
+| Tests         | Unit-Tests für Kern, Netz und Bots; Ende-zu-Ende-Tests mit Playwright (zwei Spieler, ein ganzes Spiel)                                             |
+| Oberfläche    | Funktional, Platzhalter-Gestaltung und Kartenbild (Gestaltung ist ein eigenes Paket)                                                               |
 
 Die genauen Regeln und alle getroffenen Annahmen stehen in [docs/REGELN.md](docs/REGELN.md).
 

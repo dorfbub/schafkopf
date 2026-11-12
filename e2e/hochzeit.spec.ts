@@ -21,7 +21,7 @@ test('Hochzeit: Hanni sagt sie an, Sepp nimmt an und gibt verdeckt eine Karte zu
   const table = await newTisch(context);
   const errors = [...collectErrors(table.host), ...collectErrors(table.guest)];
   await seatedLobby(table, QUERY);
-  await table.host.getByRole('checkbox', { name: 'Hochzeit' }).check();
+  await table.host.getByRole('checkbox', { name: 'Hochzeit', exact: true }).check();
   await expect(table.guest.locator('dt', { hasText: 'Spielarten' }).locator('+ dd')).toContainText(
     'Hochzeit',
   );

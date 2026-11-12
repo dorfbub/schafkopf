@@ -43,6 +43,7 @@ export const LAUFENDE_KINDS: readonly LaufendeKind[] = [
   'geier',
   'farbwenz',
   'hochzeit',
+  'arabischeHochzeit',
   'eisenbahner',
 ];
 
@@ -83,6 +84,7 @@ export const DEFAULT_RULES: RuleSet = {
     geier: 2,
     farbwenz: 3,
     hochzeit: 3,
+    arabischeHochzeit: 3,
     eisenbahner: 2,
   },
   sie: true,

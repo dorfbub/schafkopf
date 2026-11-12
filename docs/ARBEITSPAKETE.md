@@ -227,7 +227,7 @@ Farbe; Bots zählen Trümpfe je Stich richtig.
   Laufende zählen höchstens vier; Rang zwischen Geier und Farbwenz; Tout. Zufallsspiel-Test über
   Host mit Bots.
 
-### H3 · Arabische Hochzeit
+### H3 · Arabische Hochzeit (erledigt)
 
 Eintrag `arabischeHochzeit` mit `weddingPrelude(2)`: Bedingung genau zwei Trümpfe, Tausch von zwei
 Karten, Rang zwischen Sauspiel und Hochzeit.
@@ -236,6 +236,14 @@ Karten, Rang zwischen Sauspiel und Hochzeit.
 - **Abhängigkeit:** K5.
 - **Abnahme:** Kein neuer Ablaufcode außer dem Parameter 2. Tests für: nur mit genau zwei Trümpfen;
   zwei Karten hin und zwei zurück; Hochzeit überbietet arabische Hochzeit; keiner nimmt an.
+- **Stand:** umgesetzt. Kein neuer Ablaufcode: im Kern nur der Eintrag in `CONTRACT_KINDS`/`MODES`
+  (`modes.ts`, `eligible` = genau zwei Trümpfe, `prelude: weddingPrelude(2)`) und die Schwelle in
+  `RuleSet.laufende` (`rules.ts`, `LAUFENDE_KINDS`). Außerhalb des Kerns: Texte (Vorspiel-Dialog
+  und Tischleiste nennen den Spielnamen und die Kartenzahl), Lobby-Checkbox unter „Hausregeln“,
+  Bot bewertet sie mit „nie ansagen“. `PROTOCOL_VERSION` 14, `HOST_SNAPSHOT_VERSION` 13. Tests:
+  `packages/core/test/arabischeHochzeit.test.ts`, Zufallsspiele über den Host in
+  `packages/net/test/arabischeHochzeit.test.ts`, Bot-Rückgabe in `packages/net/test/hochzeit.test.ts`,
+  E2E in `e2e/tisch.spec.ts`. Annahmen 40–42.
 
 ---
 

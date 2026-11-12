@@ -1,6 +1,6 @@
 import type { Card, HandView, PreludeMove, TableView } from '@schafkopf/core';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { TABLE_TEXT, preludeMoveLabel } from '../../i18n/de';
+import { KIND_NAME, TABLE_TEXT, preludeMoveLabel } from '../../i18n/de';
 import { cardLabel } from '../CardView';
 import { bayerischTheme } from '../cardTheme';
 import { Button, Dialog } from '../kit';
@@ -30,7 +30,14 @@ export function PreludeDialog({ view, hand, seats, onMove }: Props) {
     .map((e) => TABLE_TEXT.bidSaid(seats.nameOf(e.seat), preludeMoveLabel(e.move)));
   const status = said.length > 0 && <span className="ansage__status">{said.join(' · ')}</span>;
   if (prelude.step === 'offer') {
-    return <OfferStep declarer={declarer} status={status} onMove={onMove} />;
+    return (
+      <OfferStep
+        declarer={declarer}
+        arabic={hand.contract?.kind === 'arabischeHochzeit'}
+        status={status}
+        onMove={onMove}
+      />
+    );
   }
   return <ExchangeStep hand={hand} declarer={declarer} onMove={onMove} />;
 }
@@ -44,17 +51,22 @@ function FocusAnchor() {
 
 function OfferStep({
   declarer,
+  arabic,
   status,
   onMove,
 }: {
   declarer: string;
+  arabic: boolean;
   status: ReactNode;
   onMove: (move: PreludeMove) => void;
 }) {
   return (
     <Dialog
       className="ansage hochzeit"
-      title={TABLE_TEXT.weddingOfferTitle(declarer)}
+      title={TABLE_TEXT.weddingOfferTitle(
+        declarer,
+        arabic ? KIND_NAME.arabischeHochzeit : undefined,
+      )}
       hint={status}
       actions={
         <>
@@ -66,7 +78,7 @@ function OfferStep({
       }
     >
       <FocusAnchor />
-      <p className="ansage__text">{TABLE_TEXT.weddingOfferBody(declarer)}</p>
+      <p className="ansage__text">{TABLE_TEXT.weddingOfferBody(declarer, arabic ? 2 : 1)}</p>
     </Dialog>
   );
 }

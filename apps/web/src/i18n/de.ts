@@ -38,6 +38,7 @@ export function contractLabel(contract: Contract): string {
   const base = {
     sauspiel: `Sauspiel auf die ${suit}-Sau`,
     hochzeit: 'Hochzeit',
+    arabischeHochzeit: 'Arabische Hochzeit',
     solo: `${suit}-Solo`,
     farbwenz: `${suit}-Farbwenz`,
     wenz: 'Wenz',
@@ -152,6 +153,7 @@ export const UI_TEXT = {
 export const KIND_NAME: Record<ContractKind, string> = {
   sauspiel: 'Sauspiel',
   hochzeit: 'Hochzeit',
+  arabischeHochzeit: 'Arabische Hochzeit',
   solo: 'Solo',
   wenz: 'Wenz',
   farbwenz: 'Farbwenz',
@@ -268,13 +270,15 @@ export const TABLE_TEXT = {
   // Hochzeit (K5)
   wedding: 'Hochzeit',
   yourTurnWedding: 'Du bist gefragt',
-  weddingStatus: (declarer: string, asked: string) =>
-    `${declarer} macht Hochzeit – ${asked} ist gefragt`,
-  weddingStatusYou: (declarer: string) => `${declarer} macht Hochzeit – du bist gefragt`,
-  weddingExchange: (partner: string) => `${partner} nimmt an und gibt eine Karte zurück`,
-  weddingOfferTitle: (declarer: string) => `${declarer} macht Hochzeit`,
-  weddingOfferBody: (declarer: string) =>
-    `${declarer} hat nur einen Trumpf. Wer annimmt, bekommt ihn verdeckt, gibt dafür eine Karte zurück, die kein Trumpf ist, und spielt mit ${declarer} gegen die anderen zwei.`,
+  weddingStatus: (declarer: string, asked: string, game = 'Hochzeit') =>
+    `${declarer} macht ${game} – ${asked} ist gefragt`,
+  weddingStatusYou: (declarer: string, game = 'Hochzeit') =>
+    `${declarer} macht ${game} – du bist gefragt`,
+  weddingExchange: (partner: string, n = 1) =>
+    `${partner} nimmt an und gibt ${n === 1 ? 'eine Karte' : `${n} Karten`} zurück`,
+  weddingOfferTitle: (declarer: string, game = 'Hochzeit') => `${declarer} macht ${game}`,
+  weddingOfferBody: (declarer: string, n = 1) =>
+    `${declarer} hat ${n === 1 ? 'nur einen Trumpf' : `nur ${n} Trümpfe`}. Wer annimmt, bekommt ${n === 1 ? 'ihn' : 'sie'} verdeckt, gibt dafür ${n === 1 ? 'eine Karte' : `${n} Karten`} zurück, die ${n === 1 ? 'kein Trumpf ist' : 'keine Trümpfe sind'}, und spielt mit ${declarer} gegen die anderen zwei.`,
   weddingAccept: 'Ich nehme an',
   weddingDecline: 'Nein',
   weddingGiveTitle: (n: number) =>
@@ -447,7 +451,8 @@ export const RULES_TEXT = {
   contractsHint:
     'Das Sauspiel ist immer dabei. Hochzeit: Wer genau einen Trumpf hat, sucht sich einen Partner, der ihn gegen eine andere Karte nimmt.',
   houseRules: 'Hausregeln',
-  houseRulesHint: 'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe.',
+  houseRulesHint:
+    'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe. Arabische Hochzeit: wie die Hochzeit, aber mit genau zwei Trümpfen und zwei Karten zurück.',
   tout: 'Tout erlaubt',
   sie: 'Sie (alle Ober und Unter) wird bezahlt',
   davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',

@@ -1,5 +1,5 @@
 import type { HandView, TableView } from '@schafkopf/core';
-import { RULES_TEXT, TABLE_TEXT, contractLabel, plainMoney } from '../../i18n/de';
+import { KIND_NAME, RULES_TEXT, TABLE_TEXT, contractLabel, plainMoney } from '../../i18n/de';
 import { Button } from '../kit';
 import type { SeatInfo } from './layout';
 import { DoublingTag } from './Seats';
@@ -35,13 +35,15 @@ export function TableBar({ view, hand, seats, rulesOpen, onRules, onEvening, onL
   let status;
   if (hand.phase === 'prelude' && hand.prelude && hand.declarer !== null) {
     const declarer = seats.nameOf(hand.declarer);
+    const arabic = hand.contract?.kind === 'arabischeHochzeit';
+    const game = arabic ? KIND_NAME.arabischeHochzeit : undefined;
     status =
       hand.prelude.step === 'exchange' ? (
-        TABLE_TEXT.weddingExchange(seats.nameOf(hand.turn))
+        TABLE_TEXT.weddingExchange(seats.nameOf(hand.turn), arabic ? 2 : 1)
       ) : hand.turn === view.you ? (
-        <b className="tisch-leiste__spiel">{TABLE_TEXT.weddingStatusYou(declarer)}</b>
+        <b className="tisch-leiste__spiel">{TABLE_TEXT.weddingStatusYou(declarer, game)}</b>
       ) : (
-        TABLE_TEXT.weddingStatus(declarer, seats.nameOf(hand.turn))
+        TABLE_TEXT.weddingStatus(declarer, seats.nameOf(hand.turn), game)
       );
   } else if (hand.contract && hand.declarer !== null) {
     status = (

@@ -95,6 +95,20 @@ test('Hausregel: Eisenbahner einschalten, der Gast sieht ihn, das Spiel läuft',
   expect(host.title).toMatch(/gewonnen|verloren/);
 });
 
+test('Hausregel: arabische Hochzeit einschalten, der Gast sieht sie, das Spiel läuft', async ({
+  context,
+}) => {
+  const table = await newTisch(context);
+  await seatedLobby(table);
+  const kinds = table.guest.locator('dt', { hasText: 'Spielarten' }).locator('+ dd');
+  await expect(kinds).not.toContainText('Arabische Hochzeit');
+  await table.host.getByRole('checkbox', { name: 'Arabische Hochzeit' }).check();
+  await expect(kinds).toContainText('Arabische Hochzeit');
+  await startGame(table);
+  const { host } = await playUntilResult(table);
+  expect(host.title).toMatch(/gewonnen|verloren/);
+});
+
 test('Kontra: der Gastgeber schaltet es ein, ein Gegenspieler sagt es, beide sehen es', async ({
   context,
 }) => {
