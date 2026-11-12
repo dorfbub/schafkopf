@@ -20,6 +20,7 @@ Pakete verschiedener Buchstaben können parallel laufen, sofern keine Abhängigk
 | 3     | Ausbau                    | K3a–K3d, K4, K5, K6, B2            |
 | 4     | Hausregeln                | H1, H2, H3, B3                     |
 | 5     | Besser werden             | T1, T2                             |
+| 6     | Stärkere Bots und Max     | T3, T4, B4, B5, B6                 |
 
 ## Welches Modell für welches Paket
 
@@ -27,12 +28,12 @@ Grundsatz: **Opus ist der Standard.** Fable nur dort, wo eine Entscheidung das g
 prägt und ein Fehler teuer wird. Sonnet für klar umrissene Pakete, bei denen der Weg feststeht.
 Haiku für rein mechanische Handgriffe.
 
-| Modell | Wofür                                                        | Pakete                                                              |
-| ------ | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt)                                 |
-| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, H2, T1, T2 |
-| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3                        |
-| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                              |
+| Modell | Wofür                                                        | Pakete                                                                          |
+| ------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt), Entwurf B6                                 |
+| Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, B4, B5, B6, H2, T1, T2 |
+| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3, T3, T4                            |
+| Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                                          |
 
 Hinweise dazu:
 
@@ -580,6 +581,57 @@ spielt Ramsch mit Blick auf Jungfrau und Durchmarsch, sagt Kontra bei starkem Bl
   Annahmen 32, 36, 42 und 70–74. Offen: Bots sagen Kontra/Re nur, wenn sie am Zug sind
   (Annahme 71) – Kontra außer der Reihe bräuchte einen eigenen Weg im Host.
 
+### B4 · Ansage-Tabellen per Simulation
+
+Die Ansage ist der Teil, in dem am meisten Geld steckt. Ob sich ein Spiel mit einem Blatt lohnt,
+lässt sich als Erwartungswert in Cent ausrechnen.
+
+- **Umfang:** Ein Skript (`packages/bots/scripts/` o. ä., nicht im Browser) spielt für viele
+  Blätter je Spielart sehr viele Verteilungen mit dem starken Bot durch und verdichtet das
+  Ergebnis zu einer kompakten Tabelle. Merkmale sind etwa Zahl der Trümpfe, Ober/Unter,
+  Laufende, freie Farben, Sauen und Position. Die Tabelle liegt als Datei im Repo (wenige kB)
+  und ersetzt bzw. ergänzt die handgesetzten Schwellen in `rateContract`.
+- **Nutzen:** Alle Bot-Stufen und Max (`adviseBid`) bekommen dieselbe belegte Grundlage; Max kann
+  sagen „mit diesem Blatt bringt ein Wenz im Schnitt etwa +18 Cent“.
+- **Modell:** Opus.
+- **Abnahme:** Tabelle für alle Spielarten und Besetzungen (lang/4, kurz/4, kurz/3), Erzeugung
+  reproduzierbar über Seed und dokumentiert. Bots mit Tabelle schlagen Bots ohne Tabelle im
+  gepaarten Vergleich messbar (Schwelle als Test wie in B2). Max nutzt sie bei der Ansage.
+  Laufzeit im Browser unverändert.
+
+### B5 · „Stark“ mit gewichteten Verteilungen
+
+Heute verteilt „Stark“ die unbekannten Karten gleich wahrscheinlich (Perfect Information Monte
+Carlo). Besser: Verteilungen danach gewichten, wie gut sie zu dem passen, was die anderen bisher
+gespielt und angesagt haben („policy-based inference“, beim Skat ein großer Sprung).
+
+- **Umfang:** Ein Modell schätzt, wie wahrscheinlich ein beobachteter Zug bei einer bestimmten
+  Hand ist. Zuerst die Heuristik selbst als Modell, später ggf. gelernt. Die Stichprobe wird
+  danach gewichtet bzw. ausgewählt. Dazu gehören: Ansage (wer „weiter“ sagt, hat kein starkes
+  Blatt), Schmieren, Abwerfen, Davonlaufen. Erwünschter Nebeneffekt: Verstecken und Signalisieren
+  werden sichtbar wertvoller.
+- **Modell:** Opus.
+- **Abhängigkeit:** sinnvoll nach B4 (gemeinsame Messung), aber nicht zwingend.
+- **Abnahme:** Gepaarter Vergleich gegen das heutige „Stark“ mit fester Schwelle; Regeltreue;
+  Entscheidungszeit im Browser weiter unter 300 ms (Budget anpassen); Max nutzt die neue Suche
+  automatisch, seine Tests bleiben grün.
+
+### B6 · Neuronales Netz aus Spielen gegen sich selbst (Forschung)
+
+Ein Netz lernt Ansage und Kartenspiel aus Millionen Spielen gegen sich selbst (Ansätze wie
+ReBeL oder „Student of Games“, bei Bridge 2022 auf Weltklasseniveau). Der reine, über Seeds
+reproduzierbare Kern liefert die Trainingsdaten.
+
+- **Erst ein Entwurf:** Er klärt das Verfahren (Destillation aus „Stark“, dann Selbstspiel; Netz
+  für Politik und Wert über die eigene Sicht), den Trainingsaufwand (lokal oder in der Cloud,
+  Kosten), die Größe des Netzes und die Ausführung im Browser. Dafür wäre eine neue Abhängigkeit
+  nötig, etwa ONNX Runtime Web oder eine eigene kleine Inferenz. Danach entscheidet Lukas.
+- **Modell:** Fable für den Entwurf (prägt Architektur und Abhängigkeiten), Opus für die
+  Umsetzung.
+- **Abhängigkeit:** B5 als Messlatte; Lukas' Entscheidung nach dem Entwurf.
+- **Abnahme (Entwurf):** Dokument mit Verfahren, Aufwand, Risiken und einem kleinen Machbarkeits-
+  versuch (z. B. Netz, das „Stark“ beim Zugeben nachahmt, mit Trefferquote).
+
 ## T – Trainer (`packages/tutor`, `apps/web`)
 
 Ein Tutor, der Leute, die Schafkopf schon können, zu besseren Spielern macht. Er sitzt als Figur
@@ -668,6 +720,36 @@ Erst die Strategien, dann die Rechnung, noch ohne Oberfläche.
   - **Folgepunkt Tutor-Kern:** `karte.abspatzen` wählt bei lauter Trümpfen den schwächsten
     Trumpf (z. B. die Herz-Sau statt des Schellen-Obers); der Begründungstext („keine Trümpfe und
     keine Sauen“) passt dann nicht. Regel oder Text in T1 nachschärfen.
+
+### T3 · Max nachschärfen
+
+Folgepunkte aus T2 und Lukas' Abnahme.
+
+- **Hochzeit beraten:** Annehmen bzw. ablehnen und welche Karte(n) zurück. Probespiele mit
+  getauschter Karte über die Suche des starken Bots, Faustregel dazu im Katalog.
+- **`karte.abspatzen`:** Mit lauter Trümpfen wählt die Regel den schwächsten Trumpf, der
+  Begründungstext („keine Trümpfe und keine Sauen“) passt dann nicht. Regel und Text trennen.
+- **Sprechblase hochkant:** Sie verdeckt die oberen Plätze. Nur ändern, wenn Lukas es will
+  (bei der Abnahme der Bilder offen geblieben).
+- **Modell:** Sonnet.
+- **Abnahme:** Fall-Tests für Hochzeit annehmen/ablehnen/zurückgeben und für Abspatzen mit
+  lauter Trümpfen; E2E Hochzeit mit Max; `check`, `build`, `e2e` sauber.
+
+### T4 · Faustregeln nachmessen
+
+Jede der 31 Faustregeln aus `docs/STRATEGIEN.md` bekommt einen gemessenen Wert: Wie viel Cent
+bringt es im Schnitt, sie zu befolgen?
+
+- **Umfang:** Gepaarter Vergleich wie in B2. Dieselben Verteilungen spielt einmal ein Bot, der
+  die Regel befolgt, und einmal einer, der in genau diesen Lagen die nächstbeste andere Karte
+  nimmt. Ergebnis je Regel: Wert in Cent mit Standardfehler und wie oft die Lage vorkommt. Das
+  Messen läuft als Skript hinter einer Umgebungsvariable, nicht in CI.
+- **Nutzen:** `STRATEGIEN.md` sortiert die Regeln nach Wert. Max nennt die wichtigen öfter und
+  begründet mit belegten Zahlen; Regeln ohne messbaren Nutzen fliegen raus oder werden
+  umformuliert.
+- **Modell:** Sonnet.
+- **Abnahme:** Tabelle in `STRATEGIEN.md` mit Wert, Fehler und Häufigkeit je Regel; Messung
+  reproduzierbar (Seed, Befehl dokumentiert); Max gewichtet nach Wert (Test).
 
 ---
 

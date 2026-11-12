@@ -19,13 +19,18 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 
 | Thema                | Größe  | Klären                               |
 | -------------------- | ------ | ------------------------------------ |
-| Mehrere Kartensets   | mittel | Welche Sets zuerst; Lizenzen         |
+| Weitere Kartensets   | mittel | Welche nach bayerisch und Salzburger |
 | Watten               | groß   | Variante(n); integrieren oder forken |
 | Lebendige Bildkarten | mittel | Welche Momente; wie viel Bewegung    |
 
 ---
 
-## Mehrere Kartensets
+## Weitere Kartensets
+
+Bayerisch und Salzburger gibt es seit U9 (`docs/ARBEITSPAKETE.md`). Offen sind weitere Sätze
+(fränkisch, württembergisch, französisch) – die Grundlage dafür steht.
+
+Ursprüngliche Notiz:
 
 Beim Eröffnen des Tisches das Blatt wählen: bayerisch, Salzburger, ggf. weitere (fränkisch,
 württembergisch, französisch).
