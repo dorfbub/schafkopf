@@ -7,7 +7,9 @@ streicht es hier. Neue Ideen einfach unten anhängen – ein Satz genügt.
 Spalte „Klären“: was Lukas beantworten muss, bevor jemand anfängt.
 
 Entschieden am 12.11.2026: Gemischt wird weiter fair und zufällig (`docs/ARCHITEKTUR.md`,
-„Mischen“); „Mischen wie am echten Tisch“ kommt nicht.
+„Mischen“); „Mischen wie am echten Tisch“ kommt nicht. Eine eigene Android-App kommt nicht: Lukas
+hat die installierbare Web-App getestet, auch offline, und sie reicht. Die Überlegungen dazu
+(Trusted Web Activity, Capacitor) stehen in der Git-Geschichte dieser Datei.
 
 Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „Wer spielt was“,
 „Letzten Stich besser zeigen“, „Spielverlauf nach dem Spiel“ – beschrieben in
@@ -17,7 +19,6 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 | -------------------- | ------------------------- | --------------------------------------------------------------------------- |
 | Mehrere Kartensets   | mittel                    | Welche Sets zuerst; Lizenzen                                                |
 | Watten               | groß                      | Variante(n); integrieren oder forken                                        |
-| Android-App          | klein bis mittel          | Reicht die installierbare Web-App?                                          |
 | Weitere Hausregeln   | je Regel klein bis mittel | Genaue Regeln aufschreiben                                                  |
 | Lebendige Bildkarten | mittel                    | Welche Momente; wie viel Bewegung                                           |
 | Schafkopf-Trainer    | groß                      | Nur gegen Bots oder auch in der Runde; vorher raten oder hinterher bewerten |
@@ -55,30 +56,6 @@ Ein eigenes Spiel mit gleichem Blatt, aber völlig anderen Regeln: Schlag und Tr
 - **Modell:** Der Entwurf der Spiel-Schnittstelle ist eine Architekturentscheidung – laut
   Modellwahl in ARBEITSPAKETE.md ein Fall für Fable (nur der Entwurf), die Umsetzung Opus.
 - **Zu klären:** welche Variante zuerst, ob auch zu zweit/dritt gewattet wird.
-
-## Android-App
-
-Stand nach U5 (installierbare Web-App, Einschätzung; auf einem echten Gerät noch nicht geprüft).
-
-- **Was die PWA auf Android schon kann:** Chrome bietet „App installieren“ an (Manifest,
-  Symbole und Service Worker sind da). Danach eigenes Symbol, Start im Vollbild ohne
-  Browserleiste, Hochformat, Startbildschirm ohne Netz. WebRTC (der Tisch) läuft in Chrome
-  für Android wie im Browser, auch in der installierten App. Ein neuer Stand wird mit dem
-  Hinweis „Neue Version verfügbar“ angeboten.
-- **Was eine Play-Store-Hülle zusätzlich brächte:** Auffindbarkeit im Store, Installation ohne
-  Umweg über den Browser-Dialog, Push-Benachrichtigungen („du bist dran“) und ein Tisch, der im
-  Hintergrund verbunden bleibt. Ohne Hülle pausiert Android den Tab bald, die Verbindung
-  zum Gastgeber reißt dann ab (N2 fängt das Neuladen ab, nicht das Wegwischen).
-- **Wege dorthin:** _Trusted Web Activity_ (z. B. mit Bubblewrap) verpackt die PWA fast ohne
-  Code; nötig sind ein Entwicklerkonto bei Google (einmalig 25 US-$), ein Signaturschlüssel und
-  `/.well-known/assetlinks.json` auf der Domain. GitHub Pages liefert das Unterverzeichnis
-  `/schafkopf/` – die Datei müsste im Stamm der Domain `dorfbub.github.io` liegen, also eigene
-  Domain oder ein Repository `dorfbub.github.io`. _Capacitor_ bündelt die Seite in der App und
-  erlaubt native Erweiterungen (Benachrichtigungen, Vordergrunddienst), kostet aber eigenen
-  Build und Pflege.
-- **Empfehlung:** Erst mit der PWA spielen. Eine Hülle lohnt, sobald Store-Präsenz oder
-  Benachrichtigungen gewünscht sind; dann TWA, bei Hintergrund-Verbindung Capacitor.
-- **Hinweis „Neue Version“** ist mit U5 umgesetzt (`apps/web/src/updates.ts`).
 
 ## Weitere Hausregeln
 

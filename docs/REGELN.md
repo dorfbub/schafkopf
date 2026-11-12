@@ -291,8 +291,8 @@ Bettel-Reihenfolge und die Rangfolge der Spielarten (feste Regeln).
 ## Annahmen
 
 Diese Punkte wurden nicht abgefragt und nach gängiger Spielweise festgelegt. Jede Runde spielt
-etwas anders; Abweichungen bitte hier korrigieren. Stand 12.11.2026: Die Annahmen 10–74 hat Lukas
-bestätigt; 1–9 stammen aus dem Grundgerüst und gelten, solange niemand widerspricht.
+etwas anders; Abweichungen bitte hier korrigieren. Stand 12.11.2026: Alle Annahmen (1–74) hat Lukas
+bestätigt.
 
 1. **Ansage zweistufig** (Ablauf oben von Lukas festgelegt). Angenommen: Im Zweikampf fordert der
    nächste Interessent in Sitzreihenfolge den bisherigen Sieger; „ich auch“ und das Nennen sind nur

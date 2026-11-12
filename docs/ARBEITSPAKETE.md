@@ -454,6 +454,9 @@ Web-App-Manifest, Icons, Service Worker für Offline-Start. Danach prüfen, ob e
 
 - **Abnahme:** Lighthouse „installierbar“; App startet ohne Netz bis zum Startbildschirm.
 
+- **Entscheidung 12.11.2026:** Lukas hat die installierbare Web-App getestet (auch offline); sie
+  reicht. Keine Android-Hülle.
+
 ### U6 · Atmosphäre (gestrichen)
 
 Töne und Sprüche/Emotes am Tisch. Am 12.11.2026 von Lukas gestrichen: Das Spiel soll tonlos und
