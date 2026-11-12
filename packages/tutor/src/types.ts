@@ -1,8 +1,16 @@
-import type { BidCall, Card, CompletedTrick, HandView, RuleSet, Seat } from '@schafkopf/core';
+import type {
+  BidCall,
+  Card,
+  CompletedTrick,
+  HandView,
+  PreludeMove,
+  RuleSet,
+  Seat,
+} from '@schafkopf/core';
 import type { RuleId } from './rules';
 
-/** Worum es geht: Ansage, Kartenwahl oder Kontra/Re. */
-export type AskKind = 'bid' | 'card' | 'double';
+/** Worum es geht: Ansage, Kartenwahl, Kontra/Re oder das Vorspiel der Hochzeit. */
+export type AskKind = 'bid' | 'card' | 'double' | 'prelude';
 
 /**
  * Alles, was der Tutor bekommt – genau das, was der Mensch am Tisch selbst weiß:
@@ -38,7 +46,9 @@ export interface TutorOptions {
 export type TutorOption =
   | { type: 'bid'; call: BidCall }
   | { type: 'card'; card: Card }
-  | { type: 'double'; double: boolean };
+  | { type: 'double'; double: boolean }
+  /** Vorspiel: Hochzeit annehmen/ablehnen oder Karten zurückgeben. */
+  | { type: 'prelude'; move: PreludeMove };
 
 /** Platzhalter für Texte: Karten (`"EO"`), Sitze (Zahl), Farben, Spielarten, Zahlen. */
 export type Params = Record<string, string | number>;
@@ -74,7 +84,7 @@ export interface OptionValue {
   option: TutorOption;
   /** Erwartete Cent; `null`, wenn nicht gerechnet (chancenlos oder ohne vollständige Stiche). */
   cents: number | null;
-  /** true: nicht simuliert, sondern aus der Heuristik geschätzt (Hochzeit). */
+  /** true: nicht simuliert, sondern aus der Heuristik geschätzt (angesagte Hochzeit). */
   estimated: boolean;
 }
 

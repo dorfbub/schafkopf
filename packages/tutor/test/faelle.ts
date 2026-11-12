@@ -53,6 +53,14 @@ const isCard =
   (...cards: Card[]) =>
   (o: TutorOption) =>
     o.type === 'card' && cards.includes(o.card);
+const isMove = (type: 'accept' | 'decline') => (o: TutorOption) =>
+  o.type === 'prelude' && o.move.type === type;
+const isGive =
+  (...cards: Card[]) =>
+  (o: TutorOption) =>
+    o.type === 'prelude' &&
+    o.move.type === 'give' &&
+    cards.some((c) => (o.move.type === 'give' ? o.move.cards : []).includes(c));
 const isDouble = (d: boolean) => (o: TutorOption) => o.type === 'double' && o.double === d;
 
 /** Sitz 0 sagt „Ich würde“, alle anderen „weiter“: Stufe 3, Sitz 0 nennt sein Spiel. */
@@ -62,6 +70,24 @@ function declareStage(hands: Card[][], rules: RuleSet = DEFAULT_RULES): HandStat
     s = act(s, s.turn, { type: 'bid', call: { type: s.turn === 0 ? 'interest' : 'pass' } });
   }
   return s;
+}
+
+/** Sitz 0 macht eine Hochzeit; Sitz 1 wird gefragt (Geber 3, alle anderen sagen „weiter“). */
+export function hochzeitAngebot(
+  hand1: Card[],
+  rules: RuleSet = HOCHZEIT,
+  hand0: Card[] = ['HK', 'EA', 'E10', 'GA', 'G10', 'S9', 'S8', 'E7'],
+  kind: 'hochzeit' | 'arabischeHochzeit' = 'hochzeit',
+): HandState {
+  return declare(fixedHand(deal({ 0: hand0, 1: hand1 }, rules), rules), 0, { kind });
+}
+
+/** Sitz 1 hat die Hochzeit angenommen und gibt jetzt zurück. */
+export function hochzeitRueckgabe(hand1: Card[], rules?: RuleSet, hand0?: Card[], kind?: never) {
+  return act(hochzeitAngebot(hand1, rules, hand0, kind), 1, {
+    type: 'prelude',
+    move: { type: 'accept' },
+  });
 }
 
 const SOLO_HERZ: Contract = { kind: 'solo', suit: 'herz' };
@@ -137,6 +163,34 @@ export const FAELLE: Fall[] = [
         0,
       ),
     expect: isCall('interest'),
+  },
+  {
+    rule: 'hochzeit.annehmen.trumpf',
+    ask: 'prelude',
+    title: 'Viele Trümpfe, Hochzeit angeboten: annehmen',
+    lage: () => at(hochzeitAngebot(['EO', 'GO', 'SO', 'EU', 'HA', 'GK', 'G9', 'S7']), 1),
+    expect: isMove('accept'),
+  },
+  {
+    rule: 'hochzeit.ablehnen.schwach',
+    ask: 'prelude',
+    title: 'Kaum Trümpfe, Hochzeit angeboten: ablehnen',
+    lage: () => at(hochzeitAngebot(['E8', 'E9', 'G7', 'G8', 'S7', 'SK', 'H7', 'H8']), 1),
+    expect: isMove('decline'),
+  },
+  {
+    rule: 'hochzeit.zurueckgeben.farbe.frei',
+    ask: 'prelude',
+    title: 'Nach dem Annehmen: die einzelne Schellen-Karte zurück macht Schellen frei',
+    lage: () => at(hochzeitRueckgabe(['EO', 'GO', 'SO', 'EU', 'HA', 'GK', 'G9', 'S7']), 1),
+    expect: isGive('S7'),
+  },
+  {
+    rule: 'hochzeit.zurueckgeben.klein',
+    ask: 'prelude',
+    title: 'Nach dem Annehmen, keine Farbe zu räumen: eine kleine Karte zurück',
+    lage: () => at(hochzeitRueckgabe(['EO', 'GO', 'EU', 'HA', 'GK', 'G9', 'S7', 'SK']), 1),
+    expect: isGive('S7', 'G9'),
   },
 
   // ----- Kontra und Re -----
@@ -370,6 +424,18 @@ export const FAELLE: Fall[] = [
       return at(play(declare(fixedHand(hands), 0, SOLO_HERZ), 'EO'), 1);
     },
     expect: isCard('S9', 'S8', 'E7'),
+  },
+  {
+    rule: 'karte.abspatzen.trumpf',
+    title: 'Lauter Trümpfe, Stich verloren: einen Trumpf ohne Augen, nicht die Sau',
+    lage: () => {
+      const hands = deal({
+        0: ['EO', 'GO', 'HO', 'EU', 'HK', 'H10', 'SA', 'SK'],
+        1: ['SO', 'HU', 'SU', 'GU', 'HA', 'H9', 'H8', 'H7'],
+      });
+      return at(play(declare(fixedHand(hands), 0, SOLO_HERZ), 'EO'), 1);
+    },
+    expect: isCard('H9', 'H8', 'H7'),
   },
 
   // ----- Bettel -----

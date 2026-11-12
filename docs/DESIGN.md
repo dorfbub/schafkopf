@@ -596,6 +596,9 @@ dazu `*-0-automatik.png`, wenn sich Max von selbst gemeldet hat, und `*-5-hinter
     mehr als …“). Cent nennt Max erst hier, nie im Denkanstoß.
   - _Von selbst_ (Automatik): „**Moment –** Partner hält den Stich. Kann ihn noch jemand holen?“ –
     „Moment –“ in Akzentfarbe, sonst wie eine Antwort in Stufe 1.
+  - _Hochzeit_ (T3): Fragen „{Name} macht Hochzeit – soll ich annehmen?“ und „Welche Karte gebe
+    ich zurück?“; Empfehlung „Ich würde die Hochzeit annehmen.“, „Ich würde ablehnen: „Nein“.“
+    bzw. „Ich würde den Schellen-König zurückgeben.“. Von selbst meldet sich Max im Vorspiel nicht.
   - _Hinterher_: „Kurz zu deinem Zug: Der Gras-Unter hat dich etwa 11 Cent gekostet.“ – auf Wunsch
     „Was wäre besser gewesen?“ mit Empfehlung und Faustregel.
 - **Ton:** Du-Form, kurze Sätze, „Servus!“ zur Begrüßung; „das kostet“, nicht „falsch“.
@@ -607,6 +610,9 @@ dazu `*-0-automatik.png`, wenn sich Max von selbst gemeldet hat, und `*-5-hinter
   am Desktop stößt es an den eigenen Namen.
 - **Ansage, Kontra, Re:** Der empfohlene Knopf bzw. Wahlknopf bekommt einen gestrichelten
   Rahmen in Akzentfarbe.
+- **Hochzeit (T3):** Im Vorspiel-Dialog bekommt „Ich nehme an“ bzw. „Nein“ denselben
+  gestrichelten Rahmen; bei der Rückgabe die empfohlene Karte (Rahmen in Akzentfarbe, auch wenn
+  sie noch nicht gewählt ist; bei nur einer erlaubten Karte ist sie ohnehin gewählt).
 - Die Hervorhebung verschwindet, sobald man zieht oder die Lage sich ändert.
 
 ### Rückblick in „So wurde gespielt“

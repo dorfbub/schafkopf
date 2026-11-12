@@ -327,7 +327,9 @@ packages/bots`.
 **Bewertung für den Tutor (T1):** `evaluateCards`, `evaluateContracts` und `evaluateDouble` in
 `strongBot.ts` liefern die Suche des starken Bots mit dem Wert jeder Möglichkeit (Mittel und
 Ergebnis je Kartenverteilung, für einen gepaarten Vergleich). `search` nutzt denselben Kern; der
-starke Bot spielt unverändert. Die Option `respectBids` verwirft Verteilungen, in denen der
+starke Bot spielt unverändert. Für die Hochzeit (T3) gibt es `evaluateWeddingOffer` (annehmen oder
+ablehnen) und `evaluateWeddingGive` (welche Karten zurück): Probespiele nach dem Vorspiel, mit
+einem Hochzeiter, der `n` Trümpfe hatte und zu seiner Ansage passt. Die Option `respectBids` verwirft Verteilungen, in denen der
 Ansager sein Spiel nach der Heuristik nicht angesagt hätte (nur der Tutor schaltet sie ein).
 
 ### packages/tutor
@@ -405,7 +407,9 @@ ihn in der Lobby nicht ausgeschaltet hat. Am Tisch mit Freunden wird nichts davo
   Bewertungen hinterher spricht sie nur bei `review.mention` an.
 - **Hervorhebung:** `useTutor().snap.tip` – die empfohlene Karte in der Hand (`OwnSeat`), der
   Knopf im Ansage-Dialog (`BidDialog`) bzw. „Kontra“/„Re“; erst ab der zweiten Stufe.
-- **Hochzeit:** Annehmen und Zurückgeben berät der Kern nicht; im Vorspiel sagt Max das ehrlich.
+- **Hochzeit (T3):** Frage `prelude`: `PreludeDialog` hebt „Ich nehme an“/„Nein“ bzw. die
+  empfohlene Rückgabe hervor (`snap.tip` mit `type: 'prelude'`). Max meldet sich im Vorspiel nicht
+  von selbst und bewertet Vorspiel-Züge nicht hinterher.
 - **Name:** Der vierte Bot heißt ebenfalls „Weber Max“ (`DEFAULT_BOT_NAMES`), sitzt aber nur an
   einem Tisch ganz ohne Menschen. Der Trainer braucht einen Menschen am Tisch – beide kommen
   also nie zusammen vor (geprüft in `e2e/trainer.spec.ts`).
