@@ -6,6 +6,8 @@ import { act, startSolo } from './helpers';
  * leere Handzeile wegfiel. Die Tischfläche (`.tisch__raum`) muss vom ersten bis zum letzten
  * Stich, nach dem Spiel und über mehrere Spiele hinweg (auch zusammengeworfene) gleich groß
  * bleiben. Dasselbe gilt für die Höhe der Kopfzeile in jedem Zustand, auch in der Ansage.
+ * Gemessen wird mit dem Trainer Max Weber am Tisch (T2, Standard allein gegen Bots); seine
+ * Sprechblase geht dabei immer wieder auf und zu und darf nichts verschieben.
  */
 const SIZES = [
   { width: 360, height: 740 },
@@ -26,8 +28,10 @@ for (const size of SIZES) {
         __raum: [number, number, number][];
         __leiste: number[];
         __schild: boolean;
+        __blase: boolean;
       };
       w.__raum = [];
+      w.__blase = false;
       w.__leiste = [];
       w.__schild = false;
       const step = () => {
@@ -36,6 +40,7 @@ for (const size of SIZES) {
         // Im Spiel steht am Platz des Spielers das Spielschild.
         if (tisch?.classList.contains('tisch--playing') && document.querySelector('.spielschild'))
           w.__schild = true;
+        if (document.querySelector('.tutor-blase:not([hidden])')) w.__blase = true;
         const leiste = document.querySelector('.tisch-leiste');
         if (leiste) {
           const h = Math.round(leiste.getBoundingClientRect().height);
@@ -58,6 +63,10 @@ for (const size of SIZES) {
     const deadline = Date.now() + 90_000;
     let games = 0;
     let measured = false;
+    // Bei jedem zweiten eigenen Zug die Sprechblase des Trainers öffnen (act schließt sie wieder).
+    const figure = page.getByRole('button', { name: 'Max Weber fragen' });
+    await expect(figure).toBeVisible();
+    let turns = 0;
     while (Date.now() < deadline) {
       if (await next.isVisible()) {
         const title = await page.getByRole('dialog').getByRole('heading').first().innerText();
@@ -67,9 +76,18 @@ for (const size of SIZES) {
         await next.click();
         continue;
       }
+      if ((await page.getByText(/^Du (bist dran|sagst an)$/).isVisible()) && turns++ % 2 === 0) {
+        // Meldet sich Max genau jetzt von selbst, heißt der Knopf anders – dann nicht warten.
+        if (await figure.isVisible()) await figure.click({ timeout: 1000 }).catch(() => {});
+        await page.waitForTimeout(50);
+      }
       if (!(await act(page))) await page.waitForTimeout(30);
     }
     await expect(next).toBeVisible();
+    expect(
+      await page.evaluate(() => (window as unknown as { __blase: boolean }).__blase),
+      'Sprechblase war offen',
+    ).toBe(true);
 
     const samples = await page.evaluate(
       () => (window as unknown as { __raum: [number, number, number][] }).__raum,

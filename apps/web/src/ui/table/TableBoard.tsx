@@ -15,6 +15,7 @@ import { type AbsentActions, Seats } from './Seats';
 import { RulesDialog } from './RulesDialog';
 import { TableBar } from './TableBar';
 import { TrickArea } from './TrickArea';
+import { TutorCorner } from './Tutor';
 import { useTrickDisplay } from './useTrickDisplay';
 
 export interface TableBoardProps {
@@ -112,6 +113,8 @@ export function TableBoard({
             onToggle={() => setLastOpen((open) => !open)}
           />
         )}
+        {/* Trainer (nur allein gegen Bots): liegt über dem Filz und verschiebt nichts. */}
+        <TutorCorner hand={hand} seats={seats} />
         {hand.phase === 'bidding' && myTurn && (
           <BidDialog
             key={`${view.handNo}-${hand.bids.length}`}

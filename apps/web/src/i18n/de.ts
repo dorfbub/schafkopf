@@ -550,3 +550,381 @@ export const RULES_TEXT = {
   cent: (n: number) => `${n} Cent`,
   from: (n: number) => `ab ${n}`,
 } as const;
+
+// ---------------------------------------------------------------------------
+// Trainer Max Weber (T2). Didaktik und Textvorschläge: docs/STRATEGIEN.md.
+
+/** Name einer Karte im Satz: „die Gras-Sau“, „den Herz-Ober“ (Sau weiblich, sonst männlich). */
+function cardPhrase(card: string, fall: 'nom' | 'akk'): string {
+  const suit = SUIT_NAME[cardSuit(card)];
+  const rank = cardRank(card);
+  const article = rank === 'A' ? 'die' : fall === 'nom' ? 'der' : 'den';
+  return `${article} ${suit}-${RANK_NAME[rank]}`;
+}
+
+const SUIT_LETTER: Record<string, Suit> = { E: 'eichel', G: 'gras', H: 'herz', S: 'schellen' };
+const cardSuit = (card: string): Suit => SUIT_LETTER[card[0]!] ?? 'herz';
+const cardRank = (card: string): Rank => card.slice(1) as Rank;
+
+const upper = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** Wie Max Sitze, Farben und Spielarten in Texte einsetzt. */
+export interface TutorTextContext {
+  /** Name zu einem Sitz. */
+  name: (seat: number) => string;
+  /** Gegner im Zweikampf, falls gerade einer läuft. */
+  opponent: number | null;
+}
+
+type TutorParams = Record<string, string | number>;
+type HintText = (p: TutorParams, c: TutorTextContext) => string;
+
+const seatName = (p: TutorParams, key: string, c: TutorTextContext, fallback: string) =>
+  typeof p[key] === 'number' ? c.name(p[key]) : fallback;
+const suitWord = (p: TutorParams) =>
+  typeof p.farbe === 'string' && p.farbe in SUIT_NAME ? SUIT_NAME[p.farbe as Suit] : 'Ruf';
+const kindWord = (p: TutorParams) =>
+  typeof p.spiel === 'string' && p.spiel in KIND_NAME
+    ? KIND_NAME[p.spiel as ContractKind]
+    : 'Spiel';
+
+/** Kurztitel der Faustregeln (Kennungen wie in docs/STRATEGIEN.md). */
+const RULE_TITLE: Record<string, string> = {
+  'ansage.zu.schwach': 'Mit schwachem Blatt „weiter“',
+  'ansage.sauspiel.grundblatt': 'Ein Sauspiel braucht zwei Farben im Griff',
+  'ansage.ruffarbe.kurz': 'Die Sau zur eigenen Zehn rufen',
+  'ansage.solo.trumpflaenge': 'Solo nur mit der Mehrheit der Trümpfe',
+  'ansage.wenz.unter.und.farben': 'Wenz: hohe Unter und starke Farben',
+  'ansage.bettel.nur.sicher': 'Bettel nur ohne Lücke',
+  'ansage.tout.nur.sicher': 'Tout nur, wenn kein Stich verloren geht',
+  'zweikampf.eigener.wert': 'Im Zweikampf zählt das eigene Blatt',
+  'hochzeit.zwei.sauen': 'Hochzeit nur mit Sauen',
+  'kontra.gegen.partnerspiel': 'Kontra gegen ein Sauspiel nur mit eigenem Spiel',
+  'kontra.gegen.einzelspiel': 'Kontra gegen ein Solo nur mit halber Trumpfstärke',
+  're.mit.reserve': 'Re nur mit Reserve',
+  'spieler.solo.von.oben': 'Im Solo von oben',
+  'spieler.trumpf.ziehen': 'Als Spielerpartei Trumpf ziehen',
+  'spieler.rufsau.nicht.selbst.suchen': 'Die Rufsau nicht selbst suchen',
+  'spieler.farbe.nach.trumpf': 'Trümpfe draußen – jetzt die Farben',
+  'mitspieler.trumpf.spielen': 'Als Mitspieler Trumpf spielen',
+  'gegner.rufsau.suchen': 'Als Gegenspieler die Rufsau suchen',
+  'gegner.sau.frisch': 'Die Sau beim ersten Mal',
+  'gegner.kurzer.weg.lange.farbe': 'Kurzer Weg, lange Farbe – langer Weg, kurze Farbe',
+  'gegner.kein.trumpf.anspielen': 'Als Gegenspieler kein Trumpf',
+  'karte.schmieren': 'Dem Partner schmieren',
+  'karte.nicht.vorschnell.schmieren': 'Nicht zu früh schmieren',
+  'karte.hinten.billig.stechen': 'Hinten billig stechen',
+  'karte.stechen.lohnt': 'Volle Stiche holen',
+  'karte.farbe.freimachen': 'Eine Farbe frei machen',
+  'karte.abspatzen': 'In verlorene Stiche einen Spatz',
+  'bettel.spieler.drunter': 'Im Bettel drunter bleiben',
+  'bettel.gegner.klein': 'Gegen den Bettel klein spielen',
+  'ramsch.durchmarsch.verhindern': 'Den Durchmarsch verhindern',
+  'ramsch.hoch.drunter': 'Im Ramsch hoch drunter',
+};
+
+/** Begründung der Faustregeln, für die Sprechblase auf ein, zwei Sätze gekürzt. */
+const RULE_REASON: Record<string, string> = {
+  'ansage.zu.schwach':
+    'Mit einem schwachen Blatt verliert man meist das Spiel und oft dazu Schneider. „Weiter“ kostet nichts, und als Gegenspieler hilfst du trotzdem mit.',
+  'ansage.sauspiel.grundblatt':
+    'Ein Sauspiel trägt, wenn ihr zwei Farben im Griff habt: die Ruffarbe und eine Farbe, die du frei bist oder mit der Sau hältst.',
+  'ansage.ruffarbe.kurz':
+    'Rufst du die Sau zu deiner Zehn, fällt die Zehn in den Stich des Partners. Und in einer kurzen Ruffarbe bist du bald frei und stichst.',
+  'ansage.solo.trumpflaenge':
+    'Allein gegen drei brauchst du die Mehrheit der Trümpfe: Sind sie gezogen, haben die Gegner nur noch Farben, und deine Sauen stechen.',
+  'ansage.wenz.unter.und.farben':
+    'Im Wenz gibt es nur vier Trümpfe. Mit den hohen Untern holst du dir das Ausspiel zurück; die Stiche kommen aus Sauen und langen Farben.',
+  'ansage.bettel.nur.sicher':
+    'Im Bettel reicht ein einziger Stich zum Verlieren, und die Gegner suchen genau die Farbe, in der du nicht drunter kommst.',
+  'ansage.tout.nur.sicher':
+    'Tout verdoppelt den Gewinn, aber ein abgegebener Stich verliert alles. Mit einer Lücke kostet das mehr, als es bringt – ohne Lücke verschenkst du Geld.',
+  'zweikampf.eigener.wert':
+    'Ein höheres Spiel lohnt sich nur, wenn es mit deinem Blatt gewinnt. Als Gegenspieler hast du noch Chancen, mit einem überreizten Solo kaum.',
+  'hochzeit.zwei.sauen':
+    'Wer die Hochzeit annimmt, hat die Trümpfe; du bringst die Farbstiche mit. Ohne Sauen trägst du nichts bei.',
+  'kontra.gegen.partnerspiel':
+    'Kontra lohnt, wenn du selbst ein gutes Sauspiel-Blatt hast. Sonst verdoppelst du vor allem deinen eigenen Verlust.',
+  'kontra.gegen.einzelspiel':
+    'Der Spieler hat meist die besten Trümpfe. Kontra lohnt erst mit etwa der Hälfte seiner Trumpfstärke und dazu Sauen.',
+  're.mit.reserve':
+    'Re verdoppelt noch einmal. Wer Kontra sagt, hat meist Gründe – Re lohnt nur mit deutlich mehr als dem Nötigen.',
+  'spieler.solo.von.oben':
+    'Der höchste Trumpf ist ein sicherer Stich und zieht jedem Gegner einen Trumpf. So bleibt weniger, womit sie deine Sauen stechen.',
+  'spieler.trumpf.ziehen':
+    'Solange die Gegner Trümpfe haben, stechen sie deine Sauen. Trumpf zwingt sie zum Bedienen; danach gehören die Farben dir.',
+  'spieler.rufsau.nicht.selbst.suchen':
+    'Spielst du die Ruffarbe selbst an, muss dein Partner die Sau zugeben, und alle wissen Bescheid. Suchen ist Sache der Gegenspieler.',
+  'spieler.farbe.nach.trumpf':
+    'Jetzt sticht niemand mehr ein. Erst Sauen und sichere Farbkarten heimbringen; jeder weitere Trumpf wäre verschenkt.',
+  'mitspieler.trumpf.spielen':
+    'Mit Trumpf oder der Rufsau gibst du dich als Partner zu erkennen und hilfst, die Trümpfe der Gegner zu ziehen.',
+  'gegner.rufsau.suchen':
+    'Mit der Ruffarbe zwingst du die Sau heraus: Die Parteien sind klar, und die Sau fällt oft in einen kleinen Stich.',
+  'gegner.sau.frisch':
+    'Beim ersten Anspielen einer Farbe bedienen meist alle – die Sau bringt ihre Augen sicher heim. Später sticht eher jemand.',
+  'gegner.kurzer.weg.lange.farbe':
+    'Sitzt der Spieler direkt hinter dir, spiel deine lange Farbe: Er ist bald frei, und dein Partner hinter ihm übersticht. Sitzt er als Letzter, macht dich eine kurze Farbe frei.',
+  'gegner.kein.trumpf.anspielen':
+    'Trumpf nimmt dem Spieler die Arbeit ab, er wollte die Trümpfe ohnehin ziehen. Farben zwingen ihn, mit Trumpf zu stechen.',
+  'karte.schmieren':
+    'Was in diesem Stich liegt, gehört deiner Partei. Also Augen dazu: Sau oder Zehn – aber keine Ober oder Unter, die später selbst stechen.',
+  'karte.nicht.vorschnell.schmieren':
+    'Geschmierte Augen in einem Stich, den der Gegner noch holt, zählen doppelt gegen dich. Lieber billig zugeben.',
+  'karte.hinten.billig.stechen':
+    'Als Letzter kann dich niemand mehr überstechen. Es reicht der kleinste Trumpf, der sticht; die hohen hebst du auf.',
+  'karte.stechen.lohnt':
+    'Ein voller Stich ist die Hälfte dessen, was man für Schneider braucht. Wer ihn sicher holen kann, holt ihn.',
+  'karte.farbe.freimachen':
+    'Wirfst du die letzte Karte einer Farbe ab, bist du dort frei. Spielt sie später jemand an, stichst du ein oder schmierst.',
+  'karte.abspatzen':
+    'Was du in einen verlorenen Stich legst, zählt für die Gegner. Also einen Spatz – keine Trümpfe und keine Sauen.',
+  'bettel.spieler.drunter':
+    'Kommst du heraus, die niedrigste Karte; gibst du zu, die höchste, die noch drunter bleibt. So wirst du gefährliche Karten gefahrlos los.',
+  'bettel.gegner.klein':
+    'Je niedriger die angespielte Karte, desto schwerer bleibt der Spieler drunter.',
+  'ramsch.durchmarsch.verhindern':
+    'Ein Durchmarsch kostet alle viel. Ein einziger Stich, auch ohne Augen, verhindert ihn.',
+  'ramsch.hoch.drunter':
+    'Wer im Ramsch Augen sammelt, verliert. Unter einer höheren Karte wirfst du deine gefährlichen Karten ab.',
+};
+
+/** Denkanstöße (`denkanstoss.<kennung>`): eine Frage, die zur Lösung führt, ohne sie zu nennen. */
+const HINT: Record<string, HintText> = {
+  'ansage.zu.schwach': () => 'Wie viele Stiche machst du mit diesem Blatt sicher selbst?',
+  'ansage.sauspiel.grundblatt': () => 'Welche zwei Farben hättest du mit deinem Partner im Griff?',
+  'ansage.ruffarbe.kurz': (p) =>
+    p.zehn === 0
+      ? `Wie schnell bist du in ${suitWord(p)} frei, wenn du die passende Sau rufst?`
+      : `Wo landet deine ${suitWord(p)}-Zehn, wenn du die passende Sau rufst?`,
+  'ansage.solo.trumpflaenge': () => 'Wie viele Trümpfe haben die drei anderen zusammen noch?',
+  'ansage.wenz.unter.und.farben': () =>
+    'Wie kommst du im Wenz ans Spiel zurück – und woher kommen die Stiche?',
+  'ansage.bettel.nur.sicher': () => 'Gibt es eine Farbe, in der du nicht sicher drunter bleibst?',
+  'ansage.tout.nur.sicher': () => 'Kann dir irgendein Gegner einen Stich abnehmen?',
+  'zweikampf.eigener.wert': (p, c) =>
+    `Gewinnst du das höhere Spiel – oder willst du nur ${seatName(p, 'gegner', c, c.opponent === null ? 'den anderen' : c.name(c.opponent))} ausstechen?`,
+  'hochzeit.zwei.sauen': () => 'Was bringst du deinem Partner mit, wenn er deinen Trumpf nimmt?',
+  'kontra.gegen.partnerspiel': () => 'Wärst du mit diesem Blatt selbst gern Sauspieler?',
+  'kontra.gegen.einzelspiel': () => 'Wie viel von der Trumpfstärke des Spielers hältst du?',
+  're.mit.reserve': (p, c) =>
+    `${seatName(p, 'kontra', c, 'Der Gegner')} glaubt, du verlierst. Hast du genug Reserve für das Doppelte?`,
+  'spieler.solo.von.oben': () => 'Welcher Trumpf ist gerade der höchste im Spiel?',
+  'spieler.trumpf.ziehen': () => 'Womit stechen die Gegner deine Sauen?',
+  'spieler.rufsau.nicht.selbst.suchen': () => 'Wer sollte die Rufsau suchen – du oder die Gegner?',
+  'spieler.farbe.nach.trumpf': () => 'Kann jetzt noch jemand einstechen?',
+  'mitspieler.trumpf.spielen': (p, c) =>
+    `Wie zeigst du ${seatName(p, 'spieler', c, 'dem Spieler')}, dass ihr zusammenspielt?`,
+  'gegner.rufsau.suchen': () => 'Wie findest du heraus, wer mit dem Spieler spielt?',
+  'gegner.sau.frisch': () => 'Wann ist eine Sau am sichersten?',
+  'gegner.kurzer.weg.lange.farbe': () =>
+    'Wo sitzt der Spieler – direkt hinter dir oder als Letzter?',
+  'gegner.kein.trumpf.anspielen': () => 'Wem hilft es, wenn du Trumpf spielst?',
+  'karte.schmieren': (p, c) =>
+    `${seatName(p, 'partner', c, 'Dein Partner')} hält den Stich. Kann ihn noch jemand holen?`,
+  'karte.nicht.vorschnell.schmieren': (p, c) =>
+    `${seatName(p, 'partner', c, 'Dein Partner')} liegt vorn – aber ist der Stich schon sicher?`,
+  'karte.hinten.billig.stechen': () => 'Du bist der Letzte. Wie viel Trumpf brauchst du wirklich?',
+  'karte.stechen.lohnt': (p) =>
+    `${p.augen ?? 'Viele'} Augen liegen im Stich. Kannst du ihn sicher holen?`,
+  'karte.farbe.freimachen': () => 'Welche Farbe könntest du mit diesem Abwurf frei machen?',
+  'karte.abspatzen': () => 'Der Stich ist verloren. Was gibst du am wenigsten gern her?',
+  'bettel.spieler.drunter': () => 'Welche Karte wirst du jetzt gefahrlos los?',
+  'bettel.gegner.klein': () => 'Wie zwingst du den Bettelspieler, einen Stich zu nehmen?',
+  'ramsch.durchmarsch.verhindern': (p, c) =>
+    `${seatName(p, 'spieler', c, 'Einer')} hat alle Stiche. Was hält ihn auf?`,
+  'ramsch.hoch.drunter': () =>
+    'Du bleibst drunter. Welche Karte willst du später nicht mehr haben?',
+  ausnahme: (p) =>
+    typeof p.regel === 'string' && RULE_TITLE[p.regel]
+      ? `„${RULE_TITLE[p.regel]}“ – das gilt sonst. Was ist an dieser Lage anders?`
+      : 'Die übliche Faustregel passt hier nicht ganz. Was ist an dieser Lage anders?',
+  ansage: () => 'Wie viele Stiche traust du deinem Blatt zu?',
+  kontra: () => 'Wer hat hier die besseren Karten – der Spieler oder du?',
+  'karte.anspielen': () => 'Was soll dieser Stich für dich erreichen?',
+  'karte.zugeben': (p, c) =>
+    `${seatName(p, 'stich', c, 'Wer')} liegt vorn, ${p.augen ?? 0} Augen sind im Stich. Was willst du damit?`,
+};
+
+/** Eine Möglichkeit als kurzes Wort für Vergleiche: „Gras-Sau“, „weiter“, „Kontra“. */
+function optionWord(o: TutorOptionText, re: boolean): string {
+  switch (o.type) {
+    case 'card':
+      return `${SUIT_NAME[cardSuit(o.card)]}-${RANK_NAME[cardRank(o.card)]}`;
+    case 'bid':
+      return o.call.type === 'declare' ? contractLabel(o.call.contract) : `„${callLabel(o.call)}“`;
+    case 'double':
+      return o.double ? (re ? 'Re' : 'Kontra') : re ? 'kein Re' : 'kein Kontra';
+  }
+}
+
+/** Eine Möglichkeit, wie sie der Tutor bespricht (Typ wie `TutorOption` in @schafkopf/tutor). */
+export type TutorOptionText =
+  | { type: 'bid'; call: BidCall }
+  | { type: 'card'; card: string }
+  | { type: 'double'; double: boolean };
+
+/** Eine Möglichkeit im Satz (Werfall): „der Gras-Zehner“, „„weiter““, „Kontra“. */
+function optionPhrase(o: TutorOptionText, re: boolean): string {
+  return o.type === 'card' ? cardPhrase(o.card, 'nom') : optionWord(o, re);
+}
+
+/** Cent-Betrag ungefähr: „etwa 12 Cent“, ab einem Euro „etwa 1,20 €“. */
+function aboutCents(cents: number): string {
+  const c = Math.max(1, Math.round(cents));
+  return c < 100 ? `etwa ${c} Cent` : `etwa ${plainMoney(c)}`;
+}
+
+export const TUTOR_TEXT = {
+  name: 'Max Weber',
+  initials: 'MW',
+  /** Knopf der Figur (Bildschirmleser). */
+  figureOpen: 'Max Weber fragen',
+  figureClose: 'Max Weber: Sprechblase schließen',
+  figureCaption: 'Max',
+  bubbleLabel: 'Max Weber, dein Trainer',
+  close: 'Schließen',
+  greeting: 'Servus! Was willst du wissen?',
+  nothingToAsk: 'Gerade gibt es nichts zu entscheiden. Frag mich, wenn du dran bist.',
+  wedding: 'Bei der Hochzeit kann ich dir noch nicht helfen – da musst du selbst entscheiden.',
+  finished:
+    'Das Spiel ist aus. Unter „So wurde gespielt“ habe ich markiert, wo mehr drin gewesen wäre.',
+  thinking: 'Moment, ich überleg …',
+  failed: 'Da habe ich mich verrechnet. Frag mich gleich noch einmal.',
+  autoIntro: 'Moment –',
+  askRecommend: 'Und was empfiehlst du?',
+  askWhy: 'Warum?',
+  askBetter: 'Was wäre besser gewesen?',
+  otherQuestion: 'Andere Frage',
+  thanks: 'Danke',
+  autoToggle: 'Von selbst melden',
+  autoHint: 'Max meldet sich nur in wichtigen Momenten.',
+
+  /** Auswahlfragen (`QUESTION_IDS`). */
+  question(id: string, p: TutorParams, c: TutorTextContext): string {
+    switch (id) {
+      case 'frage.ansage.spielen':
+        return 'Soll ich mit diesen Karten spielen?';
+      case 'frage.ansage.welches.spiel':
+        return 'Welches Spiel passt zu meinem Blatt?';
+      case 'frage.ansage.zweikampf':
+        return `${seatName(p, 'gegner', c, 'Einer')} will spielen – lohnt sich ein höheres Spiel?`;
+      case 'frage.ansage.halten':
+        return `${seatName(p, 'gegner', c, 'Einer')} will höher – soll ich halten?`;
+      case 'frage.karte.welche':
+        return 'Welche Karte ist sinnvoll, und welche Strategie steckt dahinter?';
+      case 'frage.kontra':
+        return `Soll ich gegen das ${kindWord(p)} von ${seatName(p, 'spieler', c, 'dem Spieler')} Kontra geben?`;
+      case 'frage.re':
+        return `${seatName(p, 'kontra', c, 'Ein Gegner')} hat Kontra gegeben – Re?`;
+      case 'frage.rueckblick.zug':
+        return 'War mein letzter Zug gut?';
+      default:
+        return id;
+    }
+  },
+
+  /** Denkanstoß zu einer Kennung `denkanstoss.<…>`. */
+  hint(key: string, p: TutorParams, c: TutorTextContext): string {
+    const text = HINT[key.replace(/^denkanstoss\./, '')];
+    return text ? text(p, c) : 'Was ist in dieser Lage das Wichtigste?';
+  },
+
+  ruleTitle: (id: string) => RULE_TITLE[id] ?? id,
+  ruleReason: (id: string) => RULE_REASON[id] ?? '',
+
+  /** Stufe 2: die Empfehlung als ganzer Satz. */
+  recommend(o: TutorOptionText, re: boolean): string {
+    switch (o.type) {
+      case 'card':
+        return `Ich würde ${cardPhrase(o.card, 'akk')} spielen.`;
+      case 'double':
+        return o.double
+          ? re
+            ? 'Ich würde Re sagen.'
+            : 'Ich würde Kontra geben.'
+          : re
+            ? 'Ich würde kein Re sagen.'
+            : 'Ich würde kein Kontra geben.';
+      case 'bid':
+        switch (o.call.type) {
+          case 'pass':
+            return 'Ich würde „weiter“ sagen.';
+          case 'interest':
+            return 'Ich würde mitbieten: „Ich würde“.';
+          case 'name':
+            return `Ich würde „${levelLabel(o.call.level)}“ sagen.`;
+          case 'hold':
+            return 'Ich würde halten: „ich auch“.';
+          case 'yield':
+            return 'Ich würde „gut“ sagen und das Spiel lassen.';
+          case 'declare':
+            return `Ich würde ansagen: ${contractLabel(o.call.contract)}.`;
+        }
+    }
+  },
+
+  /** Stufe 3: was die Rechnung sagt (nur mit durchgerechneten Werten). */
+  margin(
+    best: TutorOptionText,
+    next: TutorOptionText,
+    cents: number,
+    re: boolean,
+    withRule: boolean,
+  ): string {
+    if (cents >= 0.5)
+      return `Durchgerechnet bringt ${optionWord(best, re)} im Schnitt ${aboutCents(cents)} mehr als ${optionWord(next, re)}.`;
+    const tie = `Durchgerechnet liegen ${optionWord(best, re)} und ${optionWord(next, re)} fast gleichauf`;
+    return withRule ? `${tie} – dann gilt die Faustregel.` : `${tie}; beides ist vertretbar.`;
+  },
+  noRule:
+    'Eine feste Faustregel gibt es dafür nicht; das Durchrechnen der möglichen Kartenverteilungen spricht dafür.',
+  onlyRules:
+    'Mir fehlen Stiche aus diesem Spiel (etwa nach dem Neuladen). Darum rate ich nur nach Faustregel.',
+  overruled: (id: string) => `Sonst gilt „${RULE_TITLE[id] ?? id}“ – hier bringt das weniger.`,
+
+  /** Bewertung hinterher. */
+  reviewMistake: (move: TutorOptionText, loss: number, re: boolean) =>
+    move.type === 'card'
+      ? `Kurz zu deinem Zug: ${upper(cardPhrase(move.card, 'nom'))} hat dich ${aboutCents(loss)} gekostet.`
+      : `Kurz zu deinem Zug: ${optionWord(move, re)} hat dich ${aboutCents(loss)} gekostet.`,
+  reviewGood: (move: TutorOptionText, re: boolean) =>
+    move.type === 'card'
+      ? `Ja, ${cardPhrase(move.card, 'nom')} war gut.`
+      : `Ja, ${optionWord(move, re)} war gut.`,
+  reviewOkay: (move: TutorOptionText, best: TutorOptionText, loss: number, re: boolean) =>
+    `${move.type === 'card' ? upper(cardPhrase(move.card, 'nom')) : upper(optionWord(move, re))} war vertretbar. ${
+      best.type === 'card' ? upper(cardPhrase(best.card, 'nom')) : upper(optionWord(best, re))
+    } hätte etwas mehr gebracht${loss > 0 ? ` (${aboutCents(loss)})` : ''}.`,
+  reviewBetter: (best: TutorOptionText, re: boolean) =>
+    `Besser wäre ${best.type === 'card' ? cardPhrase(best.card, 'nom') : optionWord(best, re)} gewesen.`,
+  reviewMisleading: (id: string) =>
+    `„${RULE_TITLE[id] ?? id}“ klingt hier richtig, passt aber in dieser Lage nicht.`,
+
+  /** Rückblick in „So wurde gespielt“. */
+  historyMarks: (n: number) =>
+    n === 1 ? 'Max hat eine Stelle markiert' : `Max hat ${n} Stellen markiert`,
+  historyNoMarks: 'Max Weber: kein teurer Fehler in diesem Spiel.',
+  historyMore: (n: number) =>
+    n === 1 ? 'Dazu ein kleinerer Fehler.' : `Dazu ${n} kleinere Fehler.`,
+  historyWhere: (where: 'bid' | 'double' | 'card', re: boolean) =>
+    where === 'bid' ? 'Ansage' : where === 'double' ? (re ? 'Re' : 'Kontra') : 'Karte',
+  historyMark: (move: TutorOptionText, best: TutorOptionText, loss: number, re: boolean) =>
+    `${upper(optionPhrase(best, re))} wäre besser gewesen als ${optionPhrase(move, re)} (${aboutCents(loss)}).`,
+  historyIntro: (n: number) =>
+    n === 1
+      ? 'Eine Stelle habe ich dir markiert – unten beim Stich.'
+      : `${n} Stellen habe ich dir markiert – unten bei den Stichen.`,
+  historyRule: (id: string) => `Faustregel: ${RULE_TITLE[id] ?? id}.`,
+  historyMarkLabel: 'Hinweis von Max',
+
+  /** Lobby: Einstellungen des Trainers. */
+  lobbyTitle: 'Trainer',
+  lobbyOn: 'Max Weber schaut mir über die Schulter',
+  lobbyOnHint:
+    'Max ist dein Trainer: Frag ihn vor einem Zug, und nach dem Spiel zeigt er dir, wo mehr drin gewesen wäre. Er rechnet nur in deinem Browser und kennt nur deine Karten.',
+  lobbyAuto: 'Meldet sich in wichtigen Momenten von selbst',
+  lobbyAutoHint: 'Dann stellt er zuerst eine Frage – die Antwort gibt es nur, wenn du willst.',
+  /** Hervorgehobene Karte bzw. Knopf. */
+  tipLabel: 'Empfehlung von Max',
+};

@@ -115,7 +115,15 @@ function Game({ connection, onLeave }: { connection: Connection; onLeave: () => 
     <>
       <ConnectBanner status={status} onRetry={() => client.retry()} />
       {view.hand ? (
-        <Table view={view} client={client} host={host} absent={absent} onLeave={onLeave} />
+        <Table
+          view={view}
+          client={client}
+          host={host}
+          absent={absent}
+          onLeave={onLeave}
+          // Max Weber gibt es nur allein gegen Bots: eigener Tisch ohne Einladungslink.
+          solo={host !== null && roomId === null}
+        />
       ) : (
         <Lobby view={view} client={client} host={host} roomId={roomId} onLeave={onLeave} />
       )}
