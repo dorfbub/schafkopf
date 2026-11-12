@@ -13,6 +13,7 @@ import type {
   Rank,
   Suit,
 } from '@schafkopf/core';
+import { HAWAII_SWITCH_TRICK } from '@schafkopf/core';
 import type { HostErrorCode } from '@schafkopf/net';
 
 export const SUIT_NAME: Record<Suit, string> = {
@@ -44,7 +45,7 @@ export function contractLabel(contract: Contract): string {
     wenz: 'Wenz',
     eisenbahner: 'Eisenbahner',
     geier: 'Geier',
-    hawaii: `Hawaii-Habicht (${suit}, ab Stich 5 ${suit2})`,
+    hawaii: `Hawaii-Habicht (${suit}, ab Stich ${HAWAII_SWITCH_TRICK + 1} ${suit2})`,
     bettel: 'Bettel',
     ramsch: 'Ramsch',
   }[contract.kind];
@@ -247,10 +248,10 @@ export const TABLE_TEXT = {
   bidKind: 'Spielart',
   bidSuitCalled: 'Auf welche Sau?',
   bidSuitTrump: 'Welche Farbe ist Trumpf?',
-  bidSuitTrumpFirst: 'Trumpf in Stich 1–4',
-  bidSuitTrumpSecond: 'Trumpf ab Stich 5 (eine andere Farbe)',
-  // Hawaii-Habicht: Trumpffarbe wechselt nach dem vierten Stich
-  trumpNext: (suit: string) => `ab Stich 5: ${suit}`,
+  bidSuitTrumpFirst: `Trumpf in Stich 1–${HAWAII_SWITCH_TRICK}`,
+  bidSuitTrumpSecond: `Trumpf ab Stich ${HAWAII_SWITCH_TRICK + 1} (eine andere Farbe)`,
+  // Hawaii-Habicht: Trumpffarbe wechselt nach dem vierten Stich (`HAWAII_SWITCH_TRICK`)
+  trumpNext: (suit: string) => `ab Stich ${HAWAII_SWITCH_TRICK + 1}: ${suit}`,
   trumpSwitched: 'Trumpf gewechselt',
   trumpNow: (suit: string) => `Trumpf jetzt ${suit}`,
   bidTout: 'Tout',

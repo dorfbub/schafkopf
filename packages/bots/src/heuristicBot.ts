@@ -80,10 +80,12 @@ interface Memory {
   tricksSeen: number;
   /** Kartenzahl des ganzen Blatts (32 oder 24). */
   deckSize: number;
+  /** Das ganze Blatt, einmal je Spiel gebaut. */
+  deck: readonly Card[];
 }
 
 function createMemory(): Memory {
-  return { played: new Set(), absent: [], tricksSeen: 0, deckSize: 32 };
+  return { played: new Set(), absent: [], tricksSeen: 0, deckSize: 32, deck: createDeck('lang') };
 }
 
 function resetMemory(memory: Memory, view: HandView): void {
@@ -91,31 +93,27 @@ function resetMemory(memory: Memory, view: HandView): void {
   memory.absent = view.handSizes.map(() => new Set());
   memory.tricksSeen = 0;
   memory.deckSize = view.handSizes.reduce((a, b) => a + b, 0);
+  memory.deck = createDeck(memory.deckSize < 32 ? 'kurz' : 'lang');
 }
 
 function noteTrick(memory: Memory, trick: Trick, order: CardOrder, players: number): void {
   const lead = trick.cards[0];
   if (lead === undefined) return;
   const leadSuit = effectiveSuit(lead, order);
-  const deck = createDeck(deckKind(memory));
   trick.cards.forEach((c, i) => {
     memory.played.add(c);
     if (i > 0 && effectiveSuit(c, order) !== leadSuit) {
       const absent = memory.absent[(trick.leader + i) % players]!;
-      for (const d of deck) if (effectiveSuit(d, order) === leadSuit) absent.add(d);
+      for (const d of memory.deck) if (effectiveSuit(d, order) === leadSuit) absent.add(d);
     }
   });
-}
-
-function deckKind(memory: Memory): 'kurz' | 'lang' {
-  return memory.deckSize < 32 ? 'kurz' : 'lang';
 }
 
 /** Hat `seat` sicher keine Karte der Farbe `suit` (nach der Ordnung `order`)? */
 function isVoid(memory: Memory, seat: Seat, suit: EffectiveSuit, order: CardOrder): boolean {
   const absent = memory.absent[seat]!;
   if (absent.size === 0) return false;
-  const cards = createDeck(deckKind(memory)).filter((c) => effectiveSuit(c, order) === suit);
+  const cards = memory.deck.filter((c) => effectiveSuit(c, order) === suit);
   return cards.length > 0 && cards.every((c) => absent.has(c));
 }
 
@@ -391,7 +389,7 @@ function makeCtx(view: HandView, memory: Memory, rng: Rng): Ctx {
   const order = orderFor(contract, tricksPlayed(view));
   const players = view.handSizes.length;
   const me = view.turn;
-  const deck = createDeck(deckKind(memory));
+  const deck = memory.deck;
   const unseen = deck.filter((c) => !view.hand.includes(c) && !memory.played.has(c));
   // Im Ramsch gibt es keinen Ansager; dann ist jeder Gegner (`sideOf` liefert 'unknown').
   const declarer = view.declarer;

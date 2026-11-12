@@ -378,7 +378,9 @@ export function trumpsChange(contract: Contract): boolean {
 
 /** Die Trumpffarbe, die im Stich mit Index `trick` gilt (`null` ohne Trumpffarbe). */
 export function trumpSuitFor(contract: Contract, trick: number): Suit | null {
-  if (MODES[contract.kind].suitRole !== 'trump') return null;
-  if (trumpsChange(contract) && trick >= HAWAII_SWITCH_TRICK) return contract.suit2 ?? null;
-  return contract.suit ?? null;
+  const mode = MODES[contract.kind];
+  if (mode.suitRole !== 'trump') return null;
+  // Aus den Trümpfen abgeleitet, damit der Wechsel nur an einer Stelle (`trumps`) steht.
+  const trumps = mode.trumps(contract, trick);
+  return [contract.suit, contract.suit2].find((s) => s && trumps.includes(card(s, 'A'))) ?? null;
 }
