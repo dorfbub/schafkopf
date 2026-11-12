@@ -255,6 +255,13 @@ weiter. Die Spielstände kommen aus dem Kern (fester Seed), ohne Netz.
 
 - **Leiste:** Spielnummer und Stich („Stich 4 von 8“), was gespielt wird („Xaver spielt Sauspiel
   auf die Gras-Sau“, Spielart in Messing) bzw. wer ansagt, Knöpfe „Regeln“ und „Verlassen“.
+- **Lange Namen** (Bots heißen z. B. „Lengschwendtner Sepp (Bot)“): `.player-seat__name` zeigt
+  höchstens zwei Zeilen, der Rest wird mit „…“ gekürzt, der volle Name steht im Tooltip. Die Marke
+  „am Zug“ sitzt immer mittig unter Name/Bild (oberer Platz im breiten Tisch: dritte Zeile unter
+  Name und Nebeninfo). Bilder: `docs/bilder/u8-amzug-*.png`.
+- **Regeln-Tafel (`.regeln`)** in Tafeln (Lobby des Gastes): einspaltig, Bezeichnung klein über
+  dem Wert; Werte brechen innerhalb der Tafel um (`minmax(0, …)`, `overflow-wrap: anywhere`).
+  Bilder: `docs/bilder/u8-regeltafel-*.png`.
 - **Plätze der anderen** (`PlayerSeat`): am Zug = Messingschein + Marke „am Zug“, Geber = „G“ am
   Bild, Spielschild bzw. Marke „Mitspieler“ (siehe unten), sobald bekannt; Stiche und Kontostand (Minus in
   Minusfarbe); in der Ansage das Gesagte als Sprechblase („weiter“ kursiv).

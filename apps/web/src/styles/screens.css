@@ -699,7 +699,7 @@
 
 .regeln {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
   gap: var(--space-1) var(--space-4);
   margin: var(--space-2) 0;
   line-height: var(--leading-normal);
@@ -709,8 +709,22 @@
   font-weight: var(--weight-semibold);
 }
 
+/* Die Tafel in der Lobby ist schmal: Bezeichnung über dem Wert, nichts steht daneben. */
+.tafel .regeln {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.tafel .regeln dt {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-on-paper-muted, inherit);
+}
+
 .regeln dd {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .regeln-einstellung {

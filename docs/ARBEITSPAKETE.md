@@ -427,6 +427,11 @@ Vier kleine Funde, die zusammen ein Paket ergeben.
   (Ramsch mit Unteroptionen, Laufende je Spielart, Hausregeln) bleibt alles lesbar, in allen drei
   Größen.
 
+- **Stand:** umgesetzt (November 2026). Bot-Namen in `packages/net/src/host.ts` (Menschen
+  verbrauchen keinen Namen, „Weber Max“ erscheint nur bei vier Bots); Namen am Platz auf zwei
+  Zeilen gekürzt. Marke „am Zug“ beim oberen Platz im breiten Tisch jetzt mittig unter dem Namen.
+  Ramsch zeigt den Verlauf. Regel-Tafel: Bezeichnung über dem Wert, Werte brechen in der Tafel um.
+  Tests: `e2e/kleinigkeiten.spec.ts`; Bilder `docs/bilder/u8-*.png`.
 - **Modell:** Sonnet.
 - **Abnahme:** Bot-Namen in Lobby, Tisch und Ergebnis; E2E prüft den Verlauf nach einem Ramsch;
   Bildschirmfotos der Marke „am Zug“ und der Regel-Tafel des Gastes (alle Optionen an) in drei

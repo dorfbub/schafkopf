@@ -185,10 +185,11 @@
 @container tisch (min-width: 40rem) {
   .tisch-platz--top {
     display: grid;
-    grid-template-columns: auto auto auto auto auto;
+    grid-template-columns: auto auto auto auto;
     grid-template-areas:
-      'avatar name marks bubble cards'
-      'avatar info marks bubble cards';
+      'avatar name bubble cards'
+      'avatar info bubble cards'
+      'avatar marks bubble cards';
     align-items: center;
     column-gap: var(--space-3);
     row-gap: 0;
@@ -211,8 +212,11 @@
     justify-content: flex-start;
   }
 
+  /* Die Marke „am Zug“ sitzt mittig unter Name und Nebeninfo. */
   .tisch-platz--top .player-seat__marks {
     grid-area: marks;
+    justify-content: center;
+    margin-top: var(--space-1);
   }
 
   .tisch-platz--top .player-seat__bubble {

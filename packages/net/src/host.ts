@@ -88,7 +88,8 @@ interface Peer {
   name: string;
 }
 
-const DEFAULT_BOT_NAMES = ['Sepp', 'Resi', 'Xaver', 'Vroni'];
+/** Der vierte Name kommt nur vor, wenn kein Mensch am Tisch sitzt (vier Bots). */
+const DEFAULT_BOT_NAMES = ['Saller Wolfe', 'Lengschwendtner Sepp', 'Ziegler Fritz', 'Weber Max'];
 
 /** 128 Bit aus Web Crypto, siehe docs/ARCHITEKTUR.md „Mischen“. */
 function cryptoSeed(): Seed {
@@ -346,7 +347,12 @@ export class HostSession {
   }
 
   private botName(seat: Seat): string {
-    const name = this.botNames[seat % this.botNames.length] ?? `Bot ${seat + 1}`;
+    // Menschen am Tisch verbrauchen keinen Namen: bei einem Menschen heißen die Bots
+    // der Reihe nach die ersten drei Namen.
+    let humansBefore = 0;
+    for (const s of this.seatByClient.values()) if (s < seat) humansBefore++;
+    const index = seat - humansBefore;
+    const name = this.botNames[index % this.botNames.length] ?? `Bot ${seat + 1}`;
     return `${name} (Bot)`;
   }
 

@@ -95,7 +95,14 @@ export function ResultDialog({ view, hand, seats, onNext, onLastTrick }: Props) 
   const details = result.outcome.details;
   if (details.type === 'ramsch') {
     return (
-      <RamschResult view={view} result={result} details={details} seats={seats} actions={actions} />
+      <RamschResult
+        view={view}
+        hand={hand}
+        result={result}
+        details={details}
+        seats={seats}
+        actions={actions}
+      />
     );
   }
   const names = details.party.map(seats.nameOf).join(TABLE_TEXT.and);

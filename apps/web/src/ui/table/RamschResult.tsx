@@ -1,14 +1,16 @@
-import type { HandResult, RamschDetails, TableView } from '@schafkopf/core';
+import type { HandResult, HandView, RamschDetails, TableView } from '@schafkopf/core';
 import type { ReactNode } from 'react';
 import { TABLE_TEXT } from '../../i18n/de';
 import { Dialog } from '../kit';
 import type { SeatInfo } from './layout';
 import { Breakdown } from './Breakdown';
+import { GameHistory } from './GameHistory';
 import { PotNote } from './PotNote';
 import { Money } from './ResultDialog';
 
 interface Props {
   view: TableView;
+  hand: HandView;
   result: HandResult;
   details: RamschDetails;
   seats: SeatInfo;
@@ -19,7 +21,7 @@ interface Props {
  * Ergebnis eines Ramschs: wer verliert (oder mit Durchmarsch gewinnt), Augen und Stiche je
  * Spieler, Jungfrauen und die Beträge. Gleiche Bausteine wie der Ergebnis-Dialog.
  */
-export function RamschResult({ view, result, details, seats, actions }: Props) {
+export function RamschResult({ view, hand, result, details, seats, actions }: Props) {
   const durch = details.durchmarsch;
   const key = durch ?? details.loser!;
   const title =
@@ -91,6 +93,7 @@ export function RamschResult({ view, result, details, seats, actions }: Props) {
           ))}
         </tbody>
       </table>
+      {hand.tricks && hand.tricks.length > 0 && <GameHistory tricks={hand.tricks} seats={seats} />}
     </Dialog>
   );
 }
