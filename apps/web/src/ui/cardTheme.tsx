@@ -35,6 +35,8 @@ export interface CardTheme {
   faceImage(card: Card): CardImage;
   backImage(): CardImage;
   suitUrl(suit: Suit): string;
+  /** Zusatzkarte (z. B. `weli`), sofern der Satz sie hat; Schafkopf braucht keine. */
+  extraImage(name: string): CardImage | undefined;
   /** Stammt das Bild der Karte aus diesem Satz selbst (nicht aus dem Rückfall)? */
   hasOwnFace(card: Card): boolean;
   face(card: Card): ReactNode;
@@ -63,6 +65,8 @@ export interface CardSetSource {
   faces: Partial<Record<Card, CardImage>>;
   back?: CardImage;
   suits?: Partial<Record<Suit, CardImage>>;
+  /** Karten außerhalb der 32 des Schafkopfs, z. B. `weli` und `herz-6` für Watten. */
+  extras?: Readonly<Record<string, CardImage>>;
 }
 
 /** Lädt ein Kartenbild nicht, ist die Seite veraltet: Hinweis statt weißer Karten. */
@@ -100,6 +104,7 @@ export function defineCardSet(source: CardSetSource, base?: CardTheme): CardThem
     backImage,
     suitUrl,
     hasOwnFace: (card) => source.faces[card] !== undefined,
+    extraImage: (name) => source.extras?.[name],
     face: (card) => cardImg(faceImage(card)),
     back: () => cardImg(backImage()),
     suit: (suit) => <img src={suitUrl(suit)} alt="" draggable={false} />,
@@ -136,42 +141,33 @@ export const bayerischTheme: CardTheme = defineCardSet({
 });
 
 /*
- * Salzburger Bild, Entwurf (U9, Haltepunkt): Muster aus drei Wegen nebeneinander, damit Lukas
- * entscheiden kann – eigene Vektorzeichnung, gemeinfreie Scans (Wikimedia Commons) und
- * ein freier Vektorsatz (CC BY-SA). Alles Fehlende kommt vom bayerischen Bild.
- * Quellen und Lizenzen: apps/web/src/assets/kartensets/salzburger/QUELLEN.md.
+ * Salzburger Bild (U9): eigene Vektorzeichnung nach den überlieferten Motiven des Salzburger
+ * bzw. einfachdeutschen Blatts, erzeugt mit `apps/web/scripts/karten/salzburger.mjs`. Alle 32
+ * Karten; dazu die Sechser und der Weli für Watten (`extras`). Rücken und Farbzeichen wie bayerisch.
+ * Herkunft: apps/web/src/assets/kartensets/salzburger/QUELLEN.md.
  */
-const salzburgerUrls = import.meta.glob<string>('../assets/kartensets/salzburger/**/*.{svg,jpg}', {
+const salzburgerUrls = import.meta.glob<string>('../assets/kartensets/salzburger/karten/*.svg', {
   eager: true,
   query: '?url',
   import: 'default',
 });
-const salzburger = (file: string, fit: CardImageFit): CardImage => ({
-  url: salzburgerUrls[`../assets/kartensets/salzburger/${file}`] ?? '',
-  fit,
+const salzburgerUrl = (name: string): CardImage => ({
+  url: salzburgerUrls[`../assets/kartensets/salzburger/karten/${name}.svg`] ?? '',
+  fit: 'bleed',
 });
-const raster = (name: string) =>
-  salzburger(`fremd/commons-raster/SPKW-Salzburg-Fuchs-Salzburg1-dt-${name}.jpg`, 'cover');
-const vektor = (name: string) =>
-  salzburger(`fremd/commons-vektor/Playing_card-german-${name}.svg`, 'cover');
 
 export const salzburgerTheme: CardTheme = defineCardSet(
   {
     id: 'salzburger',
     label: CARD_SET_NAME.salzburger,
-    draft: true,
-    credits: ['Vektorkarten: Gunter Gerhardt (xskat), CC BY-SA 3.0, über Wikimedia Commons'],
-    faces: {
-      // Weg 3: selbst gezeichnet im Stil von U2
-      HO: salzburger('eigen/herz-O.svg', 'bleed'),
-      EA: salzburger('eigen/eichel-A.svg', 'bleed'),
-      // Weg 1: Scans Anton Fuchs, Salzburg, um 1850 (gemeinfrei)
-      SK: raster('schellen-koenig'),
-      GO: raster('gruen-ober'),
-      EU: raster('eichel-unter'),
-      // Weg 2: Vektorsatz xskat (deutsches Blatt, kein Salzburger Bild)
-      GK: vektor('blatt-13_king'),
-      EK: vektor('eichel-13_konig'),
+    faces: Object.fromEntries(
+      ALL_CARDS.map((card) => [card, salzburgerUrl(`${suitOf(card)}-${rankOf(card)}`)]),
+    ),
+    extras: {
+      weli: salzburgerUrl('weli'),
+      ...Object.fromEntries(
+        (['eichel', 'gras', 'herz'] as const).map((s) => [`${s}-6`, salzburgerUrl(`${s}-6`)]),
+      ),
     },
   },
   bayerischTheme,

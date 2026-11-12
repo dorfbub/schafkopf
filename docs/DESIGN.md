@@ -517,6 +517,52 @@ Loopback-Verbindungen, ohne Relays.
 - **Gastgeber erkennbar:** `TableView` sagt nicht, wer den Tisch hostet; eine Marke
   „Gastgeber“ am Platz bräuchte das in der Sicht.
 
+## Mehrere Kartensets (U9, Haltepunkt: Lukas entscheidet)
+
+Der Gastgeber wählt in der Lobby das Kartenbild für alle am Tisch (`RuleSet.cardSet`, Standard
+„bayerisch“). Gäste sehen die Wahl in der Regel-Tafel. Die Sätze stehen in der Registry
+`apps/web/src/ui/cardTheme.tsx`; ein Satz liefert 32 Karten, Rücken und vier Farbzeichen,
+Fehlendes kommt vom bayerischen Bild. Namen der Farben und Ränge sowie die Eckbuchstaben des
+Spielschilds gelten für alle Sätze. Zusatzkarten außerhalb des Schafkopfs (Sechser, Weli) trägt ein
+Satz unter `extras`.
+
+### Salzburger Bild (Entwurf vom 12.11.2026)
+
+Gemeint ist das Salzburger bzw. einfachdeutsche Bild der Tiroler Wattkarten (Lukas, 12.11.2026):
+einfachbildig, ganze Figuren, Zahlkarten mit kleinen Szenen, Weli als Schellen-Sechs.
+
+**Weg:** eigene Vektorzeichnung im modernen Stil (klare Farben, schwarze Umrisse), erzeugt mit
+`apps/web/scripts/karten/salzburger.mjs`. Linien, Farben, Gesichter und Farbzeichen stammen aus dem
+U2-Generator. Motive und Aufbau folgen dem überlieferten Bild; als Vorlage dienten gemeinfreie
+Drucke um 1800 (Columbia University) und um 1848 (Anton Fuchs). Herkunft:
+`apps/web/src/assets/kartensets/salzburger/QUELLEN.md`. 36 Karten (6 bis Sau, Weli statt
+Schellen-Sechs), zusammen etwa 260 kB.
+
+**Verworfene Wege:**
+
+- **Rasterbilder:** Die freien Scans auf Commons sind nur etwa 100 × 190 Pixel groß und auf dem
+  Handy unscharf. Die großen Scans der Columbia University (gemeinfrei, um 1800) wirken
+  automatisch vektorisiert wie grobe Holzschnitte.
+- **Fertige Vektordateien:** Ein freier SVG-Satz des Salzburger Bilds existiert nicht.
+- **Heutige Druckvorlagen abzeichnen:** Lukas wünschte eine 1:1-Kopie einer Druckerei-Vorlage.
+  Wir haben sie nicht übernommen, weil die Rechte an der konkreten Zeichnung offen sind. Die
+  Motive sind dieselben, die Ausführung ist eigene Arbeit.
+
+**Bilder:** `docs/bilder/kartensets/salzburger-alle-karten.webp` (alle 36 Karten),
+`vergleich-bayerisch-salzburger.webp` (Karte neben Karte), `tisch-{hochkant,quer,desktop}.webp`,
+`lobby-{hochkant,quer,desktop}.webp`.
+
+**Offene Punkte für Lukas:**
+
+- Gefällt die Richtung, und wie nah soll sie an der modernen Vorlage sein? Die Figuren sind
+  einfacher als im Wirtshausblatt (weniger Ornamente, schlichtere Gesichter).
+- Die Könige stehen vor dem Thron mehr, als dass sie sitzen; Haltungen und Szenen lassen sich je
+  Karte verfeinern.
+- Ohne Eckzeichen erkennt man Zahlkarten in der überlappten Hand schlechter. Die Zehner tragen ein
+  „X“, die anderen nur die Zeichen. Bleibt es so, oder kommen kleine Eckzeichen dazu?
+- Eigener Rücken für das Salzburger Bild oder der bayerische?
+- Name in der Lobby: bisher „Salzburger (Entwurf)“.
+
 ## Verworfene Richtungen
 
 - **A · Stube** (`docs/entwuerfe/stube.html`): dunkles Nussholz mit Bernstein – „ok“, aber das

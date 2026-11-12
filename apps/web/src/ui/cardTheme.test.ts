@@ -28,7 +28,8 @@ describe('Kartenbilder (U9)', () => {
 
   it('jeder Satz liefert alle 32 Karten, den Rücken und die vier Farbzeichen', () => {
     for (const theme of CARD_THEMES) {
-      for (const card of DECK) expect(theme.faceImage(card).url, `${theme.id} ${card}`).not.toBe('');
+      for (const card of DECK)
+        expect(theme.faceImage(card).url, `${theme.id} ${card}`).not.toBe('');
       expect(theme.backImage().url).not.toBe('');
       for (const suit of SUITS) expect(theme.suitUrl(suit)).not.toBe('');
     }
@@ -39,20 +40,21 @@ describe('Kartenbilder (U9)', () => {
     expect(bayerischTheme.draft).toBe(false);
   });
 
-  it('der Salzburger Entwurf bringt eigene Karten mit, der Rest kommt vom bayerischen Bild', () => {
-    expect(salzburgerTheme.draft).toBe(true);
-    const own = DECK.filter((c) => salzburgerTheme.hasOwnFace(c));
-    expect(own.length).toBe(ownFaceCount(salzburgerTheme));
-    expect(own).toEqual(expect.arrayContaining(['HO', 'EA']));
-    expect(own.length).toBeLessThan(32);
-    for (const card of own) {
+  it('das Salzburger Bild bringt alle 32 Karten selbst mit; Rücken und Farbzeichen wie bayerisch', () => {
+    expect(ownFaceCount(salzburgerTheme)).toBe(32);
+    for (const card of DECK) {
       expect(salzburgerTheme.faceImage(card).url).not.toBe(bayerischTheme.faceImage(card).url);
-    }
-    for (const card of DECK.filter((c) => !salzburgerTheme.hasOwnFace(c))) {
-      expect(salzburgerTheme.faceImage(card)).toEqual(bayerischTheme.faceImage(card));
     }
     expect(salzburgerTheme.backImage()).toEqual(bayerischTheme.backImage());
     expect(salzburgerTheme.suitUrl('herz')).toBe(bayerischTheme.suitUrl('herz'));
+  });
+
+  it('das Salzburger Bild hat den Weli und die Sechser für Watten, das bayerische nicht', () => {
+    for (const name of ['weli', 'eichel-6', 'gras-6', 'herz-6']) {
+      expect(salzburgerTheme.extraImage(name)?.url, name).toBeTruthy();
+    }
+    expect(salzburgerTheme.extraImage('schellen-6')).toBeUndefined();
+    expect(bayerischTheme.extraImage('weli')).toBeUndefined();
   });
 
   it('ein neuer Satz lässt sich ohne Eingriff in die Spiellogik ergänzen', () => {
@@ -72,5 +74,6 @@ describe('Kartenbilder (U9)', () => {
     expect(probe.suitUrl('gras')).toBe('gras.png');
     expect(probe.suitUrl('eichel')).toBe(bayerischTheme.suitUrl('eichel'));
     expect(ownFaceCount(probe)).toBe(1);
+    expect(probe.hasOwnFace('GO')).toBe(false);
   });
 });

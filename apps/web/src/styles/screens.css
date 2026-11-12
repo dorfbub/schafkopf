@@ -756,6 +756,12 @@
   gap: var(--space-1);
 }
 
+.kartenbild__wahl > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .kartenbild__vorschau {
   --card-w: var(--card-w-preview);
   display: flex;
