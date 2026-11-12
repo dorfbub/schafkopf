@@ -15,12 +15,15 @@
 ## Pakete
 
 ```
-apps/web ──► packages/net ──► packages/core
-    │                              ▲
-    └──────► packages/bots ────────┘
+apps/web ──► packages/net ──────► packages/core
+    │                                ▲
+    ├──────► packages/bots ──────────┤
+    │              ▲                 │
+    └──────► packages/tutor ─────────┘
 ```
 
-Abhängigkeiten zeigen nur in Pfeilrichtung. `core` hängt von nichts ab.
+Abhängigkeiten zeigen nur in Pfeilrichtung: `web → net → core`, `web → bots → core`,
+`web → tutor → bots → core` (der Tutor darf auch `core` direkt nutzen). `core` hängt von nichts ab.
 
 ### packages/core – Spielregeln
 
@@ -320,6 +323,41 @@ packages/bots`.
 - `hochzeit.ts` – Hochzeit und arabische Hochzeit: ansagen, annehmen, zurückgeben.
 - `doubling.ts` – Kontra und Re.
 - `prelude.ts` – einfacher Vorspiel-Zug (ablehnen, billigste Karten) für den Zufalls-Bot.
+
+**Bewertung für den Tutor (T1):** `evaluateCards`, `evaluateContracts` und `evaluateDouble` in
+`strongBot.ts` liefern die Suche des starken Bots mit dem Wert jeder Möglichkeit (Mittel und
+Ergebnis je Kartenverteilung, für einen gepaarten Vergleich). `search` nutzt denselben Kern; der
+starke Bot spielt unverändert. Die Option `respectBids` verwirft Verteilungen, in denen der
+Ansager sein Spiel nach der Heuristik nicht angesagt hätte (nur der Tutor schaltet sie ein).
+
+### packages/tutor
+
+Der Trainer-Kern (T1): rät, bewertet und fragt – aus der eigenen Sicht, noch ohne Oberfläche.
+Fachlicher Hintergrund, Faustregeln und Didaktik stehen in `docs/STRATEGIEN.md`.
+
+| Datei          | Inhalt                                                                               |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `types.ts`     | `TutorInput` (Sicht, Regeln, Sitz, gesehene Stiche), `Advice`, `Review`, `RuleHit`   |
+| `lage.ts`      | Lage aus der Sicht: gefallene Karten, Fehlfarben, Parteien, wer den Stich hält       |
+| `rules.ts`     | Katalog der Faustregeln (`RULE_IDS`, `RULES`): je Regel Prüfung und bevorzugte Züge  |
+| `advise.ts`    | `advise`, `importance`, `review`, Schwellen (`THRESHOLDS`), Aufwand (`TUTOR_BUDGET`) |
+| `questions.ts` | Auswahlfragen als Kennungen mit Platzhaltern (`questionsFor`)                        |
+
+- **Eingabe:** nur `TutorInput` – nie `HandState`. Die gesehenen Stiche reicht die Oberfläche mit
+  (sie sind öffentlich); fehlen welche, rät der Tutor nur mit Faustregeln.
+- **Rechnung:** `evaluateCards`, `evaluateContracts` und `evaluateDouble` aus `packages/bots`
+  (die Suche des starken Bots, mit Werten je Möglichkeit und je Kartenverteilung). Der Tutor
+  schaltet `respectBids` ein: Verteilungen, in denen der Ansager sein Spiel nicht angesagt hätte,
+  werden verworfen. Der starke Bot am Tisch rechnet ohne.
+- **Antwort:** Werte in Cent, Empfehlung, bis zu zwei begründende Faustregeln, Ausnahmen, ein
+  Denkanstoß und die Wichtigkeit. Texte gibt es im Paket keine, nur Kennungen mit Platzhaltern
+  (`denkanstoss.<regel>`, `frage.…`); die Texte kommen in T2 nach `de.ts`.
+- **Zufall und Zeit:** über den Seed (`TutorOptions.seed`, Standard 1); eine Uhr nur von außen.
+  ESLint verbietet in `packages/tutor/src` wie bei den Bots `Math.random`, `Date.now` und
+  `performance`, dazu Importe aus `net`, `web` und React.
+- **Erweitern:** neue Faustregel = Eintrag in `docs/STRATEGIEN.md`, Kennung in `RULE_IDS`, Prüfung in
+  `RULES` (an der passenden Stelle der Priorität) und eine feste Lage in `test/faelle.ts`. Tests
+  prüfen, dass Katalog, Code und Lagen zusammenpassen.
 
 ### apps/web
 

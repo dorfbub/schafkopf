@@ -601,6 +601,16 @@ Erst die Strategien, dann die Rechnung, noch ohne Oberfläche.
 - **Abnahme:** `docs/STRATEGIEN.md` mit mindestens 25 Faustregeln. Tests mit festen Lagen je
   Faustregel (Lage → Empfehlung und Kennung der Regel). Test, dass der Tutor nichts Verdecktes
   nutzt. Entscheidungszeit unter 300 ms. `npm run check` sauber.
+- **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`. `docs/STRATEGIEN.md`
+  mit 31 Faustregeln (Bot-Wissen, Recherche, acht entschiedene Widersprüche, Didaktik,
+  Textvorschläge für T2). Paket `packages/tutor`: `advise` (Werte aller Möglichkeiten, Empfehlung,
+  höchstens zwei Faustregeln, Ausnahmen, Denkanstoß), `importance` (Automatikmodus ab „hoch“ =
+  ein Tarif Einsatz), `review` (gut/vertretbar/Fehler, Verlust, Faustregel), `questionsFor`
+  (Auswahlfragen als Kennungen). Rechnung über neue Bot-Funktionen `evaluateCards`,
+  `evaluateContracts`, `evaluateDouble`; dazu `respectBids` (Ansager mit plausiblem Blatt) und ein
+  Signifikanztest gegen das Rauschen der Stichprobe. Tests in `packages/tutor/test`: je
+  Faustregel eine Lage, verdeckte Karten vertauscht → gleiche Antwort, Laufzeit unter 300 ms
+  (gemessen 20–150 ms). Offen für T2: Hochzeit annehmen/zurückgeben berät der Tutor noch nicht.
 
 ### T2 · Tutor am Tisch
 

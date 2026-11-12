@@ -10,6 +10,7 @@ bleiben deutsch (`sauspiel`, `wenz`, `laufende`).
 - `docs/REGELN.md` – verbindliche Spielregeln; Referenz für Tests
 - `docs/ARBEITSPAKETE.md` – die offenen Pakete mit Abnahmekriterien
 - `docs/BACKLOG.md` – langfristige Themen, noch nicht in Pakete geschnitten
+- `docs/STRATEGIEN.md` – Faustregeln und Didaktik des Trainers (`packages/tutor`)
 
 ## Befehle
 
@@ -25,8 +26,10 @@ Einzelne Testdatei: `npx vitest run packages/core/test/hand.test.ts`
 
 ## Regeln für die Arbeit
 
-- **Abhängigkeitsrichtung einhalten:** `web → net → core`, `web → bots → core`. `core` importiert
-  nichts aus anderen Paketen und nutzt weder DOM, Netz, Zeit noch `Math.random` (ESLint prüft das).
+- **Abhängigkeitsrichtung einhalten:** `web → net → core`, `web → bots → core`,
+  `web → tutor → bots → core`. `core` importiert nichts aus anderen Paketen und nutzt weder DOM,
+  Netz, Zeit noch `Math.random` (ESLint prüft das). Bots und Tutor nutzen Zufall nur über den Seed
+  und Zeit nur über eine übergebene Uhr.
 - **Kern bleibt rein:** Zustand nie verändern, immer kopieren. Zufall nur über den übergebenen Seed.
 - **Sichten statt Zustand:** Über das Netz und an Oberfläche/Bots gehen nur `TableView`/`HandView`.
   Nie `TableState` oder `HandState` verschicken.

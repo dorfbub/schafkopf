@@ -54,4 +54,27 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Der Tutor rechnet wie die Bots: Zufall nur über den Seed, keine Zeit, kein Netz, keine Oberfläche.
+    files: ['packages/tutor/src/**/*.ts'],
+    rules: {
+      'no-restricted-globals': ['error', 'performance', 'setTimeout', 'setInterval'],
+      'no-restricted-properties': [
+        'error',
+        { object: 'Math', property: 'random', message: 'Der Tutor nutzt nur den Seed.' },
+        { object: 'Date', property: 'now', message: 'Der Tutor bekommt eine Uhr übergeben.' },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@schafkopf/net', '@schafkopf/web', 'react', 'react-dom'],
+              message: 'Der Tutor hängt nur von core und bots ab.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
