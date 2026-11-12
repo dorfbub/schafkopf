@@ -19,7 +19,6 @@ Erledigt vom Spielabend (11.11.2026): „Tisch springt bei letzter Karte“, „
 | Watten               | groß                      | Variante(n); integrieren oder forken |
 | Android-App          | klein bis mittel          | Reicht die installierbare Web-App?   |
 | Weitere Hausregeln   | je Regel klein bis mittel | Genaue Regeln aufschreiben           |
-| Kopfzeile bricht um  | klein                     | –                                    |
 | Lebendige Bildkarten | mittel                    | Welche Momente; wie viel Bewegung    |
 
 ---
@@ -92,14 +91,6 @@ Eisenbahner, Hawaii-Habicht und arabische Hochzeit sind beschrieben
   unter „Hausregeln“, dann ein Paket nach dem Muster von H1.
 - **Legen und Bockrunden:** spielt Lukas' Runde nicht. Der Entwurf hält den Platz frei
   (`Factor`, `HandCarry.factor`); ein Paket gibt es erst, wenn eine Runde sie wünscht.
-
-## Kopfzeile bricht um
-
-Auf schmalen Handys (360 px) bricht die Kopfzeile „Resi spielt Sauspiel auf die Eichel-Sau“ in zwei
-Zeilen um, „Zusammengeworfen“ nicht. Zwischen zwei Spielen wird die Tischfläche dadurch um etwa
-20 px kleiner oder größer. Seit dem Spielschild am Platz ist die Zeile doppelt; kürzen oder auf eine
-Zeile begrenzen. Gefunden beim Mergen am 11.11.2026 (E2E `layout.spec.ts` misst nur das gespielte
-Spiel).
 
 ## Lebendige Bildkarten
 

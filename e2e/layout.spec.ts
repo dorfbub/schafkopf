@@ -4,7 +4,8 @@ import { act, startSolo } from './helpers';
 /**
  * Fehler vom Spielabend: Beim Legen der letzten Karte änderte der Tisch seine Größe, weil die
  * leere Handzeile wegfiel. Die Tischfläche (`.tisch__raum`) muss vom ersten bis zum letzten
- * Stich und auch nach dem Spiel gleich groß bleiben.
+ * Stich, nach dem Spiel und über mehrere Spiele hinweg (auch zusammengeworfene) gleich groß
+ * bleiben. Dasselbe gilt für die Höhe der Kopfzeile in jedem Zustand, auch in der Ansage.
  */
 const SIZES = [
   { width: 360, height: 740 },
@@ -21,8 +22,13 @@ for (const size of SIZES) {
 
     // Bei jedem Bild die Größe der Tischfläche und die Zahl der eigenen Karten mitschreiben.
     await page.evaluate(() => {
-      const w = window as unknown as { __raum: [number, number, number][]; __schild: boolean };
+      const w = window as unknown as {
+        __raum: [number, number, number][];
+        __leiste: number[];
+        __schild: boolean;
+      };
       w.__raum = [];
+      w.__leiste = [];
       w.__schild = false;
       const step = () => {
         const tisch = document.querySelector('main.tisch');
@@ -30,6 +36,11 @@ for (const size of SIZES) {
         // Im Spiel steht am Platz des Spielers das Spielschild.
         if (tisch?.classList.contains('tisch--playing') && document.querySelector('.spielschild'))
           w.__schild = true;
+        const leiste = document.querySelector('.tisch-leiste');
+        if (leiste) {
+          const h = Math.round(leiste.getBoundingClientRect().height);
+          if (w.__leiste.at(-1) !== h) w.__leiste.push(h);
+        }
         if (tisch && raum && !tisch.classList.contains('tisch--bidding')) {
           const r = raum.getBoundingClientRect();
           const cards = document.querySelectorAll('.hand .card').length;
@@ -42,17 +53,18 @@ for (const size of SIZES) {
       step();
     });
 
+    // Mindestens drei Spiele, dazu ein gespieltes mit letztem Stich; zusammengeworfene zählen mit.
     const next = page.getByRole('button', { name: 'Nächstes Spiel' });
-    const deadline = Date.now() + 60_000;
+    const deadline = Date.now() + 90_000;
+    let games = 0;
+    let measured = false;
     while (Date.now() < deadline) {
       if (await next.isVisible()) {
         const title = await page.getByRole('dialog').getByRole('heading').first().innerText();
-        if (!/zusammengeworfen/.test(title)) break;
-        // Gemessen wird nur das gespielte Spiel; zusammengeworfene davor zählen nicht mit.
+        games++;
+        if (!/zusammengeworfen/.test(title)) measured = true;
+        if (games >= 3 && measured) break;
         await next.click();
-        await page.evaluate(() => {
-          (window as unknown as { __raum: unknown[] }).__raum = [];
-        });
         continue;
       }
       if (!(await act(page))) await page.waitForTimeout(30);
@@ -68,6 +80,10 @@ for (const size of SIZES) {
     // Es muss mit einer und ohne Karte gemessen worden sein (siebter → achter Stich → Ende).
     expect(samples.some(([, , cards]) => cards === 1)).toBe(true);
     expect(samples.some(([, , cards]) => cards === 0)).toBe(true);
+    const leiste = await page.evaluate(
+      () => (window as unknown as { __leiste: number[] }).__leiste,
+    );
+    expect(leiste, 'Höhe der Kopfzeile').toHaveLength(1);
     const sizes = new Set(samples.map(([w, h]) => `${Math.round(w)}×${Math.round(h)}`));
     expect([...sizes], JSON.stringify(samples)).toHaveLength(1);
   });

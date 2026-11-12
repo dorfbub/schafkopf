@@ -97,8 +97,12 @@ export function OwnSeat({ view, hand, seats, onPlay, onDouble }: Props) {
         <span className="eigen__stand">
           <SeatStats view={view} hand={hand} seat={me} />
         </span>
-        {inParty(hand, me) && <PartyMarks hand={hand} seat={me} />}
-        {hasDoubled(hand, me) && <DoublingMarks hand={hand} seat={me} />}
+        {/* Eigene Zeile, die auf schmalem Bildschirm immer da ist (auch leer): Spielschild und
+            Marken erscheinen mitten im Spielabend, und der Tisch darf dabei nicht springen. */}
+        <span className="eigen__marken">
+          {inParty(hand, me) && <PartyMarks hand={hand} seat={me} />}
+          {hasDoubled(hand, me) && <DoublingMarks hand={hand} seat={me} />}
+        </span>
         {/* Steht immer da (unsichtbar, wenn andere dran sind), damit die Zeile gleich umbricht
             und der Tisch nicht springt. */}
         <strong className={`eigen__dran${myTurn ? '' : ' eigen__dran--aus'}`}>{turnText}</strong>
