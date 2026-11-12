@@ -35,6 +35,7 @@ export const RANK_NAME: Record<Rank, string> = {
 
 export function contractLabel(contract: Contract): string {
   const suit = contract.suit ? SUIT_NAME[contract.suit] : '';
+  const suit2 = contract.suit2 ? SUIT_NAME[contract.suit2] : '';
   const base = {
     sauspiel: `Sauspiel auf die ${suit}-Sau`,
     hochzeit: 'Hochzeit',
@@ -43,6 +44,7 @@ export function contractLabel(contract: Contract): string {
     wenz: 'Wenz',
     eisenbahner: 'Eisenbahner',
     geier: 'Geier',
+    hawaii: `Hawaii-Habicht (${suit}, ab Stich 5 ${suit2})`,
     bettel: 'Bettel',
     ramsch: 'Ramsch',
   }[contract.kind];
@@ -157,6 +159,7 @@ export const KIND_NAME: Record<ContractKind, string> = {
   farbwenz: 'Farbwenz',
   eisenbahner: 'Eisenbahner',
   geier: 'Geier',
+  hawaii: 'Hawaii-Habicht',
   bettel: 'Bettel',
   ramsch: 'Ramsch',
 };
@@ -244,6 +247,12 @@ export const TABLE_TEXT = {
   bidKind: 'Spielart',
   bidSuitCalled: 'Auf welche Sau?',
   bidSuitTrump: 'Welche Farbe ist Trumpf?',
+  bidSuitTrumpFirst: 'Trumpf in Stich 1–4',
+  bidSuitTrumpSecond: 'Trumpf ab Stich 5 (eine andere Farbe)',
+  // Hawaii-Habicht: Trumpffarbe wechselt nach dem vierten Stich
+  trumpNext: (suit: string) => `ab Stich 5: ${suit}`,
+  trumpSwitched: 'Trumpf gewechselt',
+  trumpNow: (suit: string) => `Trumpf jetzt ${suit}`,
   bidTout: 'Tout',
   bidTouthint: 'alle Stiche',
   bidPass: 'Weiter',
@@ -447,7 +456,8 @@ export const RULES_TEXT = {
   contractsHint:
     'Das Sauspiel ist immer dabei. Hochzeit: Wer genau einen Trumpf hat, sucht sich einen Partner, der ihn gegen eine andere Karte nimmt.',
   houseRules: 'Hausregeln',
-  houseRulesHint: 'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe.',
+  houseRulesHint:
+    'Eisenbahner: wie der Wenz, aber die vier Zehner sind die Trümpfe. Hawaii-Habicht: vier Könige, dazu eine Trumpffarbe für die Stiche 1–4 und eine andere ab Stich 5.',
   tout: 'Tout erlaubt',
   sie: 'Sie (alle Ober und Unter) wird bezahlt',
   davonlaufen: 'Davonlaufen mit vier Karten der Ruffarbe',

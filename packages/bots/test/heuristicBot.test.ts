@@ -301,3 +301,34 @@ describe('Heuristik-Bot im Muss', () => {
     });
   });
 });
+
+describe('Heuristik-Bot im Hawaii-Habicht', () => {
+  const HAWAII: HandState['contract'] = { kind: 'hawaii', suit: 'gras', suit2: 'herz' };
+  const RULES: RuleSet = { ...DEFAULT_RULES, contracts: [...DEFAULT_RULES.contracts, 'hawaii'] };
+
+  /** `done` Stiche sind gespielt, Sitz 0 (Spieler) hat die Eichel-Sau angespielt. */
+  function afterLead(done: number): HandState {
+    const hands: Card[][] = [['E7'], ['G7', 'H7'], ['S7', 'S8'], ['S9', 'SA']];
+    const state: HandState = {
+      ...dealHand(RULES, 3, 1),
+      phase: 'playing',
+      contract: HAWAII,
+      declarer: 0,
+      hands,
+      tricks: Array.from({ length: done }, () => ({ leader: 0, cards: [], winner: 0, points: 0 })),
+      turn: 0,
+      currentTrick: { leader: 0, cards: [] },
+    };
+    return play({ ...state, hands: [['EA', ...hands[0]!], ...hands.slice(1)] }, 'EA');
+  }
+
+  it('sticht in Stich 4 mit der ersten, in Stich 5 mit der zweiten Trumpffarbe', () => {
+    expect(decideFor(afterLead(3))).toEqual({ type: 'play', card: 'G7' });
+    expect(decideFor(afterLead(4))).toEqual({ type: 'play', card: 'H7' });
+  });
+
+  it('sagt ihn nicht selbst an (B3)', () => {
+    const hand: Card[] = ['EK', 'GK', 'HK', 'SK', 'GA', 'G10', 'HA', 'H10'];
+    expect(rateContract(hand, { kind: 'hawaii', suit: 'gras', suit2: 'herz' })).toBeLessThan(0);
+  });
+});

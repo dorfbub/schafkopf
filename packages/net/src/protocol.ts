@@ -21,7 +21,8 @@ import type { PlayerAction, Seat, TableView } from '@schafkopf/core';
  * `Auction.yielded`/`failed`, `RuleSet.laufende.hochzeit`, Fehler `illegal_move`.
  */
 /** 13: Eisenbahner (H1): Spielart `eisenbahner`, `RuleSet.laufende.eisenbahner`. */
-export const PROTOCOL_VERSION = 13;
+/** 14: Hawaii-Habicht (H2): Spielart `hawaii`, `Contract.suit2`, `RuleSet.laufende.hawaii`. */
+export const PROTOCOL_VERSION = 14;
 
 export type ClientMessage =
   | {

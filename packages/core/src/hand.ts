@@ -209,9 +209,13 @@ export function allContracts(rules: RuleSet): Contract[] {
     const mode = MODES[kind];
     const suits = mode.suitRole === 'none' ? [undefined] : SUITS;
     for (const suit of suits) {
-      const base: Contract = suit ? { kind, suit } : { kind };
-      out.push(base);
-      if (mode.canTout && rules.allowTout) out.push({ ...base, tout: true });
+      // Zwei Farben (Hawaii-Habicht): alle Paare verschiedener Farben.
+      const seconds = mode.suitCount === 2 ? SUITS.filter((s) => s !== suit) : [undefined];
+      for (const suit2 of seconds) {
+        const base: Contract = suit ? { kind, suit, ...(suit2 ? { suit2 } : {}) } : { kind };
+        out.push(base);
+        if (mode.canTout && rules.allowTout) out.push({ ...base, tout: true });
+      }
     }
   }
   return out;
@@ -301,6 +305,7 @@ function cleanCall(call: BidCall): BidCall {
         contract: {
           kind: call.contract.kind,
           ...(call.contract.suit ? { suit: call.contract.suit } : {}),
+          ...(call.contract.suit2 ? { suit2: call.contract.suit2 } : {}),
           ...(call.contract.tout ? { tout: true } : {}),
         },
       };

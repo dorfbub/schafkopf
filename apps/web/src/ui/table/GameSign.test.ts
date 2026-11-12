@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { gameSign, symbolFor } from './GameSign';
 
 /** Nur die Felder, die das Schild liest. */
-function hand(fields: Pick<HandView, 'contract' | 'declarer'>): HandView {
+function hand(
+  fields: Pick<HandView, 'contract' | 'declarer'> & Partial<Pick<HandView, 'tricksWon'>>,
+): HandView {
   return fields as HandView;
 }
 
@@ -33,6 +35,24 @@ describe('Spielschild', () => {
     expect(gameSign(hand({ contract: { kind: 'sauspiel', suit: 'gras' }, declarer: 0 }))).toEqual(
       expect.objectContaining({ name: 'Sauspiel', label: 'Sauspiel auf die Gras-Sau', extras: [] }),
     );
+  });
+
+  it('Hawaii-Habicht: zeigt die gültige Trumpffarbe und ihren Wechsel nach dem vierten Stich', () => {
+    const contract = { kind: 'hawaii', suit: 'gras', suit2: 'herz' } as const;
+    const vorher = gameSign(hand({ contract, declarer: 1, tricksWon: [1, 1, 0, 1] }));
+    expect(vorher).toEqual({
+      seat: 1,
+      symbol: { suit: 'gras' },
+      name: 'Hawaii-Habicht',
+      label: 'Hawaii-Habicht (Gras, ab Stich 5 Herz)',
+      extras: ['ab Stich 5: Herz'],
+    });
+    const nachher = gameSign(hand({ contract, declarer: 1, tricksWon: [1, 2, 0, 1] }));
+    expect(nachher).toEqual(
+      expect.objectContaining({ symbol: { suit: 'herz' }, extras: ['Trumpf gewechselt'] }),
+    );
+    expect(symbolFor(contract, 3)).toEqual({ suit: 'gras' });
+    expect(symbolFor(contract, 4)).toEqual({ suit: 'herz' });
   });
 
   it('fehlt, solange keiner spielt', () => {

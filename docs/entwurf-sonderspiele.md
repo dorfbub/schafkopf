@@ -1,7 +1,7 @@
 # Entwurf: Sonderspiele und Hausregeln
 
 Stand November 2026. Umgesetzt sind K3a (Umbau ohne Verhaltensänderung), K3b (Ramsch), K3c (Stock),
-K3d (Muss), K4 (Kontra/Re) und K5 (Hochzeit), siehe §12. Die
+K3d (Muss), K4 (Kontra/Re), K5 (Hochzeit) und H2 (Hawaii-Habicht), siehe §12. Die
 Regeln selbst stehen in
 [REGELN.md](REGELN.md) („Varianten“, „Hausregeln“, Annahmen 10–19); dieses Dokument beschreibt, wie
 der Kern erweitert wird, damit jede Variante **ein Eintrag oder ein Hook** ist und keine
@@ -564,3 +564,19 @@ Datei `prelude.ts`; `ModeDefinition.prelude`; Spielart `hochzeit` (zwischen Saus
   billigsten erlaubten Karten). Der Heuristik-Bot sagt die Hochzeit nicht selbst an.
 - **Protokoll:** `applyTableAction` schreibt Vorspiel-Züge bereinigt ins `HandLog`; Kontra wird
   dort jetzt ausdrücklich als `double` erkannt statt als Rest-Fall.
+
+**H2 (Hawaii-Habicht, November 2026)** hat eingezogen: `Contract.suit2`, `ModeDefinition.suitCount`,
+Spielart `hawaii` wie in §3 skizziert (`laufendeTrumps`: die Könige), `allContracts` mit allen
+Paaren verschiedener Farben, `cleanCall` und `sameContract` mit `suit2`,
+`RuleSet.laufende.hawaii`. `PROTOCOL_VERSION` 14, `HOST_SNAPSHOT_VERSION` 13. Abweichungen und
+Ergänzungen:
+
+- **Grenze als Konstante.** `HAWAII_SWITCH_TRICK = 4` statt der Zahl im Eintrag; dazu
+  `trumpSuitFor(contract, trick)` und `trumpsChange(contract)` für Oberfläche und Tests. Beim
+  kurzen Blatt bleibt sie vorerst 4 (Annahme 36, K6 klärt).
+- **Bot-Gedächtnis (§10, Risiko Trumpfwechsel).** Fehlfarben werden als Karten gemerkt
+  (`Memory.absent`) und mit der Ordnung des laufenden Stichs ausgewertet; eine gemerkte effektive
+  Farbe wäre nach dem Wechsel still falsch geworden. Für Spiele ohne Wechsel ändert sich nichts.
+- **Kein `suitChoices`.** Jede Hand darf jedes Paar ansagen; `playable` braucht keinen Sonderfall.
+- **Oberfläche.** Spielschild zeigt die gültige Farbe (`symbolFor(contract, trick)`) und den
+  Wechsel als Zusatz, die Tischleiste nach Stich 4 „Trumpf jetzt …“.

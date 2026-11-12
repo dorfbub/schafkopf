@@ -44,6 +44,7 @@ export const LAUFENDE_KINDS: readonly LaufendeKind[] = [
   'farbwenz',
   'hochzeit',
   'eisenbahner',
+  'hawaii',
 ];
 
 export interface RuleSet {
@@ -84,6 +85,7 @@ export const DEFAULT_RULES: RuleSet = {
     farbwenz: 3,
     hochzeit: 3,
     eisenbahner: 2,
+    hawaii: 2,
   },
   sie: true,
   davonlaufen: true,

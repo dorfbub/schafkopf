@@ -26,6 +26,7 @@ export const CONTRACT_KINDS = [
   'bettel',
   'eisenbahner',
   'geier',
+  'hawaii',
   'farbwenz',
   'wenz',
   'solo',
@@ -49,8 +50,10 @@ export const CLASSIC_CONTRACTS: readonly ContractKind[] = [
 /** Eine konkrete Ansage, z. B. Sauspiel auf die Eichel-Sau oder Herz-Solo Tout. */
 export interface Contract {
   kind: ContractKind;
-  /** Ruffarbe (Sauspiel) bzw. Trumpffarbe (Solo, Farbwenz). */
+  /** Ruffarbe (Sauspiel) bzw. Trumpffarbe (Solo, Farbwenz; Hawaii-Habicht: Stiche 1–4). */
   suit?: Suit;
+  /** Zweite Trumpffarbe, nur bei `suitCount: 2` (Hawaii-Habicht: gilt ab Stich 5). */
+  suit2?: Suit;
   tout?: boolean;
 }
 
@@ -87,6 +90,11 @@ export interface ModeDefinition {
   biddable: boolean;
   /** Bedeutung von `Contract.suit`. */
   suitRole: 'none' | 'called' | 'trump';
+  /**
+   * Zahl der zu nennenden Farben (Standard 1). Bei 2 (Hawaii-Habicht) trägt die Ansage
+   * `suit` und `suit2`, und beide müssen verschieden sein.
+   */
+  suitCount?: 1 | 2;
   /** Wer spielt mit wem. */
   parties: Parties;
   /** Welcher Grundtarif gilt. */
@@ -126,6 +134,13 @@ export interface ModeDefinition {
 const OBER: Card[] = SUITS.map((s) => card(s, 'O'));
 const UNTER: Card[] = SUITS.map((s) => card(s, 'U'));
 const ZEHNER: Card[] = SUITS.map((s) => card(s, '10'));
+const KOENIG: Card[] = SUITS.map((s) => card(s, 'K'));
+
+/**
+ * Hawaii-Habicht: Index des ersten Stichs, in dem die zweite Trumpffarbe gilt (Stich 5).
+ * Das ist die halbe Stichzahl des langen Blatts; beim kurzen Blatt (K6) neu klären.
+ */
+export const HAWAII_SWITCH_TRICK = 4;
 
 /** Karten einer Farbe ohne die genannten Ränge, hoch → niedrig. */
 function suitCards(suit: Suit, without: readonly Rank[]): Card[] {
@@ -147,6 +162,11 @@ function countSauspielTrumps(hand: readonly Card[]): number {
 function requireSuit(contract: Contract): Suit {
   if (!contract.suit) throw new Error(`Spielart ${contract.kind} braucht eine Farbe`);
   return contract.suit;
+}
+
+function requireSuit2(contract: Contract): Suit {
+  if (!contract.suit2) throw new Error(`Spielart ${contract.kind} braucht eine zweite Farbe`);
+  return contract.suit2;
 }
 
 /**
@@ -253,6 +273,25 @@ export const MODES: Record<ContractKind, ModeDefinition> = {
     hasLaufende: true,
     trumps: () => [...OBER],
   },
+  // Hausregel (H2): wie der Farbwenz, nur mit den vier Königen statt der Unter und zwei
+  // Trumpffarben – `suit` für die Stiche 1–4, `suit2` ab Stich 5. Standardmäßig aus.
+  hawaii: {
+    kind: 'hawaii',
+    biddable: true,
+    suitRole: 'trump',
+    suitCount: 2,
+    parties: 'alone',
+    tariff: 'solo',
+    canTout: true,
+    goal: 'points',
+    hasLaufende: true,
+    trumps: (contract, trick) => {
+      const suit = trick < HAWAII_SWITCH_TRICK ? requireSuit(contract) : requireSuit2(contract);
+      return [...KOENIG, ...suitCards(suit, ['K'])];
+    },
+    // Laufende nur über die Könige – die Farbe wechselt, die Könige bleiben.
+    laufendeTrumps: () => [...KOENIG],
+  },
   farbwenz: {
     kind: 'farbwenz',
     biddable: true,
@@ -324,5 +363,22 @@ export function bidValue(level: { kind: ContractKind; tout?: boolean }): number 
 }
 
 export function sameContract(a: Contract, b: Contract): boolean {
-  return a.kind === b.kind && a.suit === b.suit && Boolean(a.tout) === Boolean(b.tout);
+  return (
+    a.kind === b.kind &&
+    a.suit === b.suit &&
+    a.suit2 === b.suit2 &&
+    Boolean(a.tout) === Boolean(b.tout)
+  );
+}
+
+/** Wechselt die Trumpffarbe dieses Spiels zwischen zwei Stichen? (Hawaii-Habicht) */
+export function trumpsChange(contract: Contract): boolean {
+  return MODES[contract.kind].suitCount === 2;
+}
+
+/** Die Trumpffarbe, die im Stich mit Index `trick` gilt (`null` ohne Trumpffarbe). */
+export function trumpSuitFor(contract: Contract, trick: number): Suit | null {
+  if (MODES[contract.kind].suitRole !== 'trump') return null;
+  if (trumpsChange(contract) && trick >= HAWAII_SWITCH_TRICK) return contract.suit2 ?? null;
+  return contract.suit ?? null;
 }

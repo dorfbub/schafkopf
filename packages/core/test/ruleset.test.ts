@@ -94,6 +94,7 @@ describe('DEFAULT_RULES', () => {
       farbwenz: 3,
       hochzeit: 3,
       eisenbahner: 2,
+      hawaii: 2,
     });
     expect(DEFAULT_RULES.contracts).toEqual([
       'sauspiel',
@@ -255,6 +256,7 @@ describe('Rangfolge', () => {
       'bettel',
       'eisenbahner',
       'geier',
+      'hawaii',
       'farbwenz',
       'wenz',
       'solo',
