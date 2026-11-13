@@ -775,11 +775,10 @@ bringt es im Schnitt, sie zu befolgen?
 - **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`. Messskript
   `packages/tutor/scripts/messen.ts` (läuft als Test hinter `TUTOR_MESSEN=1`, nicht in CI),
   Ergebnisse in `packages/tutor/messungen/`, Werte für Max in `packages/tutor/src/werte.ts`.
-  Tabelle und Verfahren in `STRATEGIEN.md`, „Messung der Faustregeln“. 30 von 31 Regeln gemessen;
+  Tabelle und Verfahren in `STRATEGIEN.md`, „Messung der Faustregeln“. 35 von 36 Regeln gemessen (nach dem Merge von T3 auch Hochzeit und Abspatzen);
   `re.mit.reserve` zu selten (Heuristik-Gegner sagen nie Kontra). Max ordnet greifende Regeln nach
   Wert und nennt ihn, wenn er sicher über null liegt. Befund: `ansage.ruffarbe.kurz` schadet
   (−8,7 ct) und ist Kandidat zum Umformulieren; weitere Kandidaten stehen in der Einordnung.
-  `karte.abspatzen` und die Hochzeitsregeln sind vor T3 gemessen und nach dem Merge neu zu messen.
 
 ---
 

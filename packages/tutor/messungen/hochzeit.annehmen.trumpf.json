@@ -1,0 +1,18 @@
+{
+  "regel": "hochzeit.annehmen.trumpf",
+  "regelsatz": "hochzeit",
+  "spiele": 20000,
+  "vorkommen": 682,
+  "lagen": 682,
+  "cents": 1.7,
+  "fehler": 0.87,
+  "folgt": 10.16,
+  "widerspricht": 8.46,
+  "verschieden": 384,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

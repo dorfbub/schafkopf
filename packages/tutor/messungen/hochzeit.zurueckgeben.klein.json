@@ -1,0 +1,18 @@
+{
+  "regel": "hochzeit.zurueckgeben.klein",
+  "regelsatz": "hochzeit",
+  "spiele": 20000,
+  "vorkommen": 675,
+  "lagen": 675,
+  "cents": 0.95,
+  "fehler": 0.58,
+  "folgt": 10.03,
+  "widerspricht": 9.08,
+  "verschieden": 247,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

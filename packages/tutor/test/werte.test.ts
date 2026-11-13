@@ -91,4 +91,19 @@ describe('Faustregeln nach gemessenem Wert (T4)', { timeout: 60_000 }, () => {
     for (const h of ruleHits(input, ask)) REGELWERTE[h.id] = messung(10);
     expect(optionKey(advise(input, ask)!.recommended)).toBe(optionKey(vorher.recommended));
   });
+
+  it('ordnet auch die Hochzeit (Vorspiel) nach Wert', () => {
+    const fall = FAELLE.find((f) => f.rule === 'hochzeit.zurueckgeben.farbe.frei')!;
+    const input = inputOf(fall);
+    const ids = ruleHits(input, 'prelude').map((h) => h.id);
+    expect(ids).toContain('hochzeit.zurueckgeben.farbe.frei');
+    expect(ids).toContain('hochzeit.zurueckgeben.klein');
+    for (const id of ids) delete REGELWERTE[id];
+    REGELWERTE['hochzeit.zurueckgeben.klein'] = messung(30);
+    REGELWERTE['hochzeit.zurueckgeben.farbe.frei'] = messung(5);
+    expect(ruleHits(input, 'prelude')[0]!.id).toBe('hochzeit.zurueckgeben.klein');
+    REGELWERTE['hochzeit.zurueckgeben.klein'] = messung(5);
+    REGELWERTE['hochzeit.zurueckgeben.farbe.frei'] = messung(30);
+    expect(ruleHits(input, 'prelude')[0]!.id).toBe('hochzeit.zurueckgeben.farbe.frei');
+  });
 });

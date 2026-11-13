@@ -529,7 +529,7 @@ Die Zahl der getauschten Karten ist bei der arabischen Hochzeit zwei statt eins;
 
 ## Messung der Faustregeln (T4)
 
-Jede Regel hat einen gemessenen Wert: Wie viele Cent bringt es im Schnitt, sie in einer Lage zu
+Jede der 36 Regeln hat einen gemessenen Wert (oder ist begründet „zu selten“): Wie viele Cent bringt es im Schnitt, sie in einer Lage zu
 befolgen, statt die beste andere Möglichkeit zu nehmen? Max nennt bei mehreren greifenden Regeln
 die mit dem höheren Wert zuerst und darf den Wert in der Begründung nennen („Gemessen bringt sie im
 Schnitt etwa 8 Cent“) – aber nur, wenn er sicher über null liegt (mehr als zwei Standardfehler).
@@ -565,10 +565,9 @@ der Bot ihnen ohnehin folgt – der Wert zeigt dann, was ein Abweichen kostet.
 Lage für ein Re (0 Vorkommen in 20 000 Spielen). Auch **`bettel.spieler.drunter`**,
 **`bettel.gegner.klein`** und **`ramsch.durchmarsch.verhindern`** sind selten (39, 117 und 83 Lagen)
 – die Zahlen stehen mit großem Fehler in der Tabelle, ein Wert wird dafür nicht genannt.
-`karte.abspatzen` und die Hochzeitsregeln sind so gemessen, wie sie in diesem Stand stehen; T3 ändert
-beide (abspatzen getrennt, Hochzeit beraten), danach ist neu zu messen.
+Die Hochzeitsregeln und `karte.abspatzen`/`karte.abspatzen.trumpf` sind nach dem Merge von T3 neu gemessen; alle übrigen Regeln hat T3 nicht verändert (Vergleich von `rules.ts`).
 
-### Ergebnis (Stand: 20 000 Spiele)
+### Ergebnis (Stand: 20 000 Spiele, alle 36 Regeln)
 
 | Regel                                | Wert (ct) | ± Fehler | Lagen | Vorkommen je Spiel | Urteil                |
 | ------------------------------------ | --------: | -------: | ----: | -----------------: | --------------------- |
@@ -585,15 +584,20 @@ beide (abspatzen getrennt, Hochzeit beraten), danach ist neu zu messen.
 | `spieler.farbe.nach.trumpf`          |       6,0 |      2,8 |  1500 |              0,563 | nützlich              |
 | `spieler.trumpf.ziehen`              |       4,3 |      1,7 |  1500 |              2,688 | nützlich              |
 | `gegner.kein.trumpf.anspielen`       |       3,7 |      0,8 |  1500 |              1,712 | nützlich              |
+| `hochzeit.ablehnen.schwach`          |       3,0 |      1,1 |   815 |              0,041 | nützlich              |
 | `karte.schmieren`                    |       2,7 |      0,6 |  1500 |              1,456 | nützlich              |
 | `ramsch.hoch.drunter`                |       2,7 |      0,7 |  1500 |              0,497 | nützlich              |
 | `karte.farbe.freimachen`             |       2,3 |      1,5 |  1500 |              1,556 | kein messbarer Nutzen |
+| `karte.abspatzen`                    |       2,3 |      0,8 |  1500 |              3,916 | nützlich              |
 | `karte.nicht.vorschnell.schmieren`   |       2,2 |      0,6 |  1500 |              0,867 | nützlich              |
-| `karte.abspatzen`                    |       1,8 |      0,7 |  1500 |              6,319 | nützlich              |
+| `hochzeit.annehmen.trumpf`           |       1,7 |      0,9 |   682 |              0,034 | kein messbarer Nutzen |
 | `ansage.zu.schwach`                  |       1,6 |      0,5 |  1500 |              1,895 | nützlich              |
 | `spieler.solo.von.oben`              |       1,2 |      3,2 |  1500 |              0,415 | kein messbarer Nutzen |
+| `karte.abspatzen.trumpf`             |       1,2 |      0,4 |  1500 |              2,403 | nützlich              |
 | `ramsch.durchmarsch.verhindern`      |       1,1 |      3,3 |    83 |              0,004 | kein messbarer Nutzen |
 | `gegner.rufsau.suchen`               |       1,0 |      0,4 |  1500 |              0,528 | nützlich              |
+| `hochzeit.zurueckgeben.farbe.frei`   |       1,0 |      0,6 |   577 |              0,029 | kein messbarer Nutzen |
+| `hochzeit.zurueckgeben.klein`        |       0,9 |      0,6 |   675 |              0,034 | kein messbarer Nutzen |
 | `spieler.rufsau.nicht.selbst.suchen` |       0,9 |      0,5 |  1500 |              0,632 | kein messbarer Nutzen |
 | `gegner.sau.frisch`                  |       0,8 |      0,8 |  1500 |              0,764 | kein messbarer Nutzen |
 | `mitspieler.trumpf.spielen`          |       0,6 |      0,5 |  1500 |              0,335 | kein messbarer Nutzen |
@@ -627,6 +631,7 @@ heißt: Der Wert liegt innerhalb von zwei Standardfehlern um null.
   zum Streichen oder Umformulieren** nach Prüfung mit anderen Mitspielern als der Heuristik:
   `karte.hinten.billig.stechen` und `gegner.kurzer.weg.lange.farbe` (Wert ≈ 0 bei 1500 Lagen),
   `ansage.tout.nur.sicher` (bei den Tout-Entscheidungen liegt der Fehler bei über 4 Cent).
+- **Hochzeit (T3):** „Zwei Sauen“ bringt 6 Cent; Annehmen, Ablehnen und Zurückgeben liegen bei 1–3 Cent, davon liegt nur `hochzeit.ablehnen.schwach` (3,0 ± 1,1) sicher über null. Die Lagen sind selten (0,03–0,04 je Spiel); zu den übrigen nennt Max keinen Wert.
 - **Zu selten:** `re.mit.reserve` (keine Lage mit Heuristik-Gegnern).
 
 ### Messung wiederholen
