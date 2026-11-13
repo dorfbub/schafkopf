@@ -244,7 +244,7 @@ describe('Heuristik-Bot gegen Zufalls-Bot', () => {
     expect(heuristicAvg).toBeGreaterThan(12);
     expect(heuristicAvg - randomAvg).toBeGreaterThan(15);
     expect(time / decisions).toBeLessThan(50);
-  });
+  }, 30_000);
 
   it('gewinnt auch zu zweit gegen zwei Zufalls-Bots', () => {
     const heuristic = [0, 1, 2, 3].map((s) => createHeuristicBot(7 + s));
@@ -260,7 +260,8 @@ describe('Heuristik-Bot gegen Zufalls-Bot', () => {
     }
     // Gemessen (Stand B1): ≈ +9,8 ct je Spiel und Heuristik-Bot.
     expect(sum / 2000).toBeGreaterThan(5);
-  });
+    // 1000 Spiele brauchen auf dem CI-Runner mehr als die üblichen 5 s.
+  }, 30_000);
 });
 
 describe('Heuristik-Bot im Ramsch', () => {
