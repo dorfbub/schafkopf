@@ -31,6 +31,7 @@ import {
   tricksPlayed,
   trumpsChange,
 } from '@schafkopf/core';
+import { ansageWertInSicht } from './ansage';
 import { wantsDouble } from './doubling';
 import { rateWedding, weddingMove, weddingSize } from './hochzeit';
 
@@ -44,10 +45,13 @@ import { rateWedding, weddingMove, weddingSize } from './hochzeit';
  *  - `Memory`: gefallene Karten und erkannte Fehlfarben, wird bei jedem Aufruf aus
  *    `lastTrick` und `currentTrick` nachgeführt (zwischen zwei eigenen Zügen endet
  *    höchstens ein Stich – der, zu dem man selbst beigetragen hat).
- *  - Ansage: `rateContract` bewertet jedes mögliche Spiel mit einer Punktzahl abzüglich
- *    Schwelle („Marge“); gewünscht sind Spiele mit Marge ≥ 0. Daraus folgen alle drei
- *    Stufen der Ansage. Bewertet werden nur Spielarten, die am Tisch erlaubt sind
- *    (`RuleSet.contracts`, Tout nur mit `allowTout`).
+ *  - Ansage (B4): Jedes mögliche Spiel bekommt seinen erwarteten Wert in Cent aus den
+ *    Ansage-Tabellen (`ansage.ts`, gemessen über Probespiele, Tarif der Tischregeln);
+ *    gewünscht sind Spiele, die mehr als `ANSAGE_SCHWELLE` bringen. Daraus folgen alle drei
+ *    Stufen der Ansage, auch Zweikampf und Tout; in Stufe 3 nennt er das wertvollste Spiel.
+ *    Bewertet werden nur Spielarten, die am Tisch erlaubt sind (`RuleSet.contracts`, Tout nur
+ *    mit `allowTout`). Die alten Schwellen (`rateContract`, Marge ≥ 0) gibt es weiter als
+ *    `ansage: 'faustregel'` – für den Vergleich und für Kontra, Re und den Anfänger.
  *  - Hochzeit und arabische Hochzeit (annehmen, zurückgeben): `hochzeit.ts`.
  *  - Kontra und Re, wenn er am Zug ist und `canDouble` gilt: `doubling.ts`.
  *  - Kartenspiel: anspielen (`lead`), zugeben (`follow`) und Bettel (`bettelCard`) als
@@ -58,13 +62,34 @@ import { rateWedding, weddingMove, weddingSize } from './hochzeit';
  *
  * Zufall nur für Gleichstände, über den übergebenen Seed.
  */
-export function createHeuristicBot(seed: number): Bot {
+export interface HeuristicBotOptions {
+  /**
+   * Grundlage der Ansage: die Ansage-Tabellen (B4, Standard) oder die alten, von Hand gesetzten
+   * Schwellen aus B1/B3 (`rateContract`). Die alten bleiben für den gepaarten Vergleich.
+   */
+  ansage?: 'tabelle' | 'faustregel';
+  /** Mindestwert eines gewünschten Spiels in Vielfachen des Sauspiel-Tarifs (nur Tabelle). */
+  ansageSchwelle?: number;
+}
+
+/**
+ * Ab diesem erwarteten Wert (in Vielfachen des Sauspiel-Tarifs, Standard 10 Cent) will der Bot
+ * spielen. Gemessen im gepaarten Vergleich (docs/STRATEGIEN.md, „Ansage-Tabellen“).
+ */
+export const ANSAGE_SCHWELLE = 0;
+
+export function createHeuristicBot(seed: number, options: HeuristicBotOptions = {}): Bot {
   const rng = createRng(seed);
   const memory = createMemory();
+  const byTable = options.ansage !== 'faustregel';
+  const schwelle = options.ansageSchwelle ?? ANSAGE_SCHWELLE;
   return {
     decide(view: HandView, rules: RuleSet = DEFAULT_RULES): PlayerAction {
       updateMemory(memory, view);
-      if (view.phase === 'bidding') return { type: 'bid', call: bid(view, rules, rng) };
+      if (view.phase === 'bidding') {
+        const call = byTable ? bidByTable(view, rules, rng, schwelle) : bid(view, rules, rng);
+        return { type: 'bid', call };
+      }
       if (view.phase === 'prelude') return { type: 'prelude', move: weddingMove(view) };
       if (wantsDouble(view, rateContract)) return { type: 'double' };
       return { type: 'play', card: play(view, memory, rules, rng) };
@@ -457,6 +482,76 @@ function bid(view: HandView, rules: RuleSet, rng: Rng): BidCall {
       const chosen = pickWanted ?? fallback;
       if (chosen) return { type: 'declare', contract: chosen.contract };
       return calls[Math.floor(rng() * calls.length)]!;
+    }
+  }
+}
+
+/**
+ * Erwarteter Wert eines Spiels für den Sitz am Zug in Cent (Ansage-Tabellen). Außerhalb der
+ * Tabelle (Blatt zu schwach) `-Infinity`. Gibt es für eine Spielart keine Tabelle, schätzt er aus
+ * der alten Marge (ein Punkt Marge ≈ ein Sauspiel-Tarif) – ein Notbehelf, der heute nicht greift.
+ */
+export function contractValue(view: HandView, contract: Contract, rules: RuleSet): number {
+  // Hawaii-Habicht nie als Tout (Annahme 73): Die Tabelle schätzt „alle Stiche“ aus Spielen
+  // ohne Tout; beim Trumpfwechsel ist das zu unsicher.
+  if (contract.tout && trumpsChange(contract)) return -Infinity;
+  const value = ansageWertInSicht(view, contract, rules);
+  if (value !== null) return value;
+  const deckSize = view.handSizes.reduce((a, b) => a + b, 0);
+  const margin = rateContract(view.hand, contract, deckSize);
+  return margin <= -10 ? -Infinity : margin * rules.tariff.sauspiel;
+}
+
+interface Valued {
+  contract: Contract;
+  value: number;
+}
+
+function bestValued(rated: readonly Valued[]): Valued | undefined {
+  return [...rated].sort((a, b) => b.value - a.value)[0];
+}
+
+/** Ansage nach den Ansage-Tabellen (B4); Aufbau wie `bid`, nur mit Werten in Cent. */
+function bidByTable(view: HandView, rules: RuleSet, rng: Rng, schwelle: number): BidCall {
+  const calls = view.legalCalls;
+  const passive = calls[0]!;
+  const min = schwelle * rules.tariff.sauspiel;
+  const rated = candidateContracts(view.hand, rules, view.auction.failed).map((contract) => ({
+    contract,
+    value: contractValue(view, contract, rules),
+  }));
+  const wanted = rated.filter((r) => r.value > min);
+  const current = view.auction.level ? bidValue(view.auction.level) : 0;
+
+  switch (view.auction.stage) {
+    case 'interest':
+      return (wanted.length > 0 && calls.find((c) => c.type === 'interest')) || passive;
+    case 'duel': {
+      if (view.turn === view.auction.holder) {
+        const hold = wanted.some((r) => bidValue(r.contract) >= current);
+        return (hold && calls.find((c) => c.type === 'hold')) || passive;
+      }
+      // Forderer: die niedrigste gewünschte Spielart nennen, die überbietet – in Stufe 3 darf
+      // er dann jedes Spiel mindestens dieser Höhe ansagen, also auch sein wertvollstes.
+      const levels = wanted
+        .map((r) => r.contract)
+        .filter((c) => bidValue(c) > current)
+        .sort((a, b) => bidValue(a) - bidValue(b));
+      for (const level of levels) {
+        const call = calls.find((c) => c.type === 'name' && bidValue(c.level) === bidValue(level));
+        if (call) return call;
+      }
+      return passive;
+    }
+    case 'declare': {
+      // Genau die erlaubten Spiele – im Muss auch gelockerte Rufe; das wertvollste.
+      const legalRated = calls
+        .flatMap((c) => (c.type === 'declare' ? [c.contract] : []))
+        .map((contract) => ({ contract, value: contractValue(view, contract, rules) }));
+      const chosen = bestValued(legalRated.filter((r) => Number.isFinite(r.value)));
+      if (chosen) return { type: 'declare', contract: chosen.contract };
+      // Alles außerhalb der Tabelle (Muss mit schwachem Blatt): wie bisher nach der Marge.
+      return bid(view, rules, rng);
     }
   }
 }

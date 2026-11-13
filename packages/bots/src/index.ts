@@ -6,3 +6,4 @@ export * from './strength';
 export * from './prelude';
 export * from './hochzeit';
 export * from './doubling';
+export * from './ansage';

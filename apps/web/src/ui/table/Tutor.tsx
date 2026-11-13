@@ -313,6 +313,11 @@ function Reasons({ advice, re }: { advice: Advice; re: boolean }) {
           )}
         </p>
       )}
+      {advice.ansage && (
+        <p className="tutor-blase__text tutor-blase__text--leise">
+          {T.tableValue(advice.ansage.contract, advice.ansage.cents)}
+        </p>
+      )}
       {advice.basis === 'faustregel' && (
         <p className="tutor-blase__text tutor-blase__text--leise">{T.onlyRules}</p>
       )}

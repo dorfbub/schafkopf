@@ -11,7 +11,8 @@ import { type DuelResult, duel } from './duel';
  *   BOTS_FULL=1 npx vitest run packages/bots
  *
  * Gemessen (Stand B2, 1200 Spiele): Stark ≈ +9,5 ct je Spiel gegenüber Normal (Standardfehler
- * ≈ 1,6). Der Vergleich Anfänger gegen Normal steht in `strengthBeginner.test.ts`.
+ * ≈ 1,6). Stand B4 (beide sagen nach der Ansage-Tabelle an, Geber wandert): ≈ +6,6 ct (≈ 1,5) –
+ * der Vorsprung bei der Ansage ist weg, der im Kartenspiel bleibt. Der Vergleich Anfänger gegen Normal steht in `strengthBeginner.test.ts`.
  */
 const FULL = Boolean(process.env.BOTS_FULL);
 
@@ -30,8 +31,8 @@ describe('Spielstärken: Stark gegen Normal', () => {
       expect(r.paired).toBeGreaterThan(5);
       expect(r.paired).toBeGreaterThan(3 * r.stdError);
     } else {
-      // Kleiner Lauf: nur die Richtung (60 Spiele, gemessen ≈ +3,3 ct je Spiel).
-      expect(r.paired).toBeGreaterThan(2);
+      // Kleiner Lauf: nur die Richtung (60 Spiele, gemessen ≈ +1,7 ± 2,0 ct je Spiel).
+      expect(r.paired).toBeGreaterThan(0);
     }
   });
 });

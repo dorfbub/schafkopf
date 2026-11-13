@@ -16,7 +16,14 @@ import {
   dealHand,
   orderFor,
 } from '@schafkopf/core';
-import { createHeuristicBot, createRandomBot, rateContract } from '../src';
+import {
+  ANSAGE_SCHWELLE,
+  ansageWert,
+  createHeuristicBot,
+  createRandomBot,
+  positionOf,
+  rateContract,
+} from '../src';
 import { kontraStrength } from '../src/doubling';
 import { rateAcceptWedding, weddingSize } from '../src/hochzeit';
 import { playHand } from './simulate';
@@ -176,6 +183,17 @@ function bestRating(hand: readonly Card[], kind: ContractKind): number {
   return Math.max(...contracts.map((c) => rateContract(hand, c)));
 }
 
+/** Bester Wert laut Ansage-Tabelle (B4) für eine Spielart; außerhalb der Tabelle −∞. */
+function bestValue(hand: readonly Card[], kind: ContractKind, position: number): number {
+  const mode = MODES[kind];
+  if (mode.eligible && !mode.eligible(hand)) return -Infinity;
+  const contracts: Contract[] =
+    mode.suitRole === 'none' ? [{ kind }] : SUITS.map((suit) => ({ kind, suit }));
+  return Math.max(
+    ...contracts.map((c) => ansageWert(hand, c, DEFAULT_RULES, position) ?? -Infinity),
+  );
+}
+
 /**
  * Passt das Blatt zur Variante, und ist sie dort die beste Wahl? Ein Blatt, mit dem der Bot ohnehin
  * ein Solo spielt, zeigt nichts über die Variante.
@@ -224,13 +242,17 @@ describe('B3: Heuristik-Bot gegen Zufalls-Bots je Variante', () => {
     'Ramsch: verliert selten und bleibt im Plus',
     () => {
       // Alle sagen „weiter“: Zufalls-Bots mit weniger als fünf Trümpfen, der Heuristik-Bot ohne
-      // Spiel, für das sein Blatt reicht.
+      // Spiel, das sich laut Ansage-Tabelle lohnt.
       const rules: RuleSet = { ...DEFAULT_RULES, allPassed: 'ramsch' };
       const trumps = orderFor({ kind: 'sauspiel', suit: 'eichel' }, 0).trumps;
       const seeds = seedsWhere(rules, COUNT * 2, (hands, seed) =>
         hands.every((hand, s) =>
           s === heuristicSeat(seed)
-            ? CLASSIC_CONTRACTS.every((kind) => bestRating(hand, kind) < 0)
+            ? CLASSIC_CONTRACTS.every(
+                (kind) =>
+                  bestValue(hand, kind, positionOf(s, dealerOf(seed), 4)) <=
+                  ANSAGE_SCHWELLE * DEFAULT_RULES.tariff.sauspiel,
+              )
             : hand.filter((c) => trumps.includes(c)).length < 5,
         ),
       );

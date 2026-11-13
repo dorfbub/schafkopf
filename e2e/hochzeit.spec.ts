@@ -9,11 +9,12 @@ import {
 } from './helpers';
 
 /**
- * Feste Karten (Seed 1472, Geberin Hanni auf Platz 1): Hanni hat genau einen Trumpf, und auf den
- * drei anderen Plätzen würde der Heuristik-Bot „weiter“ sagen – egal, wo Sepp sitzt. Gefunden
- * durch Durchprobieren; ändert sich die Ansage des Bots, muss ein neuer Seed her.
+ * Feste Karten (Seed 20007, Geberin Hanni auf Platz 1): Hanni hat genau einen Trumpf, und auf den
+ * drei anderen Plätzen würde der Heuristik-Bot „weiter“ sagen – egal, wo Sepp sitzt (laut
+ * Ansage-Tabelle lohnt dort kein Spiel). Gefunden durch Durchprobieren; ändert sich die Ansage des
+ * Bots (zuletzt B4), muss ein neuer Seed her.
  */
-const QUERY = `${E2E_QUERY}&seed=1472`;
+const QUERY = `${E2E_QUERY}&seed=20007`;
 
 test('Hochzeit: Hanni sagt sie an, Sepp nimmt an und gibt verdeckt eine Karte zurück', async ({
   context,

@@ -97,7 +97,8 @@ export const FAELLE: Fall[] = [
   {
     rule: 'ansage.zu.schwach',
     title: 'Schwaches Blatt: weiter',
-    lage: () => at(fixedHand(deal({ 0: ['H7', 'H8', 'E7', 'E8', 'G7', 'G9', 'S8', 'SK'] })), 0),
+    // Kein Spiel lohnt laut Ansage-Tabelle (das frühere Blatt war ein guter Bettel).
+    lage: () => at(fixedHand(deal({ 0: ['H7', 'H8', 'EA', 'E8', 'G7', 'GK', 'S8', 'SK'] })), 0),
     expect: isCall('pass'),
   },
   {

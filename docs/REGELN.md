@@ -495,3 +495,17 @@ spielen. **Von Lukas am 12.11.2026 bestätigt.**
     Ober mit Eichel- und Gras-Ober, sonst nur Sauen – und geben auf, sobald die anderen zusammen
     mehr als 29 Augen haben. Hat ein anderer alle bisherigen Stiche (ab zwei) oder fast alle
     Augen, nehmen sie einen Stich, wenn es sicher geht, und schenken ihm sonst keine Augen.
+
+### Annahmen zu den Bots (B4)
+
+Bei der Umsetzung von B4 ohne Rückfrage festgelegt (Lukas war nicht erreichbar). Spielregeln ändern
+sie nicht, nur wie die Bots ansagen. **Noch nicht bestätigt.**
+
+75. **Ansage nach Erwartungswert:** Bots (Normal, Anfänger, Stark) sagen ein Spiel an, wenn es laut
+    Ansage-Tabelle im Schnitt mehr bringt als „weiter“ (`ANSAGE_SCHWELLE`, in Vielfachen des
+    Sauspiel-Tarifs), und nennen in Stufe 3 das wertvollste erlaubte Spiel – auch Tout, wenn es mehr
+    bringt (Hawaii-Habicht weiter nie, Annahme 73). Das ersetzt die handgesetzten Schwellen aus
+    Annahme 70 und 72: Eine Hochzeit bieten sie nun mit fast jedem Blatt mit genau einem Trumpf an
+    (gemessen lohnt sich das in 95 % der Fälle), nicht mehr nur mit zwei Sauen. Annehmen und
+    Zurückgeben bleiben wie in Annahme 72. Verfahren und Zahlen: `docs/STRATEGIEN.md`,
+    „Ansage-Tabellen“.

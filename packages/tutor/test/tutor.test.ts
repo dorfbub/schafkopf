@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ansageWertInSicht } from '@schafkopf/bots';
 import { advise, currentAsk, importance, optionKey, questionsFor, review } from '../src';
 import { FAELLE, inputOf } from './faelle';
 
@@ -133,5 +134,42 @@ describe('Auswahlfragen', () => {
     const tutorInput = fall('re.mit.reserve');
     expect(questionsFor(tutorInput).map((q) => q.id)).toEqual(['frage.re']);
     expect(currentAsk(tutorInput)).toBe('double');
+  });
+});
+
+describe('Ansage nach der Ansage-Tabelle (B4)', () => {
+  it('bewertet die Spiele mit den Werten der Tabelle und nennt das beste', () => {
+    const tutorInput = fall('ansage.wenz.unter.und.farben');
+    const a = advise(tutorInput)!;
+    expect(a.ask).toBe('bid');
+    const wenz = a.options.find((o) => optionKey(o.option) === 'bid:declare:wenz::')!;
+    const expected = ansageWertInSicht(tutorInput.view, { kind: 'wenz' }, tutorInput.rules)!;
+    expect(wenz.cents).toBeCloseTo(expected, 1);
+    expect(wenz.estimated).toBe(false);
+    // Max nennt das wertvollste Spiel samt Wert: „bringt ein Wenz im Schnitt etwa …“.
+    expect(a.ansage?.contract).toEqual({ kind: 'wenz' });
+    expect(a.ansage!.cents).toBeGreaterThan(20);
+    expect(optionKey(a.recommended)).toBe('bid:declare:wenz::');
+  });
+
+  it('rechnet mit dem Tarif der Tischregeln', () => {
+    const tutorInput = fall('ansage.wenz.unter.und.farben');
+    const doubled = {
+      ...tutorInput,
+      rules: {
+        ...tutorInput.rules,
+        tariff: { ...tutorInput.rules.tariff, solo: 100, extra: 20, sauspiel: 20 },
+      },
+    };
+    const base = advise(tutorInput)!.ansage!.cents;
+    expect(advise(doubled)!.ansage!.cents).toBeCloseTo(2 * base, 0);
+  });
+
+  it('schätzt eine Hochzeit nicht mehr, sondern nimmt den Wert der Tabelle', () => {
+    const a = advise(fall('hochzeit.zwei.sauen'))!;
+    const interest = a.options.find((o) => optionKey(o.option) === 'bid:interest')!;
+    expect(interest.estimated).toBe(false);
+    expect(interest.cents).toBeGreaterThan(0);
+    expect(a.ansage?.contract.kind).toBe('hochzeit');
   });
 });

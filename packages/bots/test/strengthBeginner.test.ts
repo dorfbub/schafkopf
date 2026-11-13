@@ -6,6 +6,7 @@ import { duel } from './duel';
  * „Normal“ gegen „Anfänger“ (B2), gepaart ausgewertet (siehe `duel`). Großer Lauf mit
  * `BOTS_FULL=1`. Gemessen (Stand B2): 4000 Spiele ≈ −7,7 ct je Spiel für den Anfänger
  * (Standardfehler ≈ 0,9); 1000 Spiele ≈ −8,5 ct (≈ 1,9).
+ * Stand B4 (beide mit Ansage-Tabelle, Geber wandert): 4000 Spiele ≈ −8,5 ct (≈ 1,0).
  */
 const FULL = Boolean(process.env.BOTS_FULL);
 

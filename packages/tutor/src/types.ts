@@ -2,6 +2,7 @@ import type {
   BidCall,
   Card,
   CompletedTrick,
+  Contract,
   HandView,
   PreludeMove,
   RuleSet,
@@ -130,6 +131,12 @@ export interface Advice {
   /** Denkanstoß: eine Frage, die zur Lösung führt, ohne sie zu verraten. */
   hint: Message;
   importance: Importance;
+  /**
+   * Nur bei der Ansage (B4): das wertvollste Spiel, das man mit dem Blatt am Tisch ansagen dürfte,
+   * und sein erwarteter Wert laut Ansage-Tabelle in Cent (Tarif der Tischregeln). Fehlt, wenn
+   * kein erlaubtes Spiel in der Tabelle liegt. Max darf das nennen („bringt im Schnitt etwa …“).
+   */
+  ansage?: { contract: Contract; cents: number };
 }
 
 export type Verdict = 'gut' | 'vertretbar' | 'fehler';
