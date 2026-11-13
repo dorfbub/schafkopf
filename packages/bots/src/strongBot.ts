@@ -36,6 +36,13 @@ import {
   markVoid,
   rateContract,
 } from './heuristicBot';
+import {
+  chooseWeddingGive,
+  rateAcceptWedding,
+  rateWedding,
+  weddingGiveScore,
+  weddingSize,
+} from './hochzeit';
 
 /**
  * Starker Bot (B2): sagt an wie der Heuristik-Bot, wählt seine Karten aber mit einer
@@ -245,14 +252,30 @@ function simulateContract(
   rules: RuleSet,
   rng: Rng,
 ): number {
-  const players = view.handSizes.length;
-  const me = view.turn;
   const hands = dealt.map((h) => [...h]);
   let partner: Seat | null = null;
   if (MODES[contract.kind].parties === 'calledAce') {
     const sau = card(contract.suit!, 'A');
     partner = hands.findIndex((h) => h.includes(sau));
   }
+  return playOut(view, hands, contract, view.turn, partner, rules, rng, view.turn);
+}
+
+/**
+ * Spielt ein ganzes Spiel von Stich 1 an mit der Heuristik zu Ende und gibt das Ergebnis von
+ * `me` in Cent zurück. `hands` sind die Hände zu Spielbeginn.
+ */
+function playOut(
+  view: HandView,
+  hands: Card[][],
+  contract: Contract,
+  declarer: Seat,
+  partner: Seat | null,
+  rules: RuleSet,
+  rng: Rng,
+  me: Seat,
+): number {
+  const players = view.handSizes.length;
   const first = (view.dealer + 1) % players;
   const state: HandState = {
     rules,
@@ -261,10 +284,10 @@ function simulateContract(
     turn: first,
     hands,
     initialHands: hands.map((h) => [...h]),
-    bids: [],
+    bids: view.bids,
     auction: view.auction,
     contract,
-    declarer: me,
+    declarer,
     partner,
     prelude: null,
     tricks: [],
@@ -811,6 +834,217 @@ export function evaluateContracts(
   if (done === 0) return [];
   return playable.map((contract, j) => ({
     option: contract,
+    cents: values[j]!.reduce((a, b) => a + b, 0) / done,
+    samples: done,
+    values: values[j]!,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Hochzeit (T3): Annehmen und Zurückgeben für den Tutor
+
+/** Wie oft höchstens neu verteilt wird, bis die Verteilung zu dem passt, was man gehört hat. */
+const WEDDING_TRIES = 40;
+/** Höchstzahl durchgerechneter Rückgaben (die übrigen rechnet der Tutor nicht). */
+export const MAX_WEDDING_GIVES = 6;
+
+interface WeddingSetting {
+  me: Seat;
+  players: number;
+  rules: RuleSet;
+  contract: Contract;
+  declarer: Seat;
+  n: number;
+  /** Sitze, die schon abgelehnt haben (vor einem selbst gefragt). */
+  decliners: Seat[];
+  trumps: readonly Card[];
+  unseen: Card[];
+}
+
+function weddingSetting(view: HandView, options: StrongBotOptions): WeddingSetting | null {
+  const contract = view.contract;
+  const prelude = view.prelude;
+  if (view.phase !== 'prelude' || !contract || !prelude || view.declarer === null) return null;
+  const n = weddingSize(contract.kind);
+  if (n === 0 || view.legalMoves.length === 0) return null;
+  const players = view.handSizes.length;
+  const deckSize = view.handSizes.reduce((a, b) => a + b, 0);
+  const rules = rulesFor(options, players, deckSize);
+  const me = view.turn;
+  return {
+    me,
+    players,
+    rules,
+    contract,
+    declarer: view.declarer,
+    n,
+    decliners: prelude.log.filter((e) => e.move === 'decline').map((e) => e.seat),
+    trumps: orderFor(contract, 0).trumps,
+    unseen: createDeck(rules.deck).filter((c) => !view.hand.includes(c)),
+  };
+}
+
+/**
+ * Verteilt die unbekannten Karten für das Vorspiel: Der Hochzeiter hat vor dem Tausch genau `n`
+ * Trümpfe und sonst keine; die übrigen gehen an die anderen. Passend zu dem, was man gehört hat:
+ * Der Hochzeiter hätte mit diesem Blatt angesagt (`rateWedding`), wer vor einem abgelehnt hat,
+ * hätte nicht angenommen. Geht es nach `WEDDING_TRIES` Versuchen nicht auf, ohne diese Prüfung.
+ * Rückgabe: Hände zu Beginn des Vorspiels, die eigene Hand wie in der Sicht.
+ */
+function dealWedding(view: HandView, w: WeddingSetting, rng: Rng): Card[][] {
+  const exchange = view.prelude!.step === 'exchange';
+  const others = Array.from({ length: w.players }, (_, s) => s).filter(
+    (s) => s !== w.me && s !== w.declarer,
+  );
+  let fallback: Card[][] | null = null;
+  for (let attempt = 0; attempt < WEDDING_TRIES; attempt++) {
+    const strict = attempt < WEDDING_TRIES - 1;
+    const sideCards = shuffle(
+      w.unseen.filter((c) => !w.trumps.includes(c)),
+      rng,
+    );
+    const trumpCards = shuffle(
+      w.unseen.filter((c) => w.trumps.includes(c)),
+      rng,
+    );
+    const hands: Card[][] = view.handSizes.map(() => []);
+    hands[w.me] = [...view.hand];
+    // Im Schritt „Rückgabe“ hat der Hochzeiter seine Trümpfe schon abgegeben (sie liegen in der
+    // eigenen Hand); es bleiben ihm nur Karten ohne Trumpf.
+    const declarerSize = view.handSizes[w.declarer]!;
+    if (exchange) {
+      hands[w.declarer] = sideCards.splice(0, declarerSize);
+    } else {
+      const own = trumpCards.splice(0, w.n);
+      hands[w.declarer] = [...own, ...sideCards.splice(0, declarerSize - w.n)];
+    }
+    const rest = shuffle([...sideCards, ...trumpCards], rng);
+    for (const s of others) hands[s] = rest.splice(0, view.handSizes[s]!);
+    fallback ??= hands;
+    if (!strict) return hands;
+    const wedding = exchange
+      ? [...hands[w.declarer]!, ...w.trumps.slice(0, w.n)]
+      : hands[w.declarer]!;
+    if (rateWedding(wedding, w.n) < 0) continue;
+    if (w.decliners.some((s) => s !== w.me && rateAcceptWedding(hands[s]!, w.n) >= 0)) continue;
+    return hands;
+  }
+  return fallback!;
+}
+
+/** Zahl der Probespiele: Budget geteilt durch die Kosten eines Spiels. */
+function weddingSamples(
+  view: HandView,
+  options: StrongBotOptions,
+  candidates: number,
+  budget: number,
+): number {
+  const size = view.handSizes.reduce((a, b) => a + b, 0);
+  return Math.max(
+    options.minSamples ?? STRONG_DEFAULTS.minSamples,
+    Math.min(
+      options.maxSamples ?? STRONG_DEFAULTS.maxSamples,
+      Math.floor(budget / (candidates * size)),
+    ),
+  );
+}
+
+/**
+ * Bewertet „annehmen“ und „ablehnen“, wenn einem eine Hochzeit angeboten wird (Schritt `offer`,
+ * `view.turn` am Zug). Angenommen: Man bekommt die Trümpfe des Hochzeiters, gibt zurück, was der
+ * Heuristik-Bot zurückgäbe, und spielt das Spiel mit der Heuristik zu Ende. Abgelehnt zählt 0 –
+ * eine Näherung wie bei „weiter“ in der Ansage (spielt dann ein anderer mit, kann man auch
+ * gewinnen oder verlieren). Nur die eigene Sicht: Der Hochzeiter und die anderen sind eine
+ * Stichprobe, die zu ihrer Ansage passt.
+ */
+export function evaluateWeddingOffer(
+  view: HandView,
+  rng: Rng,
+  options: StrongBotOptions = {},
+): Evaluation<'accept' | 'decline'>[] {
+  const w = weddingSetting(view, options);
+  if (!w || view.prelude!.step !== 'offer') return [];
+  const samples = weddingSamples(view, options, 1, options.bidBudget ?? STRONG_DEFAULTS.bidBudget);
+  const clock = startClock(options);
+  const accept: number[] = [];
+  for (let i = 0; i < samples; i++) {
+    if (i >= 2 && clock.expired()) break;
+    const hands = dealWedding(view, w, rng);
+    const given = hands[w.declarer]!.filter((c) => w.trumps.includes(c));
+    const mine = [...hands[w.me]!, ...given];
+    const gives = weddingGives(mine, w);
+    const back = chooseWeddingGive(mine, gives);
+    const after = hands.map((h) => [...h]);
+    after[w.declarer] = [...hands[w.declarer]!.filter((c) => !given.includes(c)), ...back];
+    after[w.me] = mine.filter((c) => !back.includes(c));
+    accept.push(playOut(view, after, w.contract, w.declarer, w.me, w.rules, rng, w.me));
+  }
+  const done = accept.length;
+  if (done === 0) return [];
+  const mean = accept.reduce((a, b) => a + b, 0) / done;
+  return [
+    { option: 'accept', cents: mean, samples: done, values: accept },
+    { option: 'decline', cents: 0, samples: done, values: accept.map(() => 0) },
+  ];
+}
+
+/** Erlaubte Rückgaben für eine Hand: `n` Karten, Nicht-Trümpfe, soweit vorhanden. */
+function weddingGives(hand: readonly Card[], w: WeddingSetting): Card[][] {
+  const plain = hand.filter((c) => !w.trumps.includes(c)).length;
+  const need = Math.min(w.n, plain);
+  const out: Card[][] = [];
+  const pick = (from: number, chosen: Card[]) => {
+    if (chosen.length === w.n) {
+      if (chosen.filter((c) => !w.trumps.includes(c)).length === need) out.push([...chosen]);
+      return;
+    }
+    for (let i = from; i < hand.length; i++) pick(i + 1, [...chosen, hand[i]!]);
+  };
+  pick(0, []);
+  return out;
+}
+
+/**
+ * Bewertet jede erlaubte Rückgabe (Schritt `exchange`, `view.turn` ist der Partner): Man kennt
+ * seine neue Hand; der Hochzeiter hat nur Nicht-Trümpfe. Höchstens `MAX_WEDDING_GIVES` Rückgaben
+ * werden gerechnet – die, die die Heuristik am besten findet. Gleiche Verteilungen für alle
+ * Rückgaben, Heuristik an allen Sitzen.
+ */
+export function evaluateWeddingGive(
+  view: HandView,
+  rng: Rng,
+  options: StrongBotOptions = {},
+): Evaluation<Card[]>[] {
+  const w = weddingSetting(view, options);
+  if (!w || view.prelude!.step !== 'exchange') return [];
+  const all = view.legalMoves.flatMap((m) => (m.type === 'give' ? [m.cards] : []));
+  const gives = [...all]
+    .sort((a, b) => weddingGiveScore(view.hand, b) - weddingGiveScore(view.hand, a))
+    .slice(0, MAX_WEDDING_GIVES);
+  if (gives.length === 0) return [];
+  const samples = weddingSamples(
+    view,
+    options,
+    gives.length,
+    (options.playBudget ?? STRONG_DEFAULTS.playBudget) * 0.6,
+  );
+  const clock = startClock(options);
+  const values: number[][] = gives.map(() => []);
+  let done = 0;
+  for (let i = 0; i < samples; i++) {
+    if (i >= 2 && clock.expired()) break;
+    const hands = dealWedding(view, w, rng);
+    gives.forEach((back, j) => {
+      const after = hands.map((h) => [...h]);
+      after[w.me] = hands[w.me]!.filter((c) => !back.includes(c));
+      after[w.declarer] = [...hands[w.declarer]!, ...back];
+      values[j]!.push(playOut(view, after, w.contract, w.declarer, w.me, w.rules, rng, w.me));
+    });
+    done++;
+  }
+  if (done === 0) return [];
+  return gives.map((cards, j) => ({
+    option: cards,
     cents: values[j]!.reduce((a, b) => a + b, 0) / done,
     samples: done,
     values: values[j]!,

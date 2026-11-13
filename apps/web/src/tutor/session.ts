@@ -68,8 +68,6 @@ export interface TutorSnapshot {
   auto: boolean;
   /** Auswahlfragen, die gerade passen (inklusive „War mein letzter Zug gut?“). */
   questions: Question[];
-  /** Vorspiel der Hochzeit: Max berät hier (noch) nicht. */
-  wedding: boolean;
   /** Spiel vorbei: Max verweist auf den Rückblick. */
   finished: boolean;
   /** Empfohlene Möglichkeit zum Hervorheben (ab Stufe 2, nur solange sie noch gilt). */
@@ -84,7 +82,6 @@ const EMPTY: TutorSnapshot = {
   bubble: null,
   auto: true,
   questions: [],
-  wedding: false,
   finished: false,
   tip: null,
   marks: [],
@@ -109,6 +106,7 @@ function situationOf(handNo: number, hand: HandView): string {
     hand.bids.length,
     tricksPlayed(hand),
     hand.currentTrick.cards.length,
+    hand.prelude ? `${hand.prelude.step}${hand.prelude.log.length}` : '-',
     hand.canDouble ? 1 : 0,
     hand.doubling.kontra ?? '-',
     hand.doubling.re ?? '-',
@@ -188,7 +186,6 @@ export class TutorSession {
       open,
       bubble,
       questions: this.questions(input),
-      wedding: hand.phase === 'prelude' && hand.turn === view.you,
       finished: hand.phase === 'finished',
     });
     if (changed && this.settled) this.maybeAuto(input, situation);
@@ -401,7 +398,13 @@ export class TutorSession {
     const ask = currentAsk(input);
     if (!ask) return;
     const slot =
-      ask === 'bid' ? 'ansage' : ask === 'double' ? 'kontra' : `stich-${tricksPlayed(input.view)}`;
+      ask === 'bid'
+        ? 'ansage'
+        : ask === 'double'
+          ? 'kontra'
+          : ask === 'prelude'
+            ? `vorspiel-${input.view.prelude?.step ?? ''}`
+            : `stich-${tricksPlayed(input.view)}`;
     if (this.autoSlots.has(slot)) return;
     void this.adviceFor(input, ask, situation).then(
       (advice) => {

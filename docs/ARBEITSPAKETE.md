@@ -681,7 +681,7 @@ Erst die Strategien, dann die Rechnung, noch ohne Oberfläche.
   `evaluateContracts`, `evaluateDouble`; dazu `respectBids` (Ansager mit plausiblem Blatt) und ein
   Signifikanztest gegen das Rauschen der Stichprobe. Tests in `packages/tutor/test`: je
   Faustregel eine Lage, verdeckte Karten vertauscht → gleiche Antwort, Laufzeit unter 300 ms
-  (gemessen 20–150 ms). Offen für T2: Hochzeit annehmen/zurückgeben berät der Tutor noch nicht.
+  (gemessen 20–150 ms). Offen für T2: Hochzeit annehmen/zurückgeben berät der Tutor noch nicht (→ T3).
 
 ### T2 · Tutor am Tisch
 
@@ -714,12 +714,13 @@ Erst die Strategien, dann die Rechnung, noch ohne Oberfläche.
   Satz und Faustregel. Texte in `de.ts` (`TUTOR_TEXT`). Tests: `apps/web/src/tutor/*.test.ts`,
   `e2e/trainer.spec.ts`, `e2e/layout.spec.ts`; Bilder `docs/bilder/tutor/`.
   - **Hochzeit:** Annehmen und Zurückgeben berät Max nicht – das bräuchte im Kern eine Bewertung
-    des Vorspiels (Probespiele mit getauschter Karte). Im Vorspiel sagt er das ehrlich. Folgepunkt.
+    des Vorspiels (Probespiele mit getauschter Karte). Im Vorspiel sagt er das ehrlich. Folgepunkt
+    (erledigt in T3).
   - **Bot „Weber Max“:** Der vierte Bot heißt weiter so; er sitzt nur an einem Tisch ganz ohne
     Menschen, der Trainer nur mit einem Menschen am Tisch. Beide kommen nie zusammen vor (Test).
   - **Folgepunkt Tutor-Kern:** `karte.abspatzen` wählt bei lauter Trümpfen den schwächsten
     Trumpf (z. B. die Herz-Sau statt des Schellen-Obers); der Begründungstext („keine Trümpfe und
-    keine Sauen“) passt dann nicht. Regel oder Text in T1 nachschärfen.
+    keine Sauen“) passt dann nicht. Regel oder Text in T1 nachschärfen (erledigt in T3).
 
 ### T3 · Max nachschärfen
 
@@ -732,6 +733,29 @@ Folgepunkte aus T2. Die Sprechblase hochkant bleibt, wie sie ist (Lukas, 12.11.2
 - **Modell:** Sonnet.
 - **Abnahme:** Fall-Tests für Hochzeit annehmen/ablehnen/zurückgeben und für Abspatzen mit
   lauter Trümpfen; E2E Hochzeit mit Max; `check`, `build`, `e2e` sauber.
+- **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`.
+  - **Hochzeit:** Neue Frage `prelude` (`AskKind`) mit Möglichkeiten `{ type: 'prelude', move }`
+    (annehmen, ablehnen, `give` mit den Karten). Rechnung über die neuen Bot-Funktionen
+    `evaluateWeddingOffer` (annehmen: Probespiele mit geschenkten Trümpfen und der Rückgabe des
+    Heuristik-Bots; ablehnen = 0) und `evaluateWeddingGive` (höchstens sechs Rückgaben, gleiche
+    Verteilungen). Der Hochzeiter ist eine Stichprobe: genau `n` Trümpfe, dazu Farbkarten, die zu
+    seiner Ansage passen; wer vor einem abgelehnt hat, hätte nicht angenommen. Nur die eigene Sicht
+    (Test „nichts Verdecktes“ auch für das Vorspiel). Vier neue Faustregeln
+    (`hochzeit.annehmen.trumpf`, `hochzeit.ablehnen.schwach`, `hochzeit.zurueckgeben.farbe.frei`,
+    `hochzeit.zurueckgeben.klein`), zwei neue Auswahlfragen (`frage.hochzeit.annehmen`,
+    `frage.hochzeit.zurueck`). Am Tisch: Max antwortet im Vorspiel wie sonst in drei Stufen; ab
+    Stufe 2 bekommt „Ich nehme an“ bzw. „Nein“ den gestrichelten Rahmen, bei der Rückgabe die
+    empfohlene Karte. Im Automatikmodus meldet er sich im Vorspiel nicht (Ablehnen ist selten ein
+    teurer Fehlgriff); den Zug im Vorspiel bewertet er auch nicht hinterher (kein Rückblick-Eintrag).
+    Die Antwort „Bei der Hochzeit kann ich dir noch nicht helfen“ entfällt.
+  - **Abspatzen:** `karte.abspatzen` gilt nur noch mit einer Farbkarte (Spatz). Neu
+    `karte.abspatzen.trumpf` für lauter Trümpfe: der Trumpf mit den wenigsten Augen, dann der
+    schwächste (nicht die Herz-Sau). Eigener Text für Titel, Begründung, Denkanstoß.
+  - Tests: `packages/tutor/test/hochzeit.test.ts` (annehmen, ablehnen, zurückgeben, einfach und
+    arabisch, nichts Verdecktes), je Faustregel ein Fall in `faelle.ts` (jetzt 36), `e2e/hochzeit-max.spec.ts`
+    (Allein gegen Bots, Seed 39, Bot bietet die Hochzeit an). Laufzeit je Frage unter 300 ms
+    (gemessen 20–150 ms; unter hoher Last des Rechners mehr).
+  - Die Sprechblase hochkant ist unverändert.
 
 ### T4 · Faustregeln nachmessen
 

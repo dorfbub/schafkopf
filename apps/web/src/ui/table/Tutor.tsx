@@ -107,7 +107,6 @@ export function TutorCorner({ hand, seats, settled }: Props) {
             <BubbleBody
               bubble={snap.bubble}
               questions={snap.questions}
-              wedding={snap.wedding}
               finished={snap.finished}
               ctx={ctx}
               onAsk={(q) => session.ask(q)}
@@ -138,7 +137,6 @@ export function TutorCorner({ hand, seats, settled }: Props) {
 interface BodyProps {
   bubble: Bubble;
   questions: Question[];
-  wedding: boolean;
   finished: boolean;
   ctx: TutorTextContext;
   onAsk: (q: Question) => void;
@@ -150,7 +148,6 @@ interface BodyProps {
 function BubbleBody({
   bubble,
   questions,
-  wedding,
   finished,
   ctx,
   onAsk,
@@ -160,7 +157,6 @@ function BubbleBody({
 }: BodyProps) {
   switch (bubble.kind) {
     case 'menu':
-      if (wedding) return <p className="tutor-blase__text">{T.wedding}</p>;
       if (questions.length === 0)
         return <p className="tutor-blase__text">{finished ? T.finished : T.nothingToAsk}</p>;
       return (

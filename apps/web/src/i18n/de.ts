@@ -610,6 +610,10 @@ const RULE_TITLE: Record<string, string> = {
   'ansage.tout.nur.sicher': 'Tout nur, wenn kein Stich verloren geht',
   'zweikampf.eigener.wert': 'Im Zweikampf zählt das eigene Blatt',
   'hochzeit.zwei.sauen': 'Hochzeit nur mit Sauen',
+  'hochzeit.annehmen.trumpf': 'Die Hochzeit mit starkem Blatt annehmen',
+  'hochzeit.ablehnen.schwach': 'Die Hochzeit mit schwachem Blatt ablehnen',
+  'hochzeit.zurueckgeben.farbe.frei': 'Mit der Rückgabe eine Farbe frei machen',
+  'hochzeit.zurueckgeben.klein': 'Eine kleine Karte zurückgeben',
   'kontra.gegen.partnerspiel': 'Kontra gegen ein Sauspiel nur mit eigenem Spiel',
   'kontra.gegen.einzelspiel': 'Kontra gegen ein Solo nur mit halber Trumpfstärke',
   're.mit.reserve': 'Re nur mit Reserve',
@@ -628,6 +632,7 @@ const RULE_TITLE: Record<string, string> = {
   'karte.stechen.lohnt': 'Volle Stiche holen',
   'karte.farbe.freimachen': 'Eine Farbe frei machen',
   'karte.abspatzen': 'In verlorene Stiche einen Spatz',
+  'karte.abspatzen.trumpf': 'Muss es Trumpf sein, den billigsten',
   'bettel.spieler.drunter': 'Im Bettel drunter bleiben',
   'bettel.gegner.klein': 'Gegen den Bettel klein spielen',
   'ramsch.durchmarsch.verhindern': 'Den Durchmarsch verhindern',
@@ -654,6 +659,14 @@ const RULE_REASON: Record<string, string> = {
     'Ein höheres Spiel lohnt sich nur, wenn es mit deinem Blatt gewinnt. Als Gegenspieler hast du noch Chancen, mit einem überreizten Solo kaum.',
   'hochzeit.zwei.sauen':
     'Wer die Hochzeit annimmt, hat die Trümpfe; du bringst die Farbstiche mit. Ohne Sauen trägst du nichts bei.',
+  'hochzeit.annehmen.trumpf':
+    'Der Hochzeiter hat keine Trümpfe, nur seine Sauen. Die Trümpfe musst du haben: Mit dem geschenkten Trumpf ist dein Blatt fast ein eigenes Sauspiel.',
+  'hochzeit.ablehnen.schwach':
+    'Wer annimmt, spielt mit einem Partner ohne Trumpf – ein schwaches Blatt reicht dafür nicht, und du verlierst mit. Ablehnen kostet nichts.',
+  'hochzeit.zurueckgeben.farbe.frei':
+    'Gibst du die einzige Karte einer Farbe zurück, bist du dort frei und stichst später mit dem Trumpf. Der Hochzeiter spielt die Karte selbst aus.',
+  'hochzeit.zurueckgeben.klein':
+    'Wenn sich keine Farbe frei machen lässt, die kleinste Karte ohne Augen: Sie bleibt in der Partei, und du behältst die guten Karten für deine Stiche.',
   'kontra.gegen.partnerspiel':
     'Kontra lohnt, wenn du selbst ein gutes Sauspiel-Blatt hast. Sonst verdoppelst du vor allem deinen eigenen Verlust.',
   'kontra.gegen.einzelspiel':
@@ -690,6 +703,8 @@ const RULE_REASON: Record<string, string> = {
     'Wirfst du die letzte Karte einer Farbe ab, bist du dort frei. Spielt sie später jemand an, stichst du ein oder schmierst.',
   'karte.abspatzen':
     'Was du in einen verlorenen Stich legst, zählt für die Gegner. Also einen Spatz – keine Trümpfe und keine Sauen.',
+  'karte.abspatzen.trumpf':
+    'Hast du nur Trümpfe zu geben, zählt trotzdem, was du hineinlegst. Nimm den Trumpf mit den wenigsten Augen, einen Siebener oder Neuner statt Sau oder Zehn; die hohen brauchst du später.',
   'bettel.spieler.drunter':
     'Kommst du heraus, die niedrigste Karte; gibst du zu, die höchste, die noch drunter bleibt. So wirst du gefährliche Karten gefahrlos los.',
   'bettel.gegner.klein':
@@ -716,6 +731,15 @@ const HINT: Record<string, HintText> = {
   'zweikampf.eigener.wert': (p, c) =>
     `Gewinnst du das höhere Spiel – oder willst du nur ${seatName(p, 'gegner', c, c.opponent === null ? 'den anderen' : c.name(c.opponent))} ausstechen?`,
   'hochzeit.zwei.sauen': () => 'Was bringst du deinem Partner mit, wenn er deinen Trumpf nimmt?',
+  'hochzeit.annehmen.trumpf': () => 'Wie stark wäre dein Blatt mit dem geschenkten Trumpf?',
+  'hochzeit.ablehnen.schwach': () =>
+    'Reicht dein Blatt für ein Spiel, in dem dein Partner keinen Trumpf hat?',
+  'hochzeit.zurueckgeben.farbe.frei': () =>
+    'Welche Farbe könntest du mit der Rückgabe frei machen?',
+  'hochzeit.zurueckgeben.klein': () => 'Welche Karte kostet dich und deine Partei am wenigsten?',
+  'hochzeit.annehmen': () =>
+    'Wie viele Stiche würdest du mit dem Trumpf deines Partners selbst machen?',
+  'hochzeit.zurueck': () => 'Welche Karte wirst du am leichtesten los?',
   'kontra.gegen.partnerspiel': () => 'Wärst du mit diesem Blatt selbst gern Sauspieler?',
   'kontra.gegen.einzelspiel': () => 'Wie viel von der Trumpfstärke des Spielers hältst du?',
   're.mit.reserve': (p, c) =>
@@ -740,6 +764,8 @@ const HINT: Record<string, HintText> = {
     `${p.augen ?? 'Viele'} Augen liegen im Stich. Kannst du ihn sicher holen?`,
   'karte.farbe.freimachen': () => 'Welche Farbe könntest du mit diesem Abwurf frei machen?',
   'karte.abspatzen': () => 'Der Stich ist verloren. Was gibst du am wenigsten gern her?',
+  'karte.abspatzen.trumpf': () =>
+    'Du musst Trumpf zugeben. Welcher Trumpf kostet die wenigsten Augen?',
   'bettel.spieler.drunter': () => 'Welche Karte wirst du jetzt gefahrlos los?',
   'bettel.gegner.klein': () => 'Wie zwingst du den Bettelspieler, einen Stich zu nehmen?',
   'ramsch.durchmarsch.verhindern': (p, c) =>
@@ -766,6 +792,14 @@ function optionWord(o: TutorOptionText, re: boolean): string {
       return o.call.type === 'declare' ? contractLabel(o.call.contract) : `„${callLabel(o.call)}“`;
     case 'double':
       return o.double ? (re ? 'Re' : 'Kontra') : re ? 'kein Re' : 'kein Kontra';
+    case 'prelude':
+      return o.move.type === 'accept'
+        ? 'Annehmen'
+        : o.move.type === 'decline'
+          ? 'Ablehnen'
+          : (o.move.cards ?? [])
+              .map((c) => `${SUIT_NAME[cardSuit(c)]}-${RANK_NAME[cardRank(c)]}`)
+              .join(' und ');
   }
 }
 
@@ -773,10 +807,13 @@ function optionWord(o: TutorOptionText, re: boolean): string {
 export type TutorOptionText =
   | { type: 'bid'; call: BidCall }
   | { type: 'card'; card: string }
-  | { type: 'double'; double: boolean };
+  | { type: 'double'; double: boolean }
+  | { type: 'prelude'; move: { type: 'accept' | 'decline' | 'give'; cards?: string[] } };
 
 /** Eine Möglichkeit im Satz (Werfall): „der Gras-Zehner“, „„weiter““, „Kontra“. */
 function optionPhrase(o: TutorOptionText, re: boolean): string {
+  if (o.type === 'prelude' && o.move.type === 'give')
+    return (o.move.cards ?? []).map((c) => cardPhrase(c, 'nom')).join(' und ');
   return o.type === 'card' ? cardPhrase(o.card, 'nom') : optionWord(o, re);
 }
 
@@ -797,7 +834,6 @@ export const TUTOR_TEXT = {
   close: 'Schließen',
   greeting: 'Servus! Was willst du wissen?',
   nothingToAsk: 'Gerade gibt es nichts zu entscheiden. Frag mich, wenn du dran bist.',
-  wedding: 'Bei der Hochzeit kann ich dir noch nicht helfen – da musst du selbst entscheiden.',
   finished:
     'Das Spiel ist aus. Unter „So wurde gespielt“ habe ich markiert, wo mehr drin gewesen wäre.',
   thinking: 'Moment, ich überleg …',
@@ -828,6 +864,10 @@ export const TUTOR_TEXT = {
         return `Soll ich gegen das ${kindWord(p)} von ${seatName(p, 'spieler', c, 'dem Spieler')} Kontra geben?`;
       case 'frage.re':
         return `${seatName(p, 'kontra', c, 'Ein Gegner')} hat Kontra gegeben – Re?`;
+      case 'frage.hochzeit.annehmen':
+        return `${seatName(p, 'spieler', c, 'Einer')} macht ${kindWord(p)} – soll ich annehmen?`;
+      case 'frage.hochzeit.zurueck':
+        return p.anzahl === 2 ? 'Welche Karten gebe ich zurück?' : 'Welche Karte gebe ich zurück?';
       case 'frage.rueckblick.zug':
         return 'War mein letzter Zug gut?';
       default:
@@ -851,6 +891,10 @@ export const TUTOR_TEXT = {
     switch (o.type) {
       case 'card':
         return `Ich würde ${cardPhrase(o.card, 'akk')} spielen.`;
+      case 'prelude':
+        if (o.move.type === 'accept') return 'Ich würde die Hochzeit annehmen.';
+        if (o.move.type === 'decline') return 'Ich würde ablehnen: „Nein“.';
+        return `Ich würde ${(o.move.cards ?? []).map((c) => cardPhrase(c, 'akk')).join(' und ')} zurückgeben.`;
       case 'double':
         return o.double
           ? re

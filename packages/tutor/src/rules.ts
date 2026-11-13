@@ -2,6 +2,7 @@ import {
   type BidCall,
   type Card,
   type Contract,
+  type PreludeMove,
   MODES,
   SUITS,
   availableKinds,
@@ -21,8 +22,12 @@ import {
   candidateContracts,
   kontraStrength,
   rateContract,
+  chooseWeddingGive,
+  rateAcceptWedding,
   rateWedding,
+  sideVoids,
   toutSafe,
+  weddingSize,
 } from '@schafkopf/bots';
 import type { Lage } from './lage';
 import type { Area, AskKind, Params, TutorOption } from './types';
@@ -47,6 +52,10 @@ export const RULE_IDS = [
   'ansage.tout.nur.sicher',
   'zweikampf.eigener.wert',
   'hochzeit.zwei.sauen',
+  'hochzeit.annehmen.trumpf',
+  'hochzeit.ablehnen.schwach',
+  'hochzeit.zurueckgeben.farbe.frei',
+  'hochzeit.zurueckgeben.klein',
   // Kontra und Re
   'kontra.gegen.partnerspiel',
   'kontra.gegen.einzelspiel',
@@ -69,6 +78,7 @@ export const RULE_IDS = [
   'karte.stechen.lohnt',
   'karte.farbe.freimachen',
   'karte.abspatzen',
+  'karte.abspatzen.trumpf',
   // Bettel
   'bettel.spieler.drunter',
   'bettel.gegner.klein',
@@ -152,6 +162,28 @@ function wantCalls(l: Lage, wanted: readonly Contract[]): TutorOption[] {
   return callOpts(out);
 }
 
+const preludeOpts = (moves: readonly PreludeMove[]): TutorOption[] =>
+  moves.map((move) => ({ type: 'prelude', move }));
+
+/** Hochzeit angeboten: Man wird gefragt, ob man annimmt. */
+function weddingOffer(l: Lage): boolean {
+  const v = l.view;
+  return (
+    v.phase === 'prelude' &&
+    v.turn === l.me &&
+    v.prelude?.step === 'offer' &&
+    l.contract !== null &&
+    weddingSize(l.contract.kind) > 0
+  );
+}
+
+/** Hochzeit angenommen: Man gibt Karten zurück – die erlaubten Rückgaben. */
+function weddingGives(l: Lage): Card[][] {
+  const v = l.view;
+  if (v.phase !== 'prelude' || v.turn !== l.me || v.prelude?.step !== 'exchange') return [];
+  return v.legalMoves.flatMap((m) => (m.type === 'give' ? [m.cards] : []));
+}
+
 const passCalls = (l: Lage) =>
   callOpts(l.view.legalCalls.filter((c) => c.type === 'pass' || c.type === 'yield'));
 
@@ -185,6 +217,18 @@ const trumpsIn = (l: Lage, cards: readonly Card[]) => cards.filter((c) => l.isTr
 const sideIn = (l: Lage, cards: readonly Card[]) => cards.filter((c) => !l.isTrump(c));
 const unseenTrumps = (l: Lage) => l.unseen.filter((c) => l.isTrump(c)).length;
 const isHighTrump = (l: Lage, c: Card) => l.isTrump(c) && (rankOf(c) === 'O' || rankOf(c) === 'U');
+
+/**
+ * Der Stich ist verloren: Ein Gegner liegt vorn, und man kann ihn nicht (oder nicht lohnend)
+ * holen. Gemeinsame Bedingung von `karte.abspatzen` und `karte.abspatzen.trumpf`.
+ */
+function verlorenerStich(l: Lage): boolean {
+  if (!cardTurn(l) || !pointsGame(l) || l.leading || l.winnerSeat === null) return false;
+  if (l.sideOf(l.winnerSeat) === 'friend') return false;
+  const winners = legal(l).filter(l.wins);
+  const sure = winners.filter((c) => l.safeAgainstLater(c));
+  return !(winners.length > 0 && (sure.length > 0 || l.trickPoints >= 10));
+}
 
 // ---------------------------------------------------------------------------
 // Der Katalog
@@ -338,6 +382,56 @@ export const RULES: readonly RuleDef[] = [
       if (!MODES.hochzeit.eligible?.(l.hand)) return null;
       if (rateWedding(l.hand, 1) < 0) return null;
       return hit(wantCalls(l, [{ kind: 'hochzeit' }]), {});
+    },
+  },
+
+  {
+    id: 'hochzeit.annehmen.trumpf',
+    area: 'hochzeit',
+    ask: 'prelude',
+    check(l) {
+      if (!weddingOffer(l)) return null;
+      if (rateAcceptWedding(l.hand, weddingSize(l.contract!.kind)) < 0) return null;
+      return hit(preludeOpts(l.view.legalMoves.filter((m) => m.type === 'accept')), {});
+    },
+  },
+  {
+    id: 'hochzeit.ablehnen.schwach',
+    area: 'hochzeit',
+    ask: 'prelude',
+    check(l) {
+      if (!weddingOffer(l)) return null;
+      if (rateAcceptWedding(l.hand, weddingSize(l.contract!.kind)) >= 0) return null;
+      return hit(preludeOpts(l.view.legalMoves.filter((m) => m.type === 'decline')), {});
+    },
+  },
+  {
+    id: 'hochzeit.zurueckgeben.farbe.frei',
+    area: 'hochzeit',
+    ask: 'prelude',
+    check(l) {
+      const gives = weddingGives(l);
+      if (gives.length < 2) return null;
+      const rest = (g: Card[]) => l.hand.filter((c) => !g.includes(c));
+      const voids = (g: Card[]) => sideVoids(rest(g));
+      // Nur Rückgaben ohne Trumpf, die eine Farbe frei machen, die noch nicht frei ist.
+      const plain = gives.filter((g) => g.every((c) => !l.isTrump(c)));
+      const best = Math.max(0, ...plain.map(voids));
+      if (best <= sideVoids(l.hand)) return null;
+      const top = plain.filter((g) => voids(g) === best);
+      const pick = chooseWeddingGive(l.hand, top);
+      return hit(preludeOpts([{ type: 'give', cards: pick }]), {});
+    },
+  },
+  {
+    id: 'hochzeit.zurueckgeben.klein',
+    area: 'hochzeit',
+    ask: 'prelude',
+    check(l) {
+      const gives = weddingGives(l);
+      if (gives.length < 2) return null;
+      const pick = chooseWeddingGive(l.hand, gives);
+      return hit(preludeOpts([{ type: 'give', cards: pick }]), {});
     },
   },
 
@@ -589,14 +683,24 @@ export const RULES: readonly RuleDef[] = [
     area: 'zugeben',
     ask: 'card',
     check(l) {
-      if (!cardTurn(l) || !pointsGame(l) || l.leading || l.winnerSeat === null) return null;
-      if (l.sideOf(l.winnerSeat) === 'friend') return null;
-      const winners = legal(l).filter(l.wins);
-      const sure = winners.filter((c) => l.safeAgainstLater(c));
-      if (winners.length > 0 && (sure.length > 0 || l.trickPoints >= 10)) return null;
+      if (!verlorenerStich(l)) return null;
       const side = sideIn(l, legal(l));
-      const favored = side.length > 0 ? minBy(side, pointsOf) : minBy(trumpsIn(l, legal(l)), l.str);
-      return hit(cardOpts(favored), {});
+      if (side.length === 0) return null;
+      return hit(cardOpts(minBy(side, pointsOf)), {});
+    },
+  },
+  {
+    id: 'karte.abspatzen.trumpf',
+    area: 'zugeben',
+    ask: 'card',
+    check(l) {
+      if (!verlorenerStich(l)) return null;
+      // Nur Trümpfe erlaubt (Bedienpflicht oder lauter Trümpfe auf der Hand): den billigsten, also
+      // die Karte mit den wenigsten Augen und dann die schwächste.
+      const cards = legal(l);
+      if (cards.length === 0 || sideIn(l, cards).length > 0) return null;
+      const cheap = minBy(cards, (c) => pointsOf(c) * 100 + l.str(c));
+      return hit(cardOpts(cheap), {});
     },
   },
 

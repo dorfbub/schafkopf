@@ -105,6 +105,7 @@ function fragenAn(state: HandState, seat: Seat): AskKind[] {
   const view = handViewFor(state, seat);
   const out: AskKind[] = [];
   if (view.phase === 'bidding' && view.legalCalls.length > 0) out.push('bid');
+  if (view.phase === 'prelude' && view.legalMoves.length > 0) out.push('prelude');
   if (view.phase === 'playing') {
     if (view.legalCards.length > 1) out.push('card');
     if (view.canDouble) out.push('double');
@@ -114,6 +115,7 @@ function fragenAn(state: HandState, seat: Seat): AskKind[] {
 
 function aktionFuer(option: TutorOption, bot: Bot, state: HandState, seat: Seat, rules: RuleSet) {
   if (option.type === 'bid') return { type: 'bid', call: option.call } as PlayerAction;
+  if (option.type === 'prelude') return { type: 'prelude', move: option.move } as PlayerAction;
   if (option.type === 'card') return { type: 'play', card: option.card } as PlayerAction;
   if (option.double) return { type: 'double' } as PlayerAction;
   // „Kein Kontra“: so spielen, als gäbe es keines.

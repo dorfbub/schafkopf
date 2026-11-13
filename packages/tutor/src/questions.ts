@@ -13,6 +13,8 @@ import type { AskKind, Params, TutorInput } from './types';
  * | `frage.karte.welche`         | eigene Karte, mehr als eine erlaubt    | –                  |
  * | `frage.kontra`               | Kontra möglich                         | `spieler`, `spiel` |
  * | `frage.re`                   | Re möglich                             | `kontra`           |
+ * | `frage.hochzeit.annehmen`    | Hochzeit angeboten                     | `spieler`, `spiel` |
+ * | `frage.hochzeit.zurueck`     | Hochzeit angenommen, Karten zurück     | `anzahl`           |
  * | `frage.rueckblick.zug`       | nach dem eigenen Zug (Bewertung)       | –                  |
  */
 export const QUESTION_IDS = [
@@ -23,6 +25,8 @@ export const QUESTION_IDS = [
   'frage.karte.welche',
   'frage.kontra',
   'frage.re',
+  'frage.hochzeit.annehmen',
+  'frage.hochzeit.zurueck',
   'frage.rueckblick.zug',
 ] as const;
 export type QuestionId = (typeof QUESTION_IDS)[number];
@@ -54,6 +58,22 @@ export function questionsFor({ view, seat }: TutorInput): Question[] {
       });
     } else {
       out.push({ id: 'frage.ansage.welches.spiel', ask: 'bid', params: {} });
+    }
+  }
+  if (view.phase === 'prelude' && view.turn === seat && view.legalMoves.length > 0) {
+    if (view.prelude?.step === 'offer') {
+      out.push({
+        id: 'frage.hochzeit.annehmen',
+        ask: 'prelude',
+        params: { spieler: view.declarer ?? seat, spiel: view.contract?.kind ?? '' },
+      });
+    } else {
+      const gives = view.legalMoves.flatMap((m) => (m.type === 'give' ? [m.cards] : []));
+      out.push({
+        id: 'frage.hochzeit.zurueck',
+        ask: 'prelude',
+        params: { anzahl: gives[0]?.length ?? 1 },
+      });
     }
   }
   if (view.phase === 'playing') {

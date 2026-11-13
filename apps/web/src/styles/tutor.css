@@ -107,6 +107,14 @@
   outline-offset: 3px;
 }
 
+/* Rückgabe bei der Hochzeit: die empfohlene Karte bekommt den gestrichelten Rahmen, auch wenn sie
+   (noch) nicht gewählt ist. */
+.hochzeit__karte--tipp.card:not([aria-pressed='true']) {
+  outline: var(--border-thick) dashed var(--color-accent);
+  outline-offset: 3px;
+  z-index: 1;
+}
+
 /* ---------- Sprechblase ---------- */
 
 .tutor-blase {

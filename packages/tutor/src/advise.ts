@@ -20,10 +20,13 @@ import {
   evaluateCards,
   evaluateContracts,
   evaluateDouble,
+  evaluateWeddingGive,
+  evaluateWeddingOffer,
   heuristicCard,
   markVoid,
   rateContract,
   wantsDouble,
+  weddingMove,
 } from '@schafkopf/bots';
 import { type Lage, buildLage } from './lage';
 import { RULES } from './rules';
@@ -84,9 +87,11 @@ const MAX_SIMULATED = 6;
 // ---------------------------------------------------------------------------
 // Öffentliche Schnittstelle
 
-/** Welche Frage passt gerade? Ansage, eigene Karte oder Kontra/Re – sonst `null`. */
+/** Welche Frage passt gerade? Ansage, Vorspiel, eigene Karte oder Kontra/Re – sonst `null`. */
 export function currentAsk(input: TutorInput): AskKind | null {
   const { view, seat } = input;
+  if (view.phase === 'prelude')
+    return view.turn === seat && view.legalMoves.length > 0 ? 'prelude' : null;
   if (view.phase === 'bidding')
     return view.turn === seat && view.legalCalls.length > 0 ? 'bid' : null;
   if (view.phase !== 'playing') return null;
@@ -172,6 +177,10 @@ export function optionKey(o: TutorOption): string {
       return `double:${o.double ? 'ja' : 'nein'}`;
     case 'bid':
       return `bid:${callKey(o.call)}`;
+    case 'prelude':
+      return o.move.type === 'give'
+        ? `prelude:give:${[...o.move.cards].sort().join(',')}`
+        : `prelude:${o.move.type}`;
   }
 }
 
@@ -221,12 +230,21 @@ function pairedError(a: Valued, b: Valued): number {
 }
 
 function askOf(move: TutorOption): AskKind {
-  return move.type === 'bid' ? 'bid' : move.type === 'card' ? 'card' : 'double';
+  return move.type === 'bid'
+    ? 'bid'
+    : move.type === 'card'
+      ? 'card'
+      : move.type === 'prelude'
+        ? 'prelude'
+        : 'double';
 }
 
 function unitOf(input: TutorInput): number {
   return input.rules.tariff.sauspiel > 0 ? input.rules.tariff.sauspiel : 10;
 }
+
+const sameCards = (a: readonly Card[], b: readonly Card[]) =>
+  a.length === b.length && a.every((c) => b.includes(c));
 
 const round = (x: number) => Math.round(x * 10) / 10;
 
@@ -235,6 +253,8 @@ function available(input: TutorInput, ask: AskKind): boolean {
   // Der Tutor spricht nur über den eigenen Sitz: Sicht und Sitz müssen zusammenpassen.
   if (ask === 'bid')
     return view.phase === 'bidding' && view.turn === seat && view.legalCalls.length > 0;
+  if (ask === 'prelude')
+    return view.phase === 'prelude' && view.turn === seat && view.legalMoves.length > 0;
   if (ask === 'card')
     return view.phase === 'playing' && view.turn === seat && view.legalCards.length > 0;
   return view.phase === 'playing' && view.canDouble;
@@ -244,6 +264,7 @@ function optionsFor(input: TutorInput, ask: AskKind): TutorOption[] {
   const { view } = input;
   if (ask === 'bid') return view.legalCalls.map((call) => ({ type: 'bid', call }));
   if (ask === 'card') return view.legalCards.map((c) => ({ type: 'card', card: c }));
+  if (ask === 'prelude') return view.legalMoves.map((move) => ({ type: 'prelude', move }));
   return [
     { type: 'double', double: true },
     { type: 'double', double: false },
@@ -413,6 +434,13 @@ function hintFor(ask: AskKind, l: Lage, reasons: RuleHit[], overruled: RuleHit[]
   if (overruled[0]) return { key: 'denkanstoss.ausnahme', params: { regel: overruled[0].id } };
   if (ask === 'bid') return { key: 'denkanstoss.ansage', params: {} };
   if (ask === 'double') return { key: 'denkanstoss.kontra', params: {} };
+  if (ask === 'prelude') {
+    const offer = l.view.prelude?.step === 'offer';
+    return {
+      key: offer ? 'denkanstoss.hochzeit.annehmen' : 'denkanstoss.hochzeit.zurueck',
+      params: {},
+    };
+  }
   if (l.leading) return { key: 'denkanstoss.karte.anspielen', params: {} };
   return {
     key: 'denkanstoss.karte.zugeben',
@@ -443,6 +471,22 @@ function evaluate(
     const evals = evaluateCards(input.view, input.history, rng, strong);
     if (evals.length === 0) return none();
     return from(evals, (o) => evals.find((e) => o.type === 'card' && e.option === o.card));
+  }
+  if (ask === 'prelude') {
+    if (input.view.prelude?.step === 'offer') {
+      const evals = evaluateWeddingOffer(input.view, rng, strong);
+      if (evals.length === 0) return none();
+      return from(evals, (o) =>
+        evals.find((e) => o.type === 'prelude' && e.option === o.move.type),
+      );
+    }
+    const evals = evaluateWeddingGive(input.view, rng, strong);
+    if (evals.length === 0) return none();
+    return from(evals, (o) =>
+      evals.find(
+        (e) => o.type === 'prelude' && o.move.type === 'give' && sameCards(e.option, o.move.cards),
+      ),
+    );
   }
   if (ask === 'double') {
     const evals = evaluateDouble(input.view, input.seat, rng, strong);
@@ -549,6 +593,7 @@ function naiveChoice(
     const action = createHeuristicBot(seed).decide(view, rules);
     return action.type === 'bid' ? { type: 'bid', call: action.call } : null;
   }
+  if (ask === 'prelude') return { type: 'prelude', move: weddingMove(view) };
   if (ask === 'double') {
     return { type: 'double', double: wantsDouble({ ...view, turn: seat }, rateContract) };
   }

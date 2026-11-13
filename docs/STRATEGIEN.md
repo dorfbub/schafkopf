@@ -10,7 +10,7 @@ Inhalt:
 1. [Was die Bots schon wissen](#was-die-bots-schon-wissen)
 2. [Quellen](#quellen)
 3. [Widersprüche und Entscheidungen](#widersprüche-und-entscheidungen)
-4. [Der Katalog](#der-katalog) – 31 Faustregeln
+4. [Der Katalog](#der-katalog) – 36 Faustregeln
 5. [Messung der Faustregeln](#messung-der-faustregeln-t4) – Wert je Regel in Cent
 6. [Didaktik](#didaktik) – wie der Tutor fragt, rät und bewertet
 7. [Wie der Tutor rechnet](#wie-der-tutor-rechnet) – Schwellen, Automatikmodus, Grenzen
@@ -234,6 +234,56 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 - **Ausnahmen:** Ein anderes, gutes Spiel geht vor.
 - **Quelle:** BOT (Annahme 72).
 
+Die vier folgenden Regeln gelten im Vorspiel, wenn man selbst gefragt ist (T3). Sie stammen aus
+dem Heuristik-Bot (`hochzeit.ts`, B3) und werden – wie alles – von der Rechnung geprüft: Der Tutor
+spielt die Hochzeit durch (siehe „Wie der Tutor rechnet“) und empfiehlt, was im Schnitt mehr bringt.
+Die Zahl der getauschten Karten ist bei der arabischen Hochzeit zwei statt eins; sonst gilt dasselbe.
+
+#### `hochzeit.annehmen.trumpf`
+
+- **Bereich:** Hochzeit (Annehmen, man wird gefragt).
+- **Wann:** Mit den geschenkten Trümpfen wäre das Blatt fast ein eigenes Sauspiel: mindestens fünf
+  Trümpfe danach, dazu hohe Ober oder Sauen und möglichst eine freie Farbe (Heuristik des Bots,
+  `rateAcceptWedding`).
+- **Begründung:** Der Hochzeiter hat keine Trümpfe und bringt nur seine Sauen mit. Die Trümpfe
+  muss der Partner haben; je stärker sein Blatt, desto sicherer holt die Partei die Stiche.
+- **Ausnahmen:** Hat der Hochzeiter wenige Sauen, trägt auch ein starkes Blatt nicht immer –
+  das sieht die Rechnung, die Faustregel kennt seine Karten nicht.
+- **Quelle:** BOT (Annahme 72); WT.
+
+#### `hochzeit.ablehnen.schwach`
+
+- **Bereich:** Hochzeit (Ablehnen).
+- **Wann:** Mit dem geschenkten Trumpf hätte man weniger als fünf Trümpfe oder kaum Sauen und
+  hohe Karten.
+- **Begründung:** Wer die Hochzeit annimmt, spielt mit einem Partner, der selbst keinen Trumpf
+  hat – ein schwaches Blatt reicht dann nicht, und man verliert mit. Ablehnen kostet nichts: Nimmt
+  keiner an, gilt der Hochzeiter als „weiter“.
+- **Ausnahmen:** Mit sehr guten Farben (mehrere Sauen und Zehner) kann auch ein Blatt mit wenigen
+  Trümpfen tragen – das sieht die Rechnung.
+- **Quelle:** BOT (Annahme 72).
+
+#### `hochzeit.zurueckgeben.farbe.frei`
+
+- **Bereich:** Hochzeit (Rückgabe, man hat angenommen).
+- **Wann:** Man hat eine Farbe mit nur einer (bei der arabischen Hochzeit zwei) Karten, die man
+  zurückgeben kann.
+- **Begründung:** Wer die Farbe frei macht, sticht sie später mit einem Trumpf. Der Hochzeiter
+  bekommt die Karte und spielt sie selbst aus; der Partner hat die Trümpfe, um zu stechen.
+- **Ausnahmen:** Eine Sau behält man lieber (sie ist ein sicherer Stich); Trümpfe darf man nur
+  zurückgeben, wenn man nichts anderes hat.
+- **Quelle:** BOT (Annahme 72); WT.
+
+#### `hochzeit.zurueckgeben.klein`
+
+- **Bereich:** Hochzeit (Rückgabe, man hat angenommen).
+- **Wann:** Keine Farbe lässt sich mit der Rückgabe frei machen.
+- **Begründung:** Dann die kleinste Karte, die keine Augen kostet: Sie bleibt in der Partei, und
+  man behält die guten Karten für die eigenen Stiche. Keine Sau und keinen Zehner abgeben, die
+  zählen für die Partei am meisten, wenn man sie selbst ausspielt.
+- **Ausnahmen:** Eine blanke Sau als einzige Karte der Farbe: erst die Farbe frei machen.
+- **Quelle:** BOT (Annahme 72).
+
 ### Kontra und Re
 
 #### `kontra.gegen.partnerspiel`
@@ -415,10 +465,25 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 #### `karte.abspatzen`
 
 - **Bereich:** Zugeben.
-- **Wann:** Ein Gegner liegt vorn, und man kann den Stich nicht (oder nicht lohnend) holen.
+- **Wann:** Ein Gegner liegt vorn, man kann den Stich nicht (oder nicht lohnend) holen und hat
+  eine Farbkarte, die man zugeben darf.
 - **Begründung:** Was man in einen verlorenen Stich legt, zählt für die Gegner. Also einen Spatz –
   eine Karte ohne Augen –, keine Trümpfe und keine Sauen.
-- **Ausnahmen:** Gegen einen Solospieler nicht immer null Augen (D2 5.5).
+- **Ausnahmen:** Gegen einen Solospieler nicht immer null Augen (D2 5.5). Hat man nur Trümpfe
+  zu geben, gilt `karte.abspatzen.trumpf`.
+- **Quelle:** D2 (Klappentext: Zeitpunkt zum Abwerfen von Spatzen); BOT.
+
+#### `karte.abspatzen.trumpf`
+
+- **Bereich:** Zugeben (Abspatzen mit lauter Trümpfen; ab T3, vorher Teil von `karte.abspatzen`).
+- **Wann:** Der Stich ist verloren wie bei `karte.abspatzen`, aber man darf nur Trümpfe zugeben –
+  weil Trumpf angespielt ist oder weil die ganze Hand aus Trümpfen besteht.
+- **Begründung:** Auch hier zählt, was man hineinlegt, für die Gegner. Also den Trumpf mit den
+  wenigsten Augen und, bei Gleichstand, den schwächsten: einen Siebener oder Neuner statt der
+  Sau oder der Zehn. Die hohen Trümpfe hebt man für Stiche auf, die man selbst holt; der Ober ist
+  später mehr wert als die Augen, die man ihm jetzt erspart.
+- **Ausnahmen:** Ist im Stich schon wenig drin und der Spieler hat noch viele Trümpfe, kann ein
+  höherer Trumpf, der den Stich noch dreht, besser sein – dann ist es kein verlorener Stich.
 - **Quelle:** D2 (Klappentext: Zeitpunkt zum Abwerfen von Spatzen); BOT.
 
 ### Bettel
@@ -633,7 +698,8 @@ Heuristik (`basis: 'faustregel'`).
 **Rechnung:** die Suche des starken Bots mit etwa dem Zweieinhalbfachen an Aufwand (`TUTOR_BUDGET`),
 über die Bot-Funktionen `evaluateCards`, `evaluateContracts` und `evaluateDouble`. Werte sind
 erwartete Cent für den Fragenden. „Weiter“ zählt bei der Ansage 0 (Näherung wie beim starken Bot);
-die Hochzeit wird nicht simuliert, sondern aus der Heuristik geschätzt (`estimated`). Kontra und Re
+eine _angesagte_ Hochzeit (Ansage) wird nicht simuliert, sondern aus der Heuristik geschätzt
+(`estimated`). Kontra und Re
 rechnen dasselbe Probespiel einmal mit, einmal ohne Doppeln; dass auf ein Kontra ein Re folgen kann,
 ist nicht berücksichtigt.
 
@@ -653,8 +719,18 @@ bei Bedarf in einem Web Worker.
 
 **Grenzen:** Gegner und Partner spielen in den Probespielen wie die Heuristik, nicht wie Menschen.
 Was die Ansage der anderen verrät („Ich würde“, Zweikampf), nutzt die Rechnung nur für den Ansager
-selbst (`respectBids`). Die Hochzeit (annehmen, zurückgeben) berät der Tutor noch nicht; am Tisch
-sagt Max Weber das im Vorspiel ehrlich (T2, Folgepunkt in ARBEITSPAKETE.md).
+selbst (`respectBids`).
+
+**Hochzeit annehmen und zurückgeben (T3):** über die Bot-Funktionen `evaluateWeddingOffer` und
+`evaluateWeddingGive`. Der Fragende kennt nur seine Karten; der Hochzeiter ist eine Stichprobe:
+genau `n` Trümpfe (`n` = 1 bzw. 2), dazu Farbkarten, mit denen er laut Heuristik angesagt hätte
+(`rateWedding`); wer vor einem abgelehnt hat, hätte nicht angenommen (`rateAcceptWedding`).
+_Annehmen_ spielt das Spiel mit der Rückgabe des Heuristik-Bots durch, _ablehnen_ zählt 0 (Näherung
+wie „weiter“: spielt danach doch jemand mit, kann man gewinnen oder verlieren). _Zurückgeben_
+rechnet die höchstens sechs Rückgaben durch, die die Heuristik am besten findet (bei der arabischen
+Hochzeit sind es sonst bis zu 45), alle auf denselben Verteilungen. Die Frage „annehmen?“ stellt
+sich im Schritt `offer`, die Rückgabe im Schritt `exchange`; im Automatikmodus meldet sich Max hier
+nicht, weil Ablehnen selten eine plausible Alternative ist, die viel kostet.
 
 ## Textvorschläge für die Oberfläche
 
@@ -673,6 +749,8 @@ werden zu Namen, Farben und Spielarten zu ihren Wörtern.
 | `frage.karte.welche`         | Welche Karte ist sinnvoll, und welche Strategie steckt dahinter? |
 | `frage.kontra`               | Soll ich gegen das {spiel} von {spieler} Kontra geben?           |
 | `frage.re`                   | {kontra} hat Kontra gegeben – Re?                                |
+| `frage.hochzeit.annehmen`    | {spieler} macht {spiel} – soll ich annehmen?                     |
+| `frage.hochzeit.zurueck`     | Welche Karte(n) gebe ich zurück?                                 |
 | `frage.rueckblick.zug`       | War mein letzter Zug gut?                                        |
 
 ### Denkanstöße (`denkanstoss.<kennung>`)
@@ -688,6 +766,10 @@ werden zu Namen, Farben und Spielarten zu ihren Wörtern.
 | `denkanstoss.ansage.tout.nur.sicher`             | Kann dir irgendein Gegner einen Stich abnehmen?                              |
 | `denkanstoss.zweikampf.eigener.wert`             | Gewinnst du das höhere Spiel – oder willst du nur {gegner} ausstechen?       |
 | `denkanstoss.hochzeit.zwei.sauen`                | Was bringst du deinem Partner mit, wenn er deinen Trumpf nimmt?              |
+| `denkanstoss.hochzeit.annehmen.trumpf`           | Wie stark wäre dein Blatt mit dem geschenkten Trumpf?                        |
+| `denkanstoss.hochzeit.ablehnen.schwach`          | Reicht dein Blatt für ein Spiel, in dem der Partner keinen Trumpf hat?       |
+| `denkanstoss.hochzeit.zurueckgeben.farbe.frei`   | Welche Farbe könntest du mit der Rückgabe frei machen?                       |
+| `denkanstoss.hochzeit.zurueckgeben.klein`        | Welche Karte kostet dich und deine Partei am wenigsten?                      |
 | `denkanstoss.kontra.gegen.partnerspiel`          | Wärst du mit diesem Blatt selbst gern Sauspieler?                            |
 | `denkanstoss.kontra.gegen.einzelspiel`           | Wie viel von der Trumpfstärke des Spielers hältst du?                        |
 | `denkanstoss.re.mit.reserve`                     | {kontra} glaubt, du verlierst. Hast du genug Reserve für das Doppelte?       |
@@ -706,6 +788,9 @@ werden zu Namen, Farben und Spielarten zu ihren Wörtern.
 | `denkanstoss.karte.stechen.lohnt`                | {augen} Augen liegen im Stich. Kannst du ihn sicher holen?                   |
 | `denkanstoss.karte.farbe.freimachen`             | Welche Farbe könntest du mit diesem Abwurf frei machen?                      |
 | `denkanstoss.karte.abspatzen`                    | Der Stich ist verloren. Was gibst du am wenigsten gern her?                  |
+| `denkanstoss.karte.abspatzen.trumpf`             | Du musst Trumpf zugeben. Welcher Trumpf kostet die wenigsten Augen?          |
+| `denkanstoss.hochzeit.annehmen`                  | Wie viele Stiche würdest du mit dem Trumpf deines Partners selbst machen?    |
+| `denkanstoss.hochzeit.zurueck`                   | Welche Karte wirst du am leichtesten los?                                    |
 | `denkanstoss.bettel.spieler.drunter`             | Welche Karte wirst du jetzt gefahrlos los?                                   |
 | `denkanstoss.bettel.gegner.klein`                | Wie zwingst du den Bettelspieler, einen Stich zu nehmen?                     |
 | `denkanstoss.ramsch.durchmarsch.verhindern`      | {spieler} hat alle Stiche. Was hält ihn auf?                                 |
