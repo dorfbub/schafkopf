@@ -71,6 +71,7 @@ ist die Rechnung des Tutors (siehe [unten](#wie-der-tutor-rechnet)).
 | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | D1     | Stefan Dillig: _Schafkopf – Mit Taktik zum Erfolg_, Band 1 (3. Aufl. 2017). Inhaltsverzeichnis und Leseprobe, schafkopfschule.de. Kapitelangaben wie „D1 1.5“ beziehen sich auf die Kapitelnummern dort. |
 | D2     | Stefan Dillig: _Schafkopf – Mit Taktik zum Erfolg_, Band 2 (2021). Inhaltsverzeichnis und Leseprobe, schafkopfschule.de.                                                                                 |
+| JW     | Joseph Wiesegger: Schafkopf – Ein Versuch, Wisssen zu sammeln. Komplettes Buch: https://raw.githubusercontent.com/joseph-wiesegger/schafkopf-buch/master/schafkopf_buch.pdf.                             |
 | WB     | Wikibooks, „Kartenspiele: Schafkopf“ (Abschnitte zu Ansage, Spieler, Gegenspieler).                                                                                                                      |
 | SKS    | Schafkopfschule: „Schafkopfregeln aktuell“ – Begriffe „kurzer Weg“ und „langer Weg“.                                                                                                                     |
 | SZ     | Interview mit Stefan Aldenhoven (Schafkopfschule), Süddeutsche Zeitung, 25.10.2019 – häufige Fehler, u. a. die Rufsau selbst suchen.                                                                     |
