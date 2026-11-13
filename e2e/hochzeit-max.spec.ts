@@ -33,8 +33,16 @@ test('Hochzeit: Max rät beim Annehmen und beim Zurückgeben, in drei Stufen', a
 
   const bubble = tutorBubble(page);
   const figure = page.getByRole('button', { name: /^Max Weber( fragen|:)/ });
-  if (!(await bubble.isVisible())) await figure.click();
-  await bubble.getByRole('button', { name: /soll ich annehmen\?$/ }).click();
+  // Zu den Auswahlfragen: Blase öffnen bzw. von etwas anderem (z. B. der Bewertung des eigenen
+  // „Weiter“, die sich auch von selbst wieder schließen kann) zurück zu den Fragen.
+  const ask = bubble.getByRole('button', { name: /soll ich annehmen\?$/ });
+  const other = bubble.getByRole('button', { name: 'Andere Frage' });
+  await expect(async () => {
+    if (!(await bubble.isVisible())) await figure.click();
+    else if (!(await ask.isVisible()) && (await other.isVisible())) await other.click();
+    await expect(ask).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
+  await ask.click();
 
   // Stufe 1: Denkanstoß, noch keine Empfehlung und nichts hervorgehoben.
   await expect(bubble.locator('.tutor-blase__anstoss')).toHaveText(/\?$/);
