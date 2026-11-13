@@ -598,6 +598,17 @@ lässt sich als Erwartungswert in Cent ausrechnen.
   reproduzierbar über Seed und dokumentiert. Bots mit Tabelle schlagen Bots ohne Tabelle im
   gepaarten Vergleich messbar (Schwelle als Test wie in B2). Max nutzt sie bei der Ansage.
   Laufzeit im Browser unverändert.
+- **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`. Erzeugung
+  `packages/bots/scripts/ansage-tabellen.ts` (Heuristik an allen Sitzen, 10 000 Blätter je
+  Spielart und Besetzung × 64 Verteilungen, Seed 2026, 16 Minuten auf 16 Threads), Tabelle
+  `packages/bots/src/ansageTabelle.ts` (logistische Modelle in Wahrscheinlichkeiten, Tarif erst
+  beim Abfragen; 26 Zellen: alle Spielarten inklusive Hochzeit, Eisenbahner, Hawaii-Habicht in
+  allen drei Besetzungen), Abfrage `ansageWert` in `ansage.ts`. Heuristik, Anfänger und Stark sagen
+  danach an (Zweikampf und Tout eingeschlossen), Max bewertet die Ansage damit und nennt den Wert
+  (`Advice.ansage`). Gepaart: Normal +5,0 ct je Spiel (lang/4), +11 bis +15 ct (Hausregeln, kurz/4,
+  kurz/3), Stark +2,8 ct. Verfahren, Zahlen und Grenzen: `docs/STRATEGIEN.md`, „Ansage-Tabellen“;
+  neue Bot-Annahme 75 in `docs/REGELN.md` (noch nicht bestätigt). Offen: die Faustregel-Werte aus T4
+  mit den neuen Bots nachmessen.
 
 ### B5 · „Stark“ mit gewichteten Verteilungen
 

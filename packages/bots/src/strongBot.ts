@@ -89,6 +89,11 @@ export interface StrongBotOptions {
    * der Tutor (T1) schaltet es ein, damit er gegen ein Solo nicht mit einem schwachen Ansager rechnet.
    */
   respectBids?: boolean;
+  /**
+   * Grundlage der Ansage (B4): Standard sind die Ansage-Tabellen der Heuristik; `'faustregel'`
+   * ist der Stand vor B4 (Schwellen der Heuristik, knappe Blätter durchgespielt).
+   */
+  ansage?: 'tabelle' | 'faustregel';
 }
 
 /**
@@ -104,7 +109,8 @@ export const STRONG_DEFAULTS = {
 } as const;
 
 export function createStrongBot(seed: number, options: StrongBotOptions = {}): Bot {
-  const heuristic = createHeuristicBot(seed);
+  const heuristic = createHeuristicBot(seed, options.ansage ? { ansage: options.ansage } : {});
+  const byTable = options.ansage !== 'faustregel';
   // Eigener Zufall für die Suche, damit die Heuristik dieselben Gleichstände würfelt wie sonst.
   const rng = createRng([seed >>> 0, 0x5bd1e995, 0x9e3779b9, 0x85ebca6b]);
   const log = createTrickLog();
@@ -116,6 +122,9 @@ export function createStrongBot(seed: number, options: StrongBotOptions = {}): B
       const suggestion = heuristic.decide(view, rules ?? options.rules);
       updateLog(log, view);
       if (view.phase === 'bidding' && suggestion.type === 'bid') {
+        // Mit Tabelle sagt er an wie die Heuristik: Die Tabelle beruht auf hunderten
+        // Probespielen je Blatt, die eigene Suche hätte nur ein gutes Dutzend.
+        if (byTable) return suggestion;
         return { type: 'bid', call: bid(view, suggestion.call, bidding, rng, options) };
       }
       if (view.phase !== 'playing' || suggestion.type !== 'play') return suggestion;
@@ -275,17 +284,54 @@ function playOut(
   rng: Rng,
   me: Seat,
 ): number {
-  const players = view.handSizes.length;
-  const first = (view.dealer + 1) % players;
+  const state = playOutHand(
+    { dealer: view.dealer, hands, contract, declarer, partner, rules, auction: view.auction },
+    rng,
+  );
+  return scoreHand(state).payments[me]!;
+}
+
+/** Ausgangslage eines Probespiels ab Stich 1 (Hände nach Ansage und Vorspiel). */
+export interface PlayOutSetup {
+  dealer: Seat;
+  hands: Card[][];
+  contract: Contract;
+  declarer: Seat;
+  partner: Seat | null;
+  rules: RuleSet;
+  /** Stand der Ansage, wie ihn die Heuristik sieht (Standard: leer). */
+  auction?: HandState['auction'];
+}
+
+const EMPTY_AUCTION: HandState['auction'] = {
+  stage: 'declare',
+  holder: null,
+  challenger: null,
+  waiting: [],
+  level: null,
+  forced: false,
+  yielded: [],
+  failed: [],
+};
+
+/**
+ * Spielt ein ganzes Spiel ab Stich 1 mit der Heuristik an allen Sitzen zu Ende und gibt den
+ * fertigen Zustand zurück (für `scoreHand`). Gemeinsamer Kern der Ansage-Suche des starken Bots
+ * und der Ansage-Tabellen (B4, `scripts/ansage-tabellen.ts`). Ohne Kontra und Re.
+ */
+export function playOutHand(setup: PlayOutSetup, rng: Rng): HandState {
+  const { dealer, hands, contract, declarer, partner, rules } = setup;
+  const players = hands.length;
+  const first = (dealer + 1) % players;
   const state: HandState = {
     rules,
-    dealer: view.dealer,
+    dealer,
     phase: 'playing',
     turn: first,
     hands,
     initialHands: hands.map((h) => [...h]),
-    bids: view.bids,
-    auction: view.auction,
+    bids: [],
+    auction: setup.auction ?? EMPTY_AUCTION,
     contract,
     declarer,
     partner,
@@ -306,7 +352,8 @@ function playOut(
     pointsWon: hands.map(() => 0),
     durchmarsch: null,
   };
-  return rollout(state, memory, me, rng);
+  playToEnd(state, memory, rng);
+  return state;
 }
 
 /** Zeitgrenze über die injizierte Uhr; ohne Uhr läuft nie etwas ab. */
@@ -638,6 +685,12 @@ function playInPlace(state: HandState, memory: Memory, seat: Seat, c: Card): voi
 
 /** Spielt von `state` aus mit der Heuristik zu Ende; Ergebnis aus Sicht von `me` in Cent. */
 function rollout(state: HandState, memory: Memory, me: Seat, rng: Rng): number {
+  playToEnd(state, memory, rng);
+  return scoreHand(state).payments[me]!;
+}
+
+/** Spielt von `state` aus mit der Heuristik zu Ende (verändert `state` und `memory`). */
+function playToEnd(state: HandState, memory: Memory, rng: Rng): void {
   while (state.hands.some((h) => h.length > 0)) {
     const seat = state.turn;
     const legal = legalCards(state, seat);
@@ -648,7 +701,6 @@ function rollout(state: HandState, memory: Memory, me: Seat, rng: Rng): number {
     playInPlace(state, memory, seat, c);
   }
   state.phase = 'finished';
-  return scoreHand(state).payments[me]!;
 }
 
 function search(

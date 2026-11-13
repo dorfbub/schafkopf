@@ -20,8 +20,9 @@ export interface DuelResult {
 }
 
 /**
- * Prüfling gegen drei Referenz-Bots, Seeds `1..games`, der Platz des Prüflings wandert jedes
- * Spiel weiter. Jede Verteilung wird ein zweites Mal nur mit Referenz-Bots gespielt.
+ * Prüfling gegen drei (zu dritt: zwei) Referenz-Bots, Seeds `1..games`, der Platz des Prüflings
+ * wandert jedes Spiel weiter, der Geber alle n Spiele (vor B4 war der Prüfling immer Geber). Jede Verteilung wird ein zweites Mal nur mit Referenz-Bots gespielt.
+ * Die Tischregeln bekommen alle Bots bei jedem Zug mit (wie vom Host).
  */
 export function duel(
   games: number,
@@ -36,13 +37,17 @@ export function duel(
   let time = 0;
   let decisions = 0;
   let maxMs = 0;
+  const n = rules.players;
+  const seats = Array.from({ length: n }, (_, s) => s);
   for (let i = 0; i < games; i++) {
-    const seat = i % 4;
+    const seat = i % n;
+    // Geber wandert langsamer als der Prüfling: Nach n² Spielen saß er an jeder Position.
+    const dealer = Math.floor(i / n) % n;
     const bot = candidate(1000 + i);
     const timed: Bot = {
-      decide(view: HandView) {
+      decide(view: HandView, r?: RuleSet) {
         const start = performance.now();
-        const action = bot.decide(view);
+        const action = bot.decide(view, r);
         const ms = performance.now() - start;
         time += ms;
         decisions++;
@@ -51,10 +56,10 @@ export function duel(
       },
     };
     const others = (s: number) => reference(2000 + 4 * i + s);
-    const mixed = [0, 1, 2, 3].map((s) => (s === seat ? timed : others(s)));
-    const plain = [0, 1, 2, 3].map((s) => others(s));
-    const got = playHand(mixed, 1 + i, i % 4, rules).result!.payments[seat]!;
-    const ref = playHand(plain, 1 + i, i % 4, rules).result!.payments[seat]!;
+    const mixed = seats.map((s) => (s === seat ? timed : others(s)));
+    const plain = seats.map((s) => others(s));
+    const got = playHand(mixed, 1 + i, dealer, rules).result!.payments[seat]!;
+    const ref = playHand(plain, 1 + i, dealer, rules).result!.payments[seat]!;
     sum += got;
     diff += got - ref;
     sq += (got - ref) ** 2;
@@ -70,4 +75,38 @@ export function duel(
     msPerDecision: time / Math.max(1, decisions),
     maxMs,
   };
+}
+
+/**
+ * Zwei Prüflinge auf demselben Platz, mit denselben Karten und denselben Referenz-Bots: je Spiel
+ * einmal mit `a`, einmal mit `b`. `paired` ist der Vorteil von `a` gegenüber `b` je Spiel. Billiger
+ * als zwei `duel`s mit teuren Referenzen (B4: Stark mit und ohne Ansage-Tabelle).
+ */
+export function compare(
+  games: number,
+  a: (seed: number) => Bot,
+  b: (seed: number) => Bot,
+  reference: (seed: number) => Bot,
+  rules: RuleSet = DEFAULT_RULES,
+): Pick<DuelResult, 'paired' | 'stdError' | 'differing'> {
+  let diff = 0;
+  let sq = 0;
+  let differing = 0;
+  const n = rules.players;
+  const seats = Array.from({ length: n }, (_, s) => s);
+  for (let i = 0; i < games; i++) {
+    const seat = i % n;
+    const dealer = Math.floor(i / n) % n;
+    const play = (candidate: Bot) => {
+      const bots = seats.map((s) => (s === seat ? candidate : reference(2000 + 4 * i + s)));
+      return playHand(bots, 1 + i, dealer, rules).result!.payments[seat]!;
+    };
+    const d = play(a(1000 + i)) - play(b(1000 + i));
+    diff += d;
+    sq += d * d;
+    if (d !== 0) differing++;
+  }
+  const paired = diff / games;
+  const variance = Math.max(0, sq / games - paired ** 2);
+  return { paired, stdError: Math.sqrt(variance / games), differing };
 }

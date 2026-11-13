@@ -16,7 +16,7 @@ import {
   orderFor,
   pointsOf,
 } from '@schafkopf/core';
-import { createHeuristicBot, createRandomBot, rateContract } from '../src';
+import { contractValue, createHeuristicBot, createRandomBot, rateContract } from '../src';
 import { playHand } from './simulate';
 
 /** Spiel mit festen Händen; `dealer` bestimmt, wer anspielt (Sitz nach dem Geber). */
@@ -95,6 +95,25 @@ describe('Heuristik-Bot: Ansage', () => {
   });
 
   it('gibt im Zweikampf ein Sauspiel gegen einen Wenz auf', () => {
+    // Ein Blatt für ein Sauspiel, als Herz-Solo laut Ansage-Tabelle aber deutlich im Minus.
+    const hands: Card[][] = [
+      ['EO', 'SU', 'HA', 'H9', 'H8', 'G7', 'SA', 'S9'],
+      ['EU', 'GU', 'HU', 'EA', 'E10', 'EK', 'GA', 'G10'],
+      ['HO', 'SO', 'H10', 'HK', 'H7', 'E9', 'E8', 'E7'],
+      ['S7', 'GK', 'G9', 'G8', 'S10', 'SK', 'GO', 'S8'],
+    ];
+    let state = fixedHand(hands, 3);
+    state = act(state, 0, { type: 'bid', call: { type: 'interest' } });
+    state = act(state, 1, { type: 'bid', call: { type: 'interest' } });
+    state = act(state, 2, { type: 'bid', call: { type: 'pass' } });
+    state = act(state, 3, { type: 'bid', call: { type: 'pass' } });
+    state = act(state, 1, { type: 'bid', call: { type: 'name', level: { kind: 'wenz' } } });
+    expect(decideFor(state)).toEqual({ type: 'bid', call: { type: 'yield' } });
+  });
+
+  it('hält im Zweikampf mit einem Blatt, das als Solo lohnt (Ansage-Tabelle)', () => {
+    // Sechs Trümpfe mit zwei Obern und eine Sau, Vorhand: als Herz-Solo laut Tabelle klar im Plus.
+    // Mit den alten Schwellen hätte der Bot aufgegeben.
     const hands: Card[][] = [
       ['EO', 'GO', 'SU', 'HA', 'H9', 'H8', 'G7', 'SA'],
       ['EU', 'GU', 'HU', 'EA', 'E10', 'EK', 'GA', 'G10'],
@@ -107,7 +126,11 @@ describe('Heuristik-Bot: Ansage', () => {
     state = act(state, 2, { type: 'bid', call: { type: 'pass' } });
     state = act(state, 3, { type: 'bid', call: { type: 'pass' } });
     state = act(state, 1, { type: 'bid', call: { type: 'name', level: { kind: 'wenz' } } });
-    expect(decideFor(state)).toEqual({ type: 'bid', call: { type: 'yield' } });
+    const view = handViewFor(state, 0);
+    expect(contractValue(view, { kind: 'solo', suit: 'herz' }, DEFAULT_RULES)).toBeGreaterThan(20);
+    expect(decideFor(state)).toEqual({ type: 'bid', call: { type: 'hold' } });
+    const old = createHeuristicBot(1, { ansage: 'faustregel' }).decide(view, DEFAULT_RULES);
+    expect(old).toEqual({ type: 'bid', call: { type: 'yield' } });
   });
 });
 

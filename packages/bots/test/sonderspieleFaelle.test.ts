@@ -17,7 +17,7 @@ import {
   dealHand,
   handViewFor,
 } from '@schafkopf/core';
-import { createHeuristicBot, rateContract } from '../src';
+import { ANSAGE_SCHWELLE, contractValue, createHeuristicBot, rateContract } from '../src';
 import { durchmarschHand } from '../src/heuristicBot';
 import { chooseWeddingGive, rateAcceptWedding, rateWedding } from '../src/hochzeit';
 import { playHand } from './simulate';
@@ -82,8 +82,13 @@ describe('B3: abgeschaltete Spielarten', () => {
     });
   });
 
-  /** Beste Bewertung unter den Spielen, die `rules` und die Bedingungen der Spielart erlauben. */
-  function bestAllowed(hand: readonly Card[], rules: RuleSet): number {
+  /**
+   * Bester erwarteter Wert (Ansage-Tabelle, B4) unter den Spielen, die `rules` und die
+   * Bedingungen der Spielart erlauben – aus Sicht des Sitzes, der gerade dran ist.
+   */
+  function bestAllowed(state: HandState, seat: Seat, rules: RuleSet): number {
+    const view = handViewFor(state, seat);
+    const hand = view.hand;
     let best = -Infinity;
     for (const kind of rules.contracts) {
       const mode = MODES[kind];
@@ -97,7 +102,7 @@ describe('B3: abgeschaltete Spielarten', () => {
                 ? suits.filter((s2) => s2 !== suit).map((suit2) => ({ kind, suit, suit2 }))
                 : [{ kind, suit }],
             );
-      for (const c of contracts) best = Math.max(best, rateContract(hand, c));
+      for (const c of contracts) best = Math.max(best, contractValue(view, c, rules));
     }
     return best;
   }
@@ -120,7 +125,9 @@ describe('B3: abgeschaltete Spielarten', () => {
           if (call.type === 'interest') {
             interest++;
             // „Ich würde“ nur mit einem erlaubten Spiel, für das das Blatt reicht.
-            expect(bestAllowed(state.hands[seat]!, rules)).toBeGreaterThanOrEqual(0);
+            expect(bestAllowed(state, seat, rules)).toBeGreaterThan(
+              ANSAGE_SCHWELLE * rules.tariff.sauspiel,
+            );
           }
           if (call.type === 'name') expect(rules.contracts).toContain(call.level.kind);
           if (call.type === 'declare') expect(rules.contracts).toContain(call.contract.kind);
@@ -134,14 +141,17 @@ describe('B3: abgeschaltete Spielarten', () => {
 });
 
 describe('B3: Ansage der Hausregeln', () => {
-  it('nennt den Hawaii-Habicht mit beiden Farben, die längere zuerst', () => {
+  it('nennt den Hawaii-Habicht mit beiden Farben, die längeren Trümpfe nach dem Wechsel', () => {
+    // B4: Früher „die längere Farbe zuerst“. Durchgespielt (20 000 Verteilungen) bringt Herz
+    // zuerst und Gras ab Stich 5 etwa +326 Cent, umgekehrt etwa −154 Cent: Die Könige sind bis
+    // zum Wechsel verbraucht, danach stechen die Gegner mit Herz. Die Ansage-Tabelle sieht das.
     const hand: Card[] = ['EK', 'GK', 'HK', 'SK', 'GA', 'G10', 'G9', 'HA'];
     let state = fixedHand(rulesWith('hawaii'), withRest(hand), 3);
     state = act(state, 0, decide(state));
     for (const seat of [1, 2, 3]) state = act(state, seat, { type: 'bid', call: { type: 'pass' } });
     expect(decide(state)).toEqual({
       type: 'bid',
-      call: { type: 'declare', contract: { kind: 'hawaii', suit: 'gras', suit2: 'herz' } },
+      call: { type: 'declare', contract: { kind: 'hawaii', suit: 'herz', suit2: 'gras' } },
     });
   });
 

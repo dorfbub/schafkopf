@@ -23,17 +23,17 @@ Inhalt:
 Ausgewertet: `packages/bots/src/heuristicBot.ts`, `hochzeit.ts`, `doubling.ts`, `strongBot.ts` und
 die Bot-Annahmen 70–74 in `docs/REGELN.md`.
 
-**Ansage (Heuristik, B1/B3).** Jedes am Tisch erlaubte Spiel bekommt eine Punktzahl aus dem Blatt
-minus einer Schwelle („Marge“); ab 0 wird es gewünscht. Gewichtet werden Trümpfe nach ihrer Höhe,
-Sauen (mit Zehn dazu mehr) und freie Farben. Sauspiel nur ab vier Trümpfen, Solo und Farbwenz ab
-sechs, Wenz/Geier mit zwei Trümpfen nur, wenn der höchste dabei ist; Nebenfarben zählen dort als
-Folgen von oben. Bettel nur, wenn jede Farbe „von unten“ gedeckt ist; Tout nur praktisch sicher
-(Solo: nur Trümpfe, die vier Ober). Bei der Ruffarbe kostet jede weitere Karte der Farbe etwas,
-ebenso eine Zehn in der Ruffarbe. Im Zweikampf nennt der Bot das niedrigste gewünschte Spiel, das
-überbietet; halten nur mit einem gewünschten Spiel mindestens dieser Höhe.
+**Ansage (Heuristik, B4).** Jedes am Tisch erlaubte Spiel bekommt seinen erwarteten Wert in Cent aus
+den Ansage-Tabellen (siehe [unten](#ansage-tabellen-b4)); gewünscht sind Spiele, die mehr als die
+Schwelle bringen. Im Zweikampf nennt der Bot das niedrigste gewünschte Spiel, das überbietet, und
+hält nur mit einem gewünschten Spiel mindestens dieser Höhe; in Stufe 3 sagt er das wertvollste an.
+Vor B4 (B1/B3, heute noch `ansage: 'faustregel'` und Grundlage einiger Faustregeln): eine
+Punktzahl aus dem Blatt minus einer Schwelle („Marge“) – Trümpfe nach ihrer Höhe, Sauen (mit Zehn
+mehr), freie Farben; Sauspiel ab vier Trümpfen, Solo und Farbwenz ab sechs, Wenz/Geier mit zwei
+Trümpfen nur mit dem höchsten; Bettel nur „von unten gedeckt“, Tout nur praktisch sicher.
 
-**Hochzeit (B3).** Ansagen mit genau einem Trumpf und zwei Sauen (oder Sau mit Zehn und einer
-weiteren Sau). Annehmen nur mit einem Blatt, das mit dem geschenkten Trumpf ein starkes Sauspiel
+**Hochzeit (B3, B4).** Ansagen nach der Ansage-Tabelle – mit genau einem Trumpf fast immer (vor
+B4: nur mit zwei Sauen oder Sau mit Zehn und einer weiteren Sau). Annehmen nur mit einem Blatt, das mit dem geschenkten Trumpf ein starkes Sauspiel
 wäre. Zurückgeben so, dass eine Farbe frei wird; eine Sau behält man lieber (Annahme 72).
 
 **Kontra und Re (B3, Annahme 71).** Kontra gegen ein Partnerspiel nur mit einem Blatt, das selbst
@@ -157,6 +157,8 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
   Sau hält. Mit den Trümpfen holt man die ersten Trumpfrunden.
 - **Ausnahmen:** Mit einem Blatt für ein Solo spielt man das höhere Spiel. Mit lauter kleinen
   Trümpfen kann „sich rufen lassen“ besser sein (D1 1.7).
+- **Ansage-Tabelle (B4):** Zwei typische Grundblätter bringen etwa +9 bis +11 Cent; vier kleine
+  Trümpfe mit einer Sau etwa −2 Cent, drei Trümpfe etwa −3 Cent. Das Sauspiel ist knapp.
 - **Quelle:** D1 1.1, 1.10; WB; BOT.
 
 #### `ansage.ruffarbe.kurz`
@@ -180,6 +182,9 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
   den Gegnern nur Farbkarten, und die eigenen Sauen stechen. Hohe Ober bringen dazu Laufende.
 - **Ausnahmen:** Mit vielen Trümpfen, aber lauter Spatzen in den Farben, ist ein Wenz oder ein
   Sauspiel oft sicherer; welche Farbe Trumpf wird, überlegt man (D2 4.1, D1 4.7).
+- **Ansage-Tabelle (B4):** Sechs Trümpfe mit zwei Obern und einer Sau etwa +75 Cent, sieben mit drei
+  Obern etwa +270 Cent; aber auch fünf Trümpfe mit zwei Obern und zwei Sauen etwa +75 Cent und sechs
+  mit nur einem Ober etwa +17 bis +24 Cent. Die Regel ist eher zu vorsichtig.
 - **Quelle:** WB; D1 4.1, 4.3; D2 4.1; BOT.
 
 #### `ansage.wenz.unter.und.farben`
@@ -190,6 +195,8 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
   Ausspiel zurück, und die Stiche kommen aus den Farben – also aus Sauen und langen Farben von
   oben. Wer selbst herauskommt, kann seine Farben gleich spielen.
 - **Ausnahmen:** Mit nur einem Unter fast nie (D2 4.13); Farbwenz oder Solo abwägen (D1 4.14).
+- **Ansage-Tabelle (B4):** Drei Unter, zwei Sauen und eine lange Farbe etwa +250 Cent; zwei Unter
+  mit dem Eichel-Unter und zwei Sauen, aber kurzen Farben etwa −65 bis −68 Cent – auf die Farbstiche kommt es an.
 - **Quelle:** WB; D1 4.14; D2 4.13, 4.15; BOT.
 
 #### `ansage.bettel.nur.sicher`
@@ -202,6 +209,8 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
   die Farbe, in der man nicht drunter kommt. Eine Lücke findet man selten rechtzeitig selbst.
 - **Ausnahmen:** keine; der Tutor meldet ein lückenhaftes Bettel-Blatt aber nur, wenn kein anderes
   Spiel lohnt.
+- **Ansage-Tabelle (B4):** Von unten gedeckt etwa +130 Cent; mit einer Lücke gegen Bots immer noch
+  etwa +50 bis +70 Cent (die Heuristik findet die Lücke oft nicht). Gegen Menschen gilt die Regel.
 - **Quelle:** BOT, WT.
 
 #### `ansage.tout.nur.sicher`
@@ -213,6 +222,8 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 - **Begründung:** Tout verdoppelt den Gewinn, aber ein einziger abgegebener Stich verliert alles.
   Mit einer Lücke kostet das im Schnitt mehr, als es bringt.
 - **Ausnahmen:** keine.
+- **Ansage-Tabelle (B4):** Sicheres Tout (alle Ober, dazu zwei Unter) etwa +660 statt +390 Cent;
+  sieben Trümpfe mit drei Obern als Tout etwa −300 Cent, ohne Tout etwa +270 Cent.
 - **Quelle:** D2 4.6; BOT.
 
 #### `zweikampf.eigener.wert`
@@ -232,6 +243,8 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 - **Begründung:** Wer die Hochzeit annimmt, hat viele Trümpfe; der Hochzeiter bringt die
   Farbstiche mit. Ohne Sauen trägt er nichts bei. Nimmt keiner an, kostet es nichts.
 - **Ausnahmen:** Ein anderes, gutes Spiel geht vor.
+- **Ansage-Tabelle (B4):** Mit zwei Sauen etwa +7 Cent, ohne Sau immer noch etwa +2 Cent: Anbieten
+  kostet nichts, wenn keiner annimmt.
 - **Quelle:** BOT (Annahme 72).
 
 Die vier folgenden Regeln gelten im Vorspiel, wenn man selbst gefragt ist (T3). Sie stammen aus
@@ -653,6 +666,210 @@ Einzelne Regeln: `TUTOR_MESSEN_REGELN=karte.schmieren,… TUTOR_MESSEN=1 npx vit
 Gemessen auf AMD Ryzen 7 7800X3D (8 Kerne, 16 Threads), Node 22. Ohne Parameter sind es 3000 Spiele
 und 300 Lagen je Regel. Die Messung ist über die Seeds reproduzierbar (gleiche Zahlen bei gleichem Stand
 des Codes). Nach einer Regeländerung die betroffene Regel neu messen.
+
+## Ansage-Tabellen (B4)
+
+Ob sich ein Spiel mit einem Blatt lohnt, steht jetzt als **Erwartungswert in Cent** fest statt als
+handgesetzte Schwelle. Heuristik, Anfänger, Stark und Max fragen dafür dieselbe Funktion:
+`ansageWert(hand, spiel, regeln, position)` in `packages/bots/src/ansage.ts`. Die gemessenen
+Modelle liegen in `packages/bots/src/ansageTabelle.ts` (erzeugt, etwa 10 kB Quelltext; Gewichte als ganze Zahlen in Hundertsteln), die
+Gütemaße in `packages/bots/messungen/ansage/tabelle.md`.
+
+### Verfahren
+
+Code: `packages/bots/scripts/ansage-tabellen.ts` (Erzeugung und Schätzung) und
+`ansage-schreiben.ts` (Tabelle und Bericht).
+
+1. **Blätter ziehen.** Je Besetzung (lang/4, kurz/4, kurz/3) und jeder ansagbaren Spielart der
+   Besetzung 10 000 Blätter: zufällige Hand, zufällige Position am Tisch (Vorhand bis Geber), dazu
+   eine zufällige Farbe bzw. ein Farbpaar unter denen, mit denen das Blatt im **Bereich der Tabelle**
+   liegt (`imBereich`: Sauspiel ab drei Trümpfen, Solo ab vier, Wenz/Geier/Eisenbahner ab zwei,
+   Farbwenz ab drei, Hawaii-Habicht ab vier, Bettel mit höchstens zwei Lücken; kurze Karte zu viert
+   eins weniger). Darunter lohnt sich kein Spiel; dort gibt es keinen Wert (`null`), und die Bots
+   behandeln das wie „lohnt nicht“. Blätter, die nach der alten Heuristik hoffnungslos wären (Marge
+   unter −4), kommen nur mit Wahrscheinlichkeit ¼ in die Stichprobe und zählen dafür vierfach: So
+   liegen mehr Blätter nahe der Entscheidung, ohne die Verteilung zu verzerren.
+2. **Durchspielen.** Jedes Blatt auf **64 zufälligen Verteilungen** der übrigen Karten bis zum Ende,
+   alle Sitze nach der Heuristik (`playOutHand`, derselbe Kern wie die Ansage-Suche von „Stark“).
+   Heuristik statt „Stark“ als Spielweise, weil Stark an allen Sitzen etwa 2000-mal teurer wäre
+   (16,6 Millionen Probespiele hätten Wochen gedauert) und weil Stark selbst in seinen
+   Probespielen ebenfalls mit der Heuristik rechnet. Hochzeiten mit Vorspiel: Die anderen nehmen an
+   wie der Heuristik-Bot, der Partner gibt zurück wie er; nimmt keiner an, zählt es 0 (wie „weiter“).
+   Ohne Kontra und Re.
+3. **Zählen.** Je Probespiel: gewonnen, mit Schneider, mit Schwarz, verloren mit Schneider (und für
+   die Hochzeit „verloren“, weil das Vorspiel scheitern kann).
+4. **Verdichten.** Je Besetzung, Spielart und Zielgröße eine **logistische Regression** über die
+   Merkmale (gewichtete Likelihood über die Anteile je Blatt, kleiner Ridge-Term, Newton-Verfahren
+   mit Schrittweitenhalbierung). Geprüft auf jedem fünften Blatt, geschätzt auf den übrigen; die
+   ausgelieferte Tabelle nutzt danach alle Blätter.
+5. **In Cent umrechnen** – erst beim Abfragen, mit dem Tarif der Tischregeln: je Probespiel zahlt die
+   Abrechnung Grundtarif + Aufschlag je Schneider, Schwarz und Laufendem (`scoring.ts`), allein von
+   jedem Gegner. Also ist der Erwartungswert
+   `Gegner × (Grundtarif × (P(gewonnen) − P(verloren)) + Aufschlag × (P(Schneider/Schwarz, gewonnen) − P(Schneider, verloren) + Laufende × (P(gewonnen) − P(verloren))))`.
+   Laufende rechnet `ansageWert` aus der eigenen Hand und der Laufenden-Schwelle der Tischregeln (allein
+   steht die Folge fest; mit Partner zählen nur die eigenen „mit“). Tout: doppelter Wert, gewonnen
+   nur mit allen Stichen – geschätzt als „schwarz gewonnen“. „Sie“ zählt den vierfachen Grundtarif.
+   Eigene Tarife und Laufenden-Schwellen stimmen damit, ohne neu zu messen.
+6. **Sichere Blätter.** Macht ein Blatt sicher alle Stiche (nur Trümpfe mit einer Folge von oben,
+   die länger ist als alle Trümpfe der Gegner; im Wenz alle Unter und jede Farbe von oben), setzt
+   `alleSticheSicher` die Chancen fest auf 1 – solche Ecken kommen in den Daten kaum vor.
+
+**Merkmale** (`MERKMALE`, für alle Spielarten gleich, nach der Ordnung des Spiels): Zahl der Trümpfe
+und ihr Quadrat, höchster und zweithöchster Trumpf, Zahl der vier höchsten Trümpfe und der Plätze 5–8,
+eigene Laufende von oben, Sauen, Sau mit Zehn, blanke Zehner, freie Farben, einzelne Karten, sichere
+Farbstiche (Folgen von oben), längste Farbe, Augen, Vorhand, Hinterhand; dazu je Spielart Länge und
+Zehner der Ruffarbe (Sauspiel), Trümpfe ab Stich 5 und ihr Quadrat (Hawaii-Habicht) sowie Lücken und
+ihre Tiefe, Sauen und Könige (Bettel).
+
+### Ergebnis
+
+Güte auf zurückgelegten Blättern (Auszug aus `messungen/ansage/tabelle.md`; „Verlust“: was falsche
+Entscheidungen „spielen oder nicht“ im Schnitt je Blatt im Bereich kosten, in Cent):
+
+| Besetzung | Spielart       |   R² | Treffer | Verlust Tabelle | Verlust alte Heuristik |
+| --------- | -------------- | ---: | ------: | --------------: | ---------------------: |
+| lang/4    | Sauspiel       | 0,72 |    87 % |            0,43 |                   0,78 |
+| lang/4    | Solo           | 0,97 |    99 % |            0,35 |                   1,22 |
+| lang/4    | Wenz           | 0,87 |    95 % |            2,18 |                   3,93 |
+| lang/4    | Geier          | 0,88 |    95 % |            2,10 |                   3,51 |
+| lang/4    | Farbwenz       | 0,97 |    99 % |            0,22 |                   2,70 |
+| lang/4    | Bettel         | 0,83 |    89 % |            3,50 |                  51,41 |
+| lang/4    | Eisenbahner    | 0,93 |    95 % |            2,32 |                  12,13 |
+| lang/4    | Hawaii-Habicht | 0,91 |    98 % |            0,72 |                   1,79 |
+| lang/4    | Hochzeit       | 0,31 |    95 % |            0,08 |                   4,83 |
+| lang/4    | Arab. Hochzeit | 0,35 |    97 % |            0,08 |                   8,11 |
+| kurz/4    | Sauspiel       | 0,67 |    89 % |            0,40 |                   1,84 |
+| kurz/4    | Solo           | 0,97 |    99 % |            0,32 |                   3,46 |
+| kurz/4    | Wenz           | 0,94 |    97 % |            0,99 |                   3,51 |
+| kurz/3    | Solo           | 0,93 |    97 % |            0,66 |                   3,83 |
+| kurz/3    | Wenz           | 0,82 |    90 % |            2,88 |                   7,26 |
+| kurz/3    | Bettel         | 0,80 |    88 % |            3,01 |                  16,66 |
+
+In allen 26 Zellen entscheidet die Tabelle besser als die alten Schwellen. Das R² enthält das
+Rauschen der Messung selbst (64 Verteilungen je Blatt, Standardfehler 3–13 Cent je Blatt); bei den
+Hochzeiten ist es niedrig, weil fast jedes Blatt sich lohnt und die Werte eng beieinander liegen.
+
+**Beispiele** (Standardtarif, Vorhand / Hinterhand, Cent für den Ansager):
+
+| Blatt                                                                  | Spiel               | Wert        |
+| ---------------------------------------------------------------------- | ------------------- | ----------- |
+| E-Ober, H-Ober, S-Unter, H-Sau, H-9, G-Sau, E-9, S-7                   | Sauspiel (Schellen) | +11 / +10   |
+| E-Ober, G-Ober, H-Unter, H-9, E-Sau, E-9, E-8, G-7 (Schellen frei)     | Sauspiel (Gras)     | +9 / +9     |
+| H-Unter, S-Unter, H-9, H-8, E-Sau, E-9, G-9, S-9 (vier kleine Trümpfe) | Sauspiel (Gras)     | −2 / −2     |
+| E-Ober, G-Ober, H-Unter, H-Sau, H-9, G-Sau, S-Sau, S-7 (fünf Trümpfe)  | Herz-Solo           | +76 / +81   |
+| E-Ober, G-Ober, S-Unter, H-Sau, H-9, H-8, S-Sau, G-7 (sechs Trümpfe)   | Herz-Solo           | +75 / +81   |
+| E-Ober, E-Unter, S-Unter, H-Sau, H-10, H-9, G-Sau, S-7                 | Herz-Solo           | +17 / +24   |
+| E-, G-, S-Unter, E-Sau, E-10, E-König, G-Sau, G-10                     | Wenz                | +250 / +253 |
+| E-Unter, H-Unter, E-Sau, E-10, G-Sau, G-9, S-7, H-8                    | Wenz                | −65 / −68   |
+| E-7, E-8, G-7, G-8, H-7, H-9, S-7, S-8                                 | Bettel              | +132 / +137 |
+| E-7, E-9, G-7, G-8, H-7, H-König, S-7, S-8 (Lücke in Herz)             | Bettel              | +49 / +70   |
+| S-Unter, E-Sau, E-10, G-Sau, G-9, S-7, S-8, E-7                        | Hochzeit            | +7 / +7     |
+| alle vier Ober, E-Unter, G-Unter, H-Sau, H-10                          | Herz-Solo Tout      | +660        |
+| E-, G-, H-Ober, E-, G-Unter, H-Sau, H-10, E-Sau                        | Herz-Solo Tout      | −330 / −265 |
+
+Was daraus folgt (und was die Bots jetzt anders machen):
+
+- **Einzelspiele lohnen früher als gedacht:** Ein Solo mit fünf Trümpfen, zwei Obern und zwei Sauen
+  bringt im Schnitt so viel wie eines mit sechs Trümpfen. Die alte Schwelle (sechs Trümpfe) ließ
+  viel liegen.
+- **Sauspiel ist knapp:** Selbst ein gutes Sauspiel bringt nur rund +10 Cent; mit vier kleinen
+  Trümpfen ist es leicht im Minus. Hier ist die Faustregel richtig.
+- **Wenz lebt von den Unter und den Farben:** Drei Unter mit zwei Sauen und langer Farbe sind ein
+  sehr gutes Spiel; zwei Unter mit zwei Sauen kosten im Schnitt Geld.
+- **Hochzeit fast immer:** Mit genau einem Trumpf lohnt das Anbieten fast immer (95 % der Blätter),
+  denn annehmen tut nur, wer ein starkes Blatt hat, und scheitert es, kostet es nichts.
+- **Bettel gegen Bots:** Die Werte sind hoch, auch mit einer Lücke – die Heuristik als Gegner findet
+  die Lücke oft nicht. Gegen Menschen ist das vorsichtiger zu lesen (siehe „Grenzen“).
+- **Position:** Vorhand oder Hinterhand macht nur wenige Cent aus.
+- **Hawaii-Habicht:** Entscheidend sind die Trümpfe _nach_ dem Wechsel. Mit allen vier Königen,
+  drei Gras und der Herz-Sau bringt Herz zuerst, Gras ab Stich 5 etwa +326 Cent, umgekehrt etwa
+  −154 Cent (je 20 000 Verteilungen): Die Könige sind bis zum Wechsel verbraucht. Die alte Regel
+  „die längere Farbe zuerst“ war hier falsch.
+
+### Einbau
+
+- **Heuristik** (`createHeuristicBot`, also auch Anfänger und Stark): „Ich würde“, wenn ein am Tisch
+  erlaubtes Spiel mehr als `ANSAGE_SCHWELLE` bringt (in Vielfachen des Sauspiel-Tarifs, gemessen,
+  siehe unten); im Zweikampf halten bzw. die niedrigste Spielart nennen, die überbietet und sich
+  lohnt; in Stufe 3 das wertvollste erlaubte Spiel, auch Tout, wenn es mehr bringt. Den
+  Hawaii-Habicht sagt er weiter nie als Tout an (Annahme 73). Die alten Schwellen gibt es als
+  `ansage: 'faustregel'` – für den Vergleich; Kontra/Re und das „Überreizen“ des Anfängers nutzen
+  weiter `rateContract`.
+- **Stark** sagt an wie die Heuristik (mit Tabelle). Seine eigene Ansage-Suche hatte bei 2000
+  simulierten Karten nur ein gutes Dutzend Verteilungen je Spiel (Standardfehler 25–30 Cent); die
+  Tabelle beruht auf 64 je Blatt und Zehntausenden Blättern. Mit `ansage: 'faustregel'` rechnet er
+  wie vor B4.
+- **Max** (`adviseBid`): Die Werte der Spiele bei der Ansage kommen aus der Tabelle, auch für die
+  Hochzeit (früher eine grobe Schätzung). Nur wenn in Stufe 3 kein erlaubtes Spiel in der Tabelle
+  liegt (Muss mit schwachem Blatt), spielt er wie bisher durch. `Advice.ansage` nennt das
+  wertvollste Spiel samt Wert; in der Begründung sagt Max etwa „Mit diesem Blatt bringt ein Wenz im
+  Schnitt etwa +18 Cent.“
+- **Laufzeit:** Eine Abfrage ist eine Handvoll Multiplikationen. „Normal“ entscheidet weiter in
+  etwa 0,1–0,2 ms je Entscheidung, höchstens rund 2 ms (unter Last bis etwa 20 ms; Test: unter
+  50 ms). Max wird bei der Ansage schneller, weil er nicht mehr simuliert (Test: unter 300 ms).
+
+### Gepaarter Vergleich und Schwelle
+
+Wie in B2 (`packages/bots/test/strengthTabelle.test.ts`): Ein Bot mit Tabelle sitzt unter Bots mit
+den alten Schwellen; dieselbe Verteilung wird ein zweites Mal ganz ohne Tabelle gespielt. Gemessen
+wird der Unterschied seiner Zahlung (Cent je Spiel). Platz und Geber wandern, sodass jede Position
+vorkommt (vor B4 war der Prüfling in `duel` immer Geber). „Stark“ wird anders verglichen
+(`compare`): beide Fassungen auf demselben Platz, mit denselben Karten, gegen dieselben Normal-Bots.
+
+| Vergleich                               | Spiele | Vorteil der Tabelle (ct je Spiel) |
+| --------------------------------------- | -----: | --------------------------------: |
+| Normal, lang/4, Standardregeln          | 20 000 |                      +5,01 ± 0,39 |
+| Normal, lang/4, alle Hausregeln erlaubt | 20 000 |                       +11,4 ± 0,5 |
+| Normal, kurz/4                          | 20 000 |                       +15,0 ± 0,6 |
+| Normal, kurz/3                          | 20 000 |                       +13,6 ± 0,4 |
+| Stark mit gegen Stark ohne Tabelle      |   4000 |                        +2,8 ± 0,8 |
+
+(± ist der Standardfehler.) Die Schwellen der großen Läufe (`BOTS_FULL=1`): mindestens +3 Cent
+(lang/4) bzw. +8 Cent (übrige) und mehr als drei Standardfehler; Stark mindestens +1 Cent. Im
+normalen Lauf (`npm run check`) nur die Richtung mit 1000 Spielen je Besetzung; Stark nur im großen
+Lauf (etwa 30 Minuten).
+
+**Schwelle.** `ANSAGE_SCHWELLE` (Mindestwert eines Spiels in Vielfachen des Sauspiel-Tarifs) wurde
+mit denselben Läufen bei −1, −½, 0 und +½ gemessen: In allen Besetzungen liegen die Ergebnisse
+innerhalb von 0,5 Cent je Spiel beieinander (lang/4: +4,95 / +5,05 / +5,01 / +4,79), also im
+Rauschen. Gewählt ist **0** – spielen, sobald das Spiel im Schnitt mehr bringt als „weiter“.
+
+### Grenzen
+
+- Gespielt wird in den Probespielen wie die **Heuristik**, nicht wie Menschen. Besonders im Bettel
+  (die Heuristik verteidigt schwach) und bei der Hochzeit (sie nimmt nach festen Regeln an) gelten
+  die Werte zuerst gegen Bots.
+- Die **Ansage der anderen** fließt nicht ein: Hat vorher jemand „Ich würde“ gesagt, sind die Gegner
+  stärker als im Schnitt; haben alle „weiter“ gesagt, schwächer. Ebenso fehlen Kontra und Re.
+- „Weiter“ zählt 0 (wie bisher beim starken Bot und bei Max).
+- Laufende mit Partner: nur die eigenen „mit“; dass der Partner sie verlängert, ist nicht geschätzt.
+- Seltene Ecken (Hawaii mit vier Königen, Tout ohne sichere Folge) schätzt die Tabelle unsicherer;
+  sichere Tout-Blätter regelt `alleSticheSicher` exakt.
+- „Schwarz verloren“ fehlt als Zielgröße (bei Blättern im Bereich sehr selten; zählt 0).
+- Die Faustregel-Werte aus T4 sind mit dem Bot vor B4 gemessen.
+
+### Tabellen neu erzeugen
+
+Läuft nicht in CI. Rohdaten landen in `packages/bots/messungen/ansage/roh/` (nicht eingecheckt, über
+den Seed reproduzierbar), daraus entstehen `packages/bots/src/ansageTabelle.ts` und
+`packages/bots/messungen/ansage/tabelle.md`.
+
+```bash
+# messen: 16 Prozesse parallel, je jedes 16. Stück; Dauer etwa 16 Minuten
+for i in $(seq 0 15); do
+  ANSAGE_MESSEN=1 ANSAGE_TEIL=$i/16 npx vitest run packages/bots/test/ansageTabellen.test.ts &
+done; wait
+# Modelle schätzen, Tabelle und Bericht schreiben (etwa 15 Sekunden)
+ANSAGE_ZUSAMMEN=1 npx vitest run packages/bots/test/ansageTabellen.test.ts
+```
+
+Standard (`STANDARD_PARAMETER`): Seed 2026, 10 000 Blätter je Spielart und Besetzung, 64
+Verteilungen je Blatt, Stücke zu 250 Blättern – zusammen 16,6 Millionen Probespiele, rund 250
+CPU-Minuten (16 Threads, AMD Ryzen 7 7800X3D, Node 26). Jedes Stück hat einen eigenen, aus dem Seed
+abgeleiteten Seed; die Aufteilung auf Prozesse ändert nichts am Ergebnis, abgebrochene Läufe setzen
+fort. Andere Werte: `ANSAGE_BLAETTER`, `ANSAGE_VERTEILUNGEN`, `ANSAGE_SEED` (bei beiden Befehlen
+gleich setzen). Neu erzeugen nach Änderungen am Kartenspiel der Heuristik oder an den Regeln einer
+Spielart; nach einer Änderung nur der Merkmale reicht der zweite Befehl.
 
 ---
 

@@ -885,6 +885,16 @@ export const TUTOR_TEXT = {
   ruleReason: (id: string) => RULE_REASON[id] ?? '',
   /** Gemessener Wert einer Faustregel (T4), nur wenn sicher positiv gemessen. */
   ruleValue: (cents: number) => `Gemessen bringt sie im Schnitt ${aboutCents(cents)}.`,
+  /** Ansage (B4): Wert des besten Spiels laut Ansage-Tabelle. */
+  tableValue(contract: Contract, cents: number): string {
+    const article =
+      contract.kind === 'hochzeit' || contract.kind === 'arabischeHochzeit' ? 'eine' : 'ein';
+    const game = `${article} ${contractLabel(contract)}`;
+    const c = Math.round(cents);
+    if (c > 0) return `Mit diesem Blatt bringt ${game} im Schnitt etwa +${c} Cent.`;
+    if (c === 0) return `Mit diesem Blatt bringt selbst ${game} im Schnitt nichts.`;
+    return `Mit diesem Blatt kostet selbst ${game} im Schnitt etwa ${-c} Cent.`;
+  },
 
   /** Stufe 2: die Empfehlung als ganzer Satz. */
   recommend(o: TutorOptionText, re: boolean): string {

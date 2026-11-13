@@ -14,6 +14,7 @@ import {
   type Evaluation,
   type Memory,
   type StrongBotOptions,
+  ansageWertInSicht,
   candidateContracts,
   createHeuristicBot,
   createMemory,
@@ -79,10 +80,11 @@ export const THRESHOLDS = {
  */
 export const SIGNIFICANCE = 2;
 
-/** Spielt nicht bei der Ansage mit: Spiele mit Marge darunter rechnet der Tutor nicht durch. */
-const HOPELESS_MARGIN = -4;
-/** Höchstzahl durchgerechneter Spiele bei der Ansage (Laufzeit). */
-const MAX_SIMULATED = 6;
+/**
+ * Stufe 3 der Ansage (auch im Muss): Spiele außerhalb der Ansage-Tabelle (Blatt zu schwach) werden
+ * durchgespielt, höchstens so viele, die besten nach der alten Marge zuerst.
+ */
+const MAX_SIMULATED = 3;
 
 // ---------------------------------------------------------------------------
 // Öffentliche Schnittstelle
@@ -377,6 +379,10 @@ function analyse(input: TutorInput, ask: AskKind | null, options: TutorOptions):
     hint: hintFor(ask, lage, reasons, overruled),
     importance: { stakeCents: round(stake), level, auto: level === 'hoch' },
   };
+  if (ask === 'bid') {
+    const best = bestTableContract(input);
+    if (best) advice.ansage = best;
+  }
   return { advice, hits, valued: valueOf };
 }
 
@@ -503,10 +509,25 @@ interface ContractValue {
   samples: number[] | null;
 }
 
+/** Spiele, über die bei der Ansage gesprochen wird (passend zu Stufe und Zweikampf). */
+function bidContracts(input: TutorInput): Contract[] {
+  const { view, rules } = input;
+  const a = view.auction;
+  const current = a.level ? bidValue(a.level) : 0;
+  const holder = view.turn === a.holder;
+  if (a.stage === 'declare') {
+    return view.legalCalls.flatMap((c) => (c.type === 'declare' ? [c.contract] : []));
+  }
+  return candidateContracts(view.hand, rules, a.failed).filter(
+    (c) => a.stage === 'interest' || (holder ? bidValue(c) >= current : bidValue(c) > current),
+  );
+}
+
 /**
- * Ansage: Die erfolgversprechenden Spiele (nach der Heuristik) werden durchgespielt, „weiter“
- * zählt 0 (Näherung wie beim starken Bot). Spiele mit Vorspiel (Hochzeit) lassen sich nicht
- * simulieren; sie bekommen eine Schätzung aus der Heuristik (`estimated`).
+ * Ansage (B4): Der Wert jedes Spiels kommt aus der Ansage-Tabelle – gemessen über hunderte
+ * Probespiele je Blatt, also ruhiger als eine Suche in der Bedenkzeit; Hochzeiten eingeschlossen.
+ * „Weiter“ zählt 0 (Näherung wie beim starken Bot). Liegt in Stufe 3 kein erlaubtes Spiel in der
+ * Tabelle (Muss mit schwachem Blatt), werden die besten nach der alten Marge durchgespielt.
  */
 function evaluateBids(
   input: TutorInput,
@@ -514,40 +535,34 @@ function evaluateBids(
   rng: Rng,
   strong: StrongBotOptions,
 ): Valued[] {
-  const { view, rules } = input;
+  const { view } = input;
   const a = view.auction;
   const current = a.level ? bidValue(a.level) : 0;
-  const holder = view.turn === a.holder;
   const size = view.handSizes.reduce((x, y) => x + y, 0);
-  const contracts =
-    a.stage === 'declare'
-      ? view.legalCalls.flatMap((c) => (c.type === 'declare' ? [c.contract] : []))
-      : candidateContracts(view.hand, rules, a.failed).filter(
-          (c) =>
-            a.stage === 'interest' || (holder ? bidValue(c) >= current : bidValue(c) > current),
-        );
-  const rated = contracts
-    .map((contract) => ({ contract, margin: rateContract(view.hand, contract, size) }))
-    .sort((x, y) => y.margin - x.margin);
-  const simulable = rated.filter((r) => !MODES[r.contract.kind].prelude);
-  let chosen = simulable.filter((r) => r.margin >= HOPELESS_MARGIN).slice(0, MAX_SIMULATED);
-  if (chosen.length === 0 && a.stage === 'declare') chosen = simulable.slice(0, 3);
-  const evals = evaluateContracts(
-    view,
-    chosen.map((r) => r.contract),
-    rng,
-    strong,
-  );
-  const unit = unitOf(input);
-  const values: ContractValue[] = rated.map(({ contract, margin }) => {
-    const e = evals.find((x) => sameContract(x.option, contract));
-    if (e) return { contract, cents: e.cents, estimated: false, samples: e.values };
-    if (MODES[contract.kind].prelude && margin >= 0) {
-      const cents = unit * (0.5 + 0.25 * Math.min(margin, 4));
-      return { contract, cents, estimated: true, samples: null };
+  const contracts = bidContracts(input);
+  const values: ContractValue[] = contracts.map((contract) => ({
+    contract,
+    cents: ansageWertInSicht(view, contract, input.rules),
+    estimated: false,
+    samples: null,
+  }));
+  if (a.stage === 'declare' && values.every((v) => v.cents === null)) {
+    const chosen = contracts
+      .filter((c) => !MODES[c.kind].prelude)
+      .map((contract) => ({ contract, margin: rateContract(view.hand, contract, size) }))
+      .sort((x, y) => y.margin - x.margin)
+      .slice(0, MAX_SIMULATED);
+    const evals = evaluateContracts(
+      view,
+      chosen.map((r) => r.contract),
+      rng,
+      strong,
+    );
+    for (const v of values) {
+      const e = evals.find((x) => sameContract(x.option, v.contract));
+      if (e) Object.assign(v, { cents: e.cents, samples: e.values });
     }
-    return { contract, cents: null, estimated: false, samples: null };
-  });
+  }
   const bestOf = (pred: (c: Contract) => boolean): Omit<Valued, 'option'> => {
     let best: ContractValue | null = null;
     for (const v of values) {
@@ -577,6 +592,20 @@ function evaluateBids(
         return { option, ...bestOf((c) => sameContract(c, call.contract)) };
     }
   });
+}
+
+/**
+ * Das wertvollste Spiel laut Ansage-Tabelle unter allen, die man mit dem Blatt am Tisch ansagen
+ * dürfte (unabhängig vom Stand des Zweikampfs) – das, was Max zur Ansage nennt.
+ */
+function bestTableContract(input: TutorInput): { contract: Contract; cents: number } | null {
+  const { view, rules } = input;
+  let best: { contract: Contract; cents: number } | null = null;
+  for (const contract of candidateContracts(view.hand, rules, view.auction.failed)) {
+    const cents = ansageWertInSicht(view, contract, rules);
+    if (cents !== null && (!best || cents > best.cents)) best = { contract, cents: round(cents) };
+  }
+  return best;
 }
 
 // ---------------------------------------------------------------------------

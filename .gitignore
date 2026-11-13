@@ -13,3 +13,6 @@ coverage/
 dist-e2e/
 test-results/
 playwright-report/
+
+# Rohdaten der Ansage-Tabellen (B4), reproduzierbar über den Seed
+packages/bots/messungen/ansage/roh/

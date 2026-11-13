@@ -290,11 +290,10 @@ mitgibt (ohne sie gelten die Standardregeln). `createRandomBot` ist der Platzhal
   Sitze nach der Heuristik (`heuristicCard` mit einem gemeinsamen, öffentlichen Gedächtnis).
   Bewertet wird mit `scoreHand` – also in Cent samt Schneider, Laufenden, Kontra, im Ramsch ebenso.
   Gespielt wird der beste Schnitt, bei Gleichstand der Vorschlag der Heuristik.
-- **Ansage:** Klare Blätter (Marge der Heuristik über 3) und klar schwache (unter −2) entscheidet die
-  Heuristik. Knappe spielt er durch: jedes erlaubte, simulierbare Spiel (klassisch, ohne Vorspiel,
-  ohne Tout) auf zufälligen Verteilungen; lohnt sich keines (weiter = 0), sagt er „weiter“, sonst
-  meldet er das beste an und hält es im Zweikampf. Vorspiel (Hochzeit) und Muss bleiben bei der
-  Heuristik.
+- **Ansage (seit B4):** wie die Heuristik nach den Ansage-Tabellen (siehe unten). Mit
+  `ansage: 'faustregel'` wie vor B4: Klare Blätter (Marge der Heuristik über 3) und klar schwache
+  (unter −2) entscheidet die Heuristik, knappe spielt er durch (klassisch, ohne Vorspiel, ohne
+  Tout; weiter = 0).
 - **Aufwand:** feste Budgets in simulierten Karten (`STRONG_DEFAULTS`: 2000 je Entscheidung, Ansage
   ebenso), deterministisch über den Seed. Eine Uhr gibt es nur von außen (`now`, `budgetMs`); die
   Web-App gibt `performance.now` und 200 ms mit, damit auch langsame Handys unter 300 ms bleiben.
@@ -311,15 +310,27 @@ daraus nimmt die Web-App die Stärke (Bots entstehen erst beim Start bzw. beim W
 die Regeln stehen dann fest). Auch Vertretungen getrennter Spieler spielen in dieser Stärke.
 
 **Tests:** `strength.test.ts` und `strengthBeginner.test.ts` (Stärkevergleich gepaart: dieselbe Verteilung einmal mit Prüfling,
-einmal nur mit Referenz-Bots; Laufzeit; Uhr; Neuladen), `strengthLegality.test.ts` (alle Stufen
+einmal nur mit Referenz-Bots; Laufzeit; Uhr; Neuladen), `strengthTabelle.test.ts` (B4: mit gegen
+ohne Ansage-Tabelle, alle Besetzungen; Stark über `compare`, zwei Prüflinge auf demselben Platz), `strengthLegality.test.ts` (alle Stufen
 über viele Spiele in sieben Regelvarianten mit einem „Wildfang“, der Hochzeiten, Sonderspiele und
 Kontra herbeiführt). Große Läufe mit den eigentlichen Schwellen: `BOTS_FULL=1 npx vitest run
 packages/bots`.
 
-**Bausteine der Heuristik (B3):**
+**Bausteine der Heuristik (B3, B4):**
 
-- `heuristicBot.ts` – Gedächtnis, Ansage (`rateContract` je Spielart, nur am Tisch erlaubte
-  Spielarten), Faustregeln fürs Anspielen und Zugeben, Bettel, Ramsch (Jungfrau, Durchmarsch).
+- `heuristicBot.ts` – Gedächtnis, Ansage (Werte aus `ansage.ts`, nur am Tisch erlaubte
+  Spielarten; die alten Schwellen `rateContract` als `ansage: 'faustregel'` und für Kontra/Re),
+  Faustregeln fürs Anspielen und Zugeben, Bettel, Ramsch (Jungfrau, Durchmarsch).
+- `ansage.ts` – Ansage-Tabellen (B4): `ansageWert(hand, spiel, regeln, position)` ist der erwartete
+  Wert in Cent für den Ansager, `ansageWertInSicht(sicht, spiel, regeln)` dasselbe aus einer
+  `HandView` (Besetzung aus der Sicht, Position zum Geber), `merkmaleOf` die Merkmale des Blatts.
+  Die Modelle (`ansageTabelle.ts`, erzeugt) rechnen in Wahrscheinlichkeiten (gewonnen, Schneider,
+  Schwarz); Tarif und Laufenden-Schwellen kommen erst beim Abfragen aus dem `RuleSet`, eigene Tarife
+  stimmen also. Außerhalb des Bereichs der Tabelle (Blatt zu schwach) `null`.
+- `scripts/ansage-tabellen.ts`, `scripts/ansage-schreiben.ts` – Erzeugung der Tabelle unter Node
+  (nicht im Browser, nicht in CI), gestartet über `test/ansageTabellen.test.ts` mit
+  Umgebungsvariablen; Verfahren und Befehle in `docs/STRATEGIEN.md`, „Ansage-Tabellen“. Probespiele
+  über `playOutHand` aus `strongBot.ts` (Heuristik an allen Sitzen).
 - `hochzeit.ts` – Hochzeit und arabische Hochzeit: ansagen, annehmen, zurückgeben.
 - `doubling.ts` – Kontra und Re.
 - `prelude.ts` – einfacher Vorspiel-Zug (ablehnen, billigste Karten) für den Zufalls-Bot.
@@ -348,7 +359,9 @@ Fachlicher Hintergrund, Faustregeln und Didaktik stehen in `docs/STRATEGIEN.md`.
 - **Eingabe:** nur `TutorInput` – nie `HandState`. Die gesehenen Stiche reicht die Oberfläche mit
   (sie sind öffentlich); fehlen welche, rät der Tutor nur mit Faustregeln.
 - **Rechnung:** `evaluateCards`, `evaluateContracts` und `evaluateDouble` aus `packages/bots`
-  (die Suche des starken Bots, mit Werten je Möglichkeit und je Kartenverteilung). Der Tutor
+  (die Suche des starken Bots, mit Werten je Möglichkeit und je Kartenverteilung). Bei der Ansage
+  die Ansage-Tabellen (`ansageWertInSicht`, B4); `Advice.ansage` trägt das wertvollste Spiel samt
+  Wert, das die Oberfläche in der Begründung nennt. Der Tutor
   schaltet `respectBids` ein: Verteilungen, in denen der Ansager sein Spiel nicht angesagt hätte,
   werden verworfen. Der starke Bot am Tisch rechnet ohne.
 - **Antwort:** Werte in Cent, Empfehlung, bis zu zwei begründende Faustregeln, Ausnahmen, ein
@@ -528,8 +541,10 @@ ohne Einzelspiel.
   dem ersten Spiel, deshalb sind alle Stände noch 0.
 - **Oberfläche:** `positionOf(seat, me, players)` in `ui/table/layout.ts` – zu dritt sitzen die
   anderen links und rechts, oben bleibt frei. Tisch und Lobby nutzen dieselbe Funktion.
-- **Bots** filtern ihre Kandidaten mit `kindFitsPlayers` und skalieren die Ansageschwellen mit
-  der Kartenzahl; die Blattgröße schätzen sie aus Hand, Stichen und laufendem Stich.
+- **Bots** filtern ihre Kandidaten mit `kindFitsPlayers` und sagen nach der Ansage-Tabelle ihrer
+  Besetzung an (B4: eigene Modelle für lang/4, kurz/4 und kurz/3; die Besetzung lesen sie aus der
+  Sicht). Die alten Schwellen (`rateContract`) skalieren mit der Kartenzahl; die Blattgröße schätzen
+  sie aus Hand, Stichen und laufendem Stich.
 
 ## Mischen (Seed und Generator)
 
