@@ -3,6 +3,7 @@ import {
   type Contract,
   type ContractKind,
   type DeckKind,
+  type HandState,
   type Rng,
   type RuleSet,
   BID_ORDER,
@@ -13,6 +14,8 @@ import {
   card,
   createDeck,
   createRng,
+  applyAction,
+  handViewFor,
   orderFor,
   scoreHand,
   shuffle,
@@ -21,6 +24,7 @@ import {
   type AnsageModell,
   type AnsageTabelle,
   type Ziel,
+  BETTEL_MERKMALE,
   MERKMALE,
   MODELL_SKALA,
   ZIELE,
@@ -28,9 +32,9 @@ import {
   imBereich,
   merkmaleOf,
 } from '../src/ansage';
-import { rateContract } from '../src/heuristicBot';
+import { createHeuristicBot, rateContract } from '../src/heuristicBot';
 import { chooseWeddingGive, rateAcceptWedding, rateWedding, weddingSize } from '../src/hochzeit';
-import { playOutHand } from '../src/strongBot';
+import { createStrongBot, playOutHand } from '../src/strongBot';
 
 /**
  * Ansage-Tabellen erzeugen (Paket B4). Verfahren, ausführlich in docs/STRATEGIEN.md
@@ -74,14 +78,39 @@ export interface Parameter {
   verteilungen: number;
   /** Blätter je Stück (Einheit der Aufteilung auf Prozesse). */
   stueck: number;
+  /**
+   * Bettel: Blätter und Verteilungen mit „Stark“ als Gegenspieler (siehe `STARK_VERTEIDIGT`).
+   * Weniger als bei den übrigen Spielarten, weil Stark etwa hundertmal so lange rechnet.
+   */
+  bettelBlaetter: number;
+  bettelVerteilungen: number;
 }
+
+/**
+ * Spielarten, deren Probespiele die Gegenspieler mit „Stark“ verteidigen (der Ansager spielt
+ * Heuristik). Beim Bettel hängt der Wert fast nur an der Verteidigung; die Heuristik verteidigt
+ * zu schwach, und die Tabelle hätte das als Wert gelernt (Fund bei der Abnahme von B4).
+ */
+export const STARK_VERTEIDIGT: readonly ContractKind[] = ['bettel'];
 
 export const STANDARD_PARAMETER: Parameter = {
   seed: 2026,
   blaetter: 10000,
   verteilungen: 64,
   stueck: 250,
+  bettelBlaetter: 4000,
+  bettelVerteilungen: 32,
 };
+
+/** Blätter und Verteilungen für eine Spielart. */
+export function umfangFuer(
+  p: Parameter,
+  kind: ContractKind,
+): { blaetter: number; verteilungen: number } {
+  return STARK_VERTEIDIGT.includes(kind)
+    ? { blaetter: p.bettelBlaetter, verteilungen: p.bettelVerteilungen }
+    : { blaetter: p.blaetter, verteilungen: p.verteilungen };
+}
 
 /** Tischregeln der Probespiele: Standard, alle Spielarten erlaubt, ohne Kontra. */
 export function regelnFuer(b: Besetzung): RuleSet {
@@ -117,9 +146,9 @@ export interface Stueck {
 /** Alle Stücke der Erzeugung, in fester Reihenfolge. */
 export function stuecke(p: Parameter): Stueck[] {
   const out: Stueck[] = [];
-  const teile = Math.ceil(p.blaetter / p.stueck);
   for (const b of BESETZUNGEN) {
     for (const kind of spielartenFuer(b)) {
+      const teile = Math.ceil(umfangFuer(p, kind).blaetter / p.stueck);
       for (let teil = 0; teil < teile; teil++) out.push({ besetzung: b.key, kind, teil });
     }
   }
@@ -252,12 +281,112 @@ function probespiel(
   };
 }
 
+/**
+ * Ein Probespiel mit „Stark“ als Gegenspielern (nur Spiele ohne Partner und ohne Vorspiel): Der
+ * Ansager spielt Heuristik, die Gegenspieler suchen wie am Tisch (Standardaufwand, Seeds aus
+ * `rng`). Läuft über den Kern (`applyAction`), damit Stark seine gewohnte Sicht bekommt.
+ */
+function probespielStark(
+  rules: RuleSet,
+  hand: readonly Card[],
+  contract: Contract,
+  declarer: number,
+  rng: Rng,
+): Ergebnis {
+  const players = rules.players;
+  const rest = shuffle(
+    createDeck(rules.deck).filter((c) => !hand.includes(c)),
+    rng,
+  );
+  const hands = Array.from({ length: players }, (_, s) =>
+    s === declarer ? [...hand] : rest.splice(0, hand.length),
+  );
+  const first = 1 % players; // Geber ist Sitz 0
+  let state: HandState = {
+    rules,
+    dealer: 0,
+    phase: 'playing',
+    turn: first,
+    hands,
+    initialHands: hands.map((h) => [...h]),
+    bids: [],
+    auction: {
+      stage: 'declare',
+      holder: declarer,
+      challenger: null,
+      waiting: [],
+      level: null,
+      forced: false,
+      yielded: [],
+      failed: [],
+    },
+    contract,
+    declarer,
+    partner: null,
+    prelude: null,
+    tricks: [],
+    currentTrick: { leader: first, cards: [] },
+    carry: { pot: 0, factor: 1 },
+    doubling: { kontra: null, re: null },
+    result: null,
+  };
+  const seed = () => Math.floor(rng() * 0x7fffffff);
+  const bots = Array.from({ length: players }, (_, s) =>
+    s === declarer ? createHeuristicBot(seed()) : createStrongBot(seed(), { rules }),
+  );
+  while (state.phase !== 'finished') {
+    const seat = state.turn;
+    const action = bots[seat]!.decide(handViewFor(state, seat), rules);
+    const next = applyAction(state, { ...action, seat });
+    if (!next.ok) throw new Error(`Probespiel: ${next.error}`);
+    state = next.state;
+  }
+  const outcome = state.result!.outcome!;
+  const d = outcome.details;
+  const won = outcome.declarerWon === true;
+  return {
+    won,
+    lost: !won,
+    schneider: d.type === 'party' && d.schneider,
+    schwarz: d.type === 'party' && d.schwarz,
+    cent: state.result!.payments[declarer]!,
+  };
+}
+
+/**
+ * Misst ein einzelnes Blatt (Diagnose und Tests): `n` Probespiele, Geber Sitz 0. Gibt den Anteil
+ * gewonnener Spiele und den mittleren Wert in Cent (Standardtarif der Besetzung) zurück.
+ */
+export function messeBlatt(
+  b: Besetzung,
+  hand: readonly Card[],
+  contract: Contract,
+  position: number,
+  n: number,
+  seed = 1,
+): { gewonnen: number; cent: number } {
+  const rules = regelnFuer(b);
+  const rng = createRng(seed);
+  const declarer = (position + 1) % b.players;
+  const play = STARK_VERTEIDIGT.includes(contract.kind) ? probespielStark : probespiel;
+  let won = 0;
+  let cent = 0;
+  for (let k = 0; k < n; k++) {
+    const e = play(rules, hand, contract, declarer, rng);
+    if (e.won) won++;
+    cent += e.cent;
+  }
+  return { gewonnen: won / n, cent: cent / n };
+}
+
 /** Misst ein Stück: `p.stueck` Blätter mit je `p.verteilungen` Probespielen. */
 export function messeStueck(p: Parameter, s: Stueck): Probe[] {
   const b = BESETZUNGEN.find((x) => x.key === s.besetzung)!;
   const rules = regelnFuer(b);
   const rng = createRng(seedFor(p, s));
-  const count = Math.min(p.stueck, p.blaetter - s.teil * p.stueck);
+  const umfang = umfangFuer(p, s.kind);
+  const count = Math.min(p.stueck, umfang.blaetter - s.teil * p.stueck);
+  const play = STARK_VERTEIDIGT.includes(s.kind) ? probespielStark : probespiel;
   const out: Probe[] = [];
   for (let i = 0; i < count; i++) {
     const { hand, contract, position, gewicht } = drawHand(b, s.kind, rng);
@@ -265,8 +394,8 @@ export function messeStueck(p: Parameter, s: Stueck): Probe[] {
     const z: Record<Ziel | 'vw', number> = { g: 0, gs: 0, gw: 0, v: 0, vs: 0, vw: 0 };
     let cent = 0;
     let cent2 = 0;
-    for (let k = 0; k < p.verteilungen; k++) {
-      const e = probespiel(rules, hand, contract, declarer, rng);
+    for (let k = 0; k < umfang.verteilungen; k++) {
+      const e = play(rules, hand, contract, declarer, rng);
       if (e.won) {
         z.g++;
         if (e.schneider) z.gs++;
@@ -279,7 +408,16 @@ export function messeStueck(p: Parameter, s: Stueck): Probe[] {
       cent += e.cent;
       cent2 += e.cent * e.cent;
     }
-    out.push({ hand, contract, position, gewicht, n: p.verteilungen, zaehler: z, cent, cent2 });
+    out.push({
+      hand,
+      contract,
+      position,
+      gewicht,
+      n: umfang.verteilungen,
+      zaehler: z,
+      cent,
+      cent2,
+    });
   }
   return out;
 }
@@ -425,7 +563,10 @@ export interface Guete {
 export function passeAn(proben: readonly Probe[], b: Besetzung, kind: ContractKind): AnsageModell {
   const rows = proben.map((p) => merkmaleOf(p.hand, p.contract, b.deck, p.position, b.players));
   // Nur Merkmale, die in den Daten schwanken; die übrigen bekommen das Gewicht 0.
-  const used = MERKMALE.filter((m) => new Set(rows.map((r) => r[m])).size > 1);
+  const used = MERKMALE.filter(
+    (m) =>
+      (kind !== 'bettel' || BETTEL_MERKMALE.includes(m)) && new Set(rows.map((r) => r[m])).size > 1,
+  );
   const x = rows.map((r) => used.map((m) => r[m]));
   const w = proben.map((p) => p.gewicht * p.n);
   const model: Record<string, number[]> = {};

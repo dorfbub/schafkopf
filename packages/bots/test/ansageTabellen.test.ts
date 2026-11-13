@@ -3,7 +3,9 @@ import { describe, it } from 'vitest';
 import {
   type Parameter,
   type Probe,
+  type Stueck,
   STANDARD_PARAMETER,
+  STARK_VERTEIDIGT,
   messeStueck,
   stuecke,
 } from '../scripts/ansage-tabellen';
@@ -19,7 +21,8 @@ import { schreibeTabelle } from '../scripts/ansage-schreiben';
  * Der erste Befehl misst jedes 16. Stück ab 0 (für 16 Prozesse parallel: TEIL=0/16 … 15/16) und
  * schreibt `messungen/ansage/roh/*.json` (nicht eingecheckt). Der zweite schätzt die Modelle und
  * schreibt `src/ansageTabelle.ts` und `messungen/ansage/tabelle.md`. Einstellungen (optional):
- * ANSAGE_BLAETTER, ANSAGE_VERTEILUNGEN, ANSAGE_SEED.
+ * ANSAGE_BLAETTER, ANSAGE_VERTEILUNGEN, ANSAGE_SEED, ANSAGE_BETTEL_BLAETTER,
+ * ANSAGE_BETTEL_VERTEILUNGEN (Bettel mit „Stark“ als Gegenspieler).
  */
 const ROH = new URL('../messungen/ansage/roh/', import.meta.url);
 
@@ -30,14 +33,23 @@ function parameter(): Parameter {
     ...(env.ANSAGE_BLAETTER ? { blaetter: Number(env.ANSAGE_BLAETTER) } : {}),
     ...(env.ANSAGE_VERTEILUNGEN ? { verteilungen: Number(env.ANSAGE_VERTEILUNGEN) } : {}),
     ...(env.ANSAGE_SEED ? { seed: Number(env.ANSAGE_SEED) } : {}),
+    ...(env.ANSAGE_BETTEL_BLAETTER ? { bettelBlaetter: Number(env.ANSAGE_BETTEL_BLAETTER) } : {}),
+    ...(env.ANSAGE_BETTEL_VERTEILUNGEN
+      ? { bettelVerteilungen: Number(env.ANSAGE_BETTEL_VERTEILUNGEN) }
+      : {}),
   };
 }
 
 /** Rohdaten je Parametersatz in einem eigenen Ordner, damit Probeläufe nichts vermischen. */
 const ordner = (p: Parameter) =>
   new URL(`${p.seed}-${p.blaetter}-${p.verteilungen}-${p.stueck}/`, ROH);
-const datei = (p: Parameter, s: { besetzung: string; kind: string; teil: number }) =>
-  new URL(`${s.besetzung.replace('/', '-')}_${s.kind}_${s.teil}.json`, ordner(p));
+/** Mit „Stark“ verteidigte Spielarten tragen ihren eigenen Umfang im Namen (eigene Messung). */
+const datei = (p: Parameter, s: Stueck) => {
+  const extra = STARK_VERTEIDIGT.includes(s.kind)
+    ? `_stark-${p.bettelBlaetter}-${p.bettelVerteilungen}`
+    : '';
+  return new URL(`${s.besetzung.replace('/', '-')}_${s.kind}${extra}_${s.teil}.json`, ordner(p));
+};
 
 describe.skipIf(!process.env.ANSAGE_MESSEN)('Ansage-Tabellen messen', () => {
   it('misst die Stücke dieses Teils', { timeout: 24 * 3_600_000 }, () => {

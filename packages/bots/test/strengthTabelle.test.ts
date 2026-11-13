@@ -25,7 +25,7 @@ const KURZ3: RuleSet = { ...DEFAULT_RULES, deck: 'kurz', players: 3 };
 describe('Ansage-Tabellen: Normal mit Tabelle gegen Normal ohne', () => {
   const cases: [string, RuleSet, number, number][] = [
     // Name, Regeln, Spiele (klein / groß), Schwelle im großen Lauf (Cent je Spiel)
-    // Gemessen (20 000 Spiele): +5,01 ± 0,39 / +11,4 ± 0,5 / +15,0 ± 0,6 / +13,6 ± 0,4.
+    // Gemessen (20 000 Spiele): +4,93 ± 0,39 / +11,3 ± 0,5 / +14,9 ± 0,6 / +13,4 ± 0,4.
     ['lang/4, Standard', DEFAULT_RULES, FULL ? 20000 : 1000, 3],
     ['lang/4, alle Hausregeln', HAUSREGELN, FULL ? 20000 : 1000, 8],
     ['kurz/4', KURZ4, FULL ? 20000 : 1000, 8],
@@ -48,7 +48,7 @@ describe('Ansage-Tabellen: Normal mit Tabelle gegen Normal ohne', () => {
 describe('Ansage-Tabellen: Stark mit Tabelle gegen Stark ohne', () => {
   // Beide Fassungen von Stark auf demselben Platz gegen dieselben Normal-Bots (mit Tabelle, wie am
   // Tisch). Teuer (Stark rechnet je Entscheidung rund 20 ms), daher im normalen Lauf ausgelassen.
-  // Gemessen (4000 Spiele): +2,8 ± 0,8 ct je Spiel.
+  // Gemessen (4000 Spiele): +2,9 ± 0,8 ct je Spiel.
   it.skipIf(!FULL)('Stark mit Tabelle ist besser', { timeout: 3_600_000 }, () => {
     const r = compare(
       4000,

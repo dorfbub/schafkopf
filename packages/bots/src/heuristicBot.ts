@@ -1000,6 +1000,25 @@ function durchmarschThreat(ctx: Ctx): Seat | null {
 }
 
 /** Bettel: Der Spieler will keinen Stich, die Gegner wollen ihm einen aufzwingen. */
+/**
+ * Gegenspieler im Bettel spielen an (B4): die Karte, unter die der Spieler am schwersten drunter
+ * kommt – möglichst wenige ungesehene kleinere Karten derselben Farbe (mit denen er sich
+ * retten könnte), in einer Farbe, die er noch haben kann. Bei Gleichstand die Farbe mit mehr
+ * ungesehenen Karten (dort sitzt er eher fest), dann die niedrigere Karte.
+ */
+function bettelLead(ctx: Ctx, legal: readonly Card[]): Card {
+  const declarer = ctx.view.declarer!;
+  const open = legal.filter((c) => !voidOf(ctx, declarer, eff(ctx, c)));
+  const pool = open.length > 0 ? open : legal;
+  const score = (c: Card) => {
+    const suit = eff(ctx, c);
+    const same = ctx.unseen.filter((u) => eff(ctx, u) === suit);
+    const lower = same.filter((u) => str(ctx, u) < str(ctx, c)).length;
+    return lower * 10 - same.length + str(ctx, c) * 0.01 + ctx.rng() * 0.001;
+  };
+  return minBy(pool, score);
+}
+
 function bettelCard(ctx: Ctx, legal: readonly Card[]): Card {
   const trick = ctx.view.currentTrick;
   const declarer = ctx.view.declarer!;
@@ -1013,10 +1032,10 @@ function bettelCard(ctx: Ctx, legal: readonly Card[]): Card {
     return under.length > 0 ? high(under) : high(legal);
   }
 
-  if (trick.cards.length === 0) {
-    const notVoid = legal.filter((c) => !voidOf(ctx, declarer, eff(ctx, c)));
-    return low(notVoid.length > 0 ? notVoid : legal);
-  }
+  if (trick.cards.length === 0) return bettelLead(ctx, legal);
+  // Nicht bedienen können: hohe Karten abwerfen, die kleinen braucht man zum Anspielen (B4).
+  const leadSuit = eff(ctx, trick.cards[0]!);
+  if (!legal.some((c) => eff(ctx, c) === leadSuit)) return high(legal);
   const offset = (declarer - trick.leader + ctx.players) % ctx.players;
   const declarerPlayed = offset < trick.cards.length;
   if (declarerPlayed) {
