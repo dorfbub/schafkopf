@@ -1,0 +1,18 @@
+{
+  "regel": "hochzeit.ablehnen.schwach",
+  "regelsatz": "hochzeit",
+  "spiele": 20000,
+  "vorkommen": 815,
+  "lagen": 815,
+  "cents": 3.03,
+  "fehler": 1.1,
+  "folgt": -8.33,
+  "widerspricht": -11.36,
+  "verschieden": 563,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

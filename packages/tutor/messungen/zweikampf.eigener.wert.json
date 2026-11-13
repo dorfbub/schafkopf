@@ -1,0 +1,18 @@
+{
+  "regel": "zweikampf.eigener.wert",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 30839,
+  "lagen": 1500,
+  "cents": 22.14,
+  "fehler": 2.55,
+  "folgt": 12.95,
+  "widerspricht": -9.19,
+  "verschieden": 656,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

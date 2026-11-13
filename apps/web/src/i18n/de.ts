@@ -883,6 +883,8 @@ export const TUTOR_TEXT = {
 
   ruleTitle: (id: string) => RULE_TITLE[id] ?? id,
   ruleReason: (id: string) => RULE_REASON[id] ?? '',
+  /** Gemessener Wert einer Faustregel (T4), nur wenn sicher positiv gemessen. */
+  ruleValue: (cents: number) => `Gemessen bringt sie im Schnitt ${aboutCents(cents)}.`,
 
   /** Stufe 2: die Empfehlung als ganzer Satz. */
   recommend(o: TutorOptionText, re: boolean): string {

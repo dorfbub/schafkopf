@@ -1,0 +1,18 @@
+{
+  "regel": "karte.abspatzen.trumpf",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 48059,
+  "lagen": 1500,
+  "cents": 1.2,
+  "fehler": 0.36,
+  "folgt": -12.72,
+  "widerspricht": -13.92,
+  "verschieden": 215,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

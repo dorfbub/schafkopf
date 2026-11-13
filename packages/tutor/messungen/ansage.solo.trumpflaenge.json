@@ -1,0 +1,18 @@
+{
+  "regel": "ansage.solo.trumpflaenge",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 20331,
+  "lagen": 1500,
+  "cents": 44.44,
+  "fehler": 3,
+  "folgt": 48.59,
+  "widerspricht": 4.15,
+  "verschieden": 1053,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

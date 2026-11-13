@@ -1,0 +1,18 @@
+{
+  "regel": "mitspieler.trumpf.spielen",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 6703,
+  "lagen": 1500,
+  "cents": 0.59,
+  "fehler": 0.48,
+  "folgt": 11.81,
+  "widerspricht": 11.22,
+  "verschieden": 574,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

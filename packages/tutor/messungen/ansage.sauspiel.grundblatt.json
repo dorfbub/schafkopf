@@ -1,0 +1,18 @@
+{
+  "regel": "ansage.sauspiel.grundblatt",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 26483,
+  "lagen": 1500,
+  "cents": 26.28,
+  "fehler": 2.2,
+  "folgt": 30.77,
+  "widerspricht": 4.49,
+  "verschieden": 933,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

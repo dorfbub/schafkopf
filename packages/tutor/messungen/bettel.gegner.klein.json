@@ -1,0 +1,18 @@
+{
+  "regel": "bettel.gegner.klein",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 442,
+  "lagen": 117,
+  "cents": 0,
+  "fehler": 0,
+  "folgt": -50,
+  "widerspricht": -50,
+  "verschieden": 0,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

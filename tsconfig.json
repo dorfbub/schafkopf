@@ -17,6 +17,7 @@
   "include": [
     "packages/*/src",
     "packages/*/test",
+    "packages/*/scripts",
     "apps/*/src",
     "vitest.config.ts",
     "playwright.config.ts",

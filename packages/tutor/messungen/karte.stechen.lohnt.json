@@ -1,0 +1,18 @@
+{
+  "regel": "karte.stechen.lohnt",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 16773,
+  "lagen": 1500,
+  "cents": 17.13,
+  "fehler": 2.2,
+  "folgt": 21.05,
+  "widerspricht": 3.92,
+  "verschieden": 738,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "regel": "kontra.gegen.partnerspiel",
+  "regelsatz": "kontra",
+  "spiele": 20000,
+  "vorkommen": 5457,
+  "lagen": 1500,
+  "cents": 13.95,
+  "fehler": 0.55,
+  "folgt": -13.49,
+  "widerspricht": -27.45,
+  "verschieden": 1500,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

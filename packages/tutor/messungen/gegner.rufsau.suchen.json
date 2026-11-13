@@ -1,0 +1,18 @@
+{
+  "regel": "gegner.rufsau.suchen",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 10559,
+  "lagen": 1500,
+  "cents": 1,
+  "fehler": 0.41,
+  "folgt": -8.7,
+  "widerspricht": -9.7,
+  "verschieden": 569,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

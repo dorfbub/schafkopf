@@ -1,0 +1,18 @@
+{
+  "regel": "bettel.spieler.drunter",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 218,
+  "lagen": 39,
+  "cents": 7.69,
+  "fehler": 7.69,
+  "folgt": 150,
+  "widerspricht": 142.31,
+  "verschieden": 1,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}
