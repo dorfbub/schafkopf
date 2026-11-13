@@ -48,7 +48,7 @@ function sideValue(hand: readonly Card[]): number {
   return s;
 }
 
-function sideVoids(hand: readonly Card[]): number {
+export function sideVoids(hand: readonly Card[]): number {
   return SIDE_SUITS.filter((s) => !hand.some((c) => effectiveSuit(c, SAUSPIEL_ORDER) === s)).length;
 }
 
@@ -88,19 +88,22 @@ const ACCEPT_THRESHOLD = 7.2;
  * dann mit seinen Trümpfen), und keine Trümpfe. Die Augen bleiben in der Partei, zählen also nicht;
  * eine Sau behält er lieber selbst, weil er öfter herauskommt als der trumpflose Hochzeiter.
  */
+export function weddingGiveScore(hand: readonly Card[], cards: readonly Card[]): number {
+  const rest = hand.filter((c) => !cards.includes(c));
+  let s = 3 * sideVoids(rest);
+  for (const c of cards) {
+    if (isTrump(c)) s -= 100 + trumpWeight(c);
+    if (rankOf(c) === 'A') s -= 0.5;
+    // Kleine Karten zuerst: die Rangstelle als feiner Unterschied.
+    s += SAUSPIEL_ORDER.rankOrder.indexOf(rankOf(c)) * 0.01;
+  }
+  return s;
+}
+
 export function chooseWeddingGive(hand: readonly Card[], gives: readonly Card[][]): Card[] {
-  const score = (cards: readonly Card[]) => {
-    const rest = hand.filter((c) => !cards.includes(c));
-    let s = 3 * sideVoids(rest);
-    for (const c of cards) {
-      if (isTrump(c)) s -= 100 + trumpWeight(c);
-      if (rankOf(c) === 'A') s -= 0.5;
-      // Kleine Karten zuerst: die Rangstelle als feiner Unterschied.
-      s += SAUSPIEL_ORDER.rankOrder.indexOf(rankOf(c)) * 0.01;
-    }
-    return s;
-  };
-  return gives.reduce((best, cards) => (score(cards) > score(best) ? cards : best));
+  return gives.reduce((best, cards) =>
+    weddingGiveScore(hand, cards) > weddingGiveScore(hand, best) ? cards : best,
+  );
 }
 
 /** Vorspiel-Zug des Heuristik-Bots: annehmen oder ablehnen, Karten zurückgeben. */

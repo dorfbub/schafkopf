@@ -1,7 +1,8 @@
 import type { Card, HandView, PreludeMove, TableView } from '@schafkopf/core';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { KIND_NAME, TABLE_TEXT, preludeMoveLabel } from '../../i18n/de';
+import { KIND_NAME, TABLE_TEXT, TUTOR_TEXT, preludeMoveLabel } from '../../i18n/de';
 import { cardLabel } from '../CardView';
+import { useTutor } from '../../tutor/context';
 import { useCardTheme } from '../cardTheme';
 import { Button, Dialog } from '../kit';
 import { type SeatInfo, sortHand } from './layout';
@@ -49,6 +50,12 @@ function FocusAnchor() {
   return <div ref={ref} tabIndex={-1} className="ansage__anker" />;
 }
 
+/** Empfehlung von Max im Vorspiel (ab Stufe 2 der Antwort), sonst `null`. */
+function usePreludeTip(): PreludeMove | null {
+  const tip = useTutor()?.snap.tip;
+  return tip?.type === 'prelude' ? tip.move : null;
+}
+
 function OfferStep({
   declarer,
   arabic,
@@ -60,6 +67,7 @@ function OfferStep({
   status: ReactNode;
   onMove: (move: PreludeMove) => void;
 }) {
+  const tip = usePreludeTip();
   return (
     <Dialog
       className="ansage hochzeit"
@@ -70,10 +78,19 @@ function OfferStep({
       hint={status}
       actions={
         <>
-          <Button variant="secondary" onClick={() => onMove({ type: 'decline' })}>
+          <Button
+            variant="secondary"
+            className={tip?.type === 'decline' ? 'btn--tipp' : undefined}
+            onClick={() => onMove({ type: 'decline' })}
+          >
             {TABLE_TEXT.weddingDecline}
           </Button>
-          <Button onClick={() => onMove({ type: 'accept' })}>{TABLE_TEXT.weddingAccept}</Button>
+          <Button
+            className={tip?.type === 'accept' ? 'btn--tipp' : undefined}
+            onClick={() => onMove({ type: 'accept' })}
+          >
+            {TABLE_TEXT.weddingAccept}
+          </Button>
         </>
       }
     >
@@ -93,6 +110,8 @@ function ExchangeStep({
   onMove: (move: PreludeMove) => void;
 }) {
   const theme = useCardTheme();
+  const tip = usePreludeTip();
+  const tipped = new Set<Card>(tip?.type === 'give' ? tip.cards : []);
   const gives = hand.legalMoves.flatMap((m) => (m.type === 'give' ? [m.cards] : []));
   const count = gives[0]?.length ?? 1;
   const allowed = new Set(gives.flat());
@@ -126,7 +145,8 @@ function ExchangeStep({
             <button
               key={card}
               type="button"
-              className={`card ${usable ? 'card--playable' : 'card--locked'} hochzeit__karte`}
+              className={`card ${usable ? 'card--playable' : 'card--locked'} hochzeit__karte${tipped.has(card) ? ' hochzeit__karte--tipp' : ''}`}
+              title={tipped.has(card) ? TUTOR_TEXT.tipLabel : undefined}
               aria-label={cardLabel(card)}
               aria-pressed={chosen.includes(card)}
               disabled={!usable}
