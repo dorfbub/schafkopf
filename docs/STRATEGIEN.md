@@ -11,9 +11,10 @@ Inhalt:
 2. [Quellen](#quellen)
 3. [Widersprüche und Entscheidungen](#widersprüche-und-entscheidungen)
 4. [Der Katalog](#der-katalog) – 31 Faustregeln
-5. [Didaktik](#didaktik) – wie der Tutor fragt, rät und bewertet
-6. [Wie der Tutor rechnet](#wie-der-tutor-rechnet) – Schwellen, Automatikmodus, Grenzen
-7. [Textvorschläge für die Oberfläche](#textvorschläge-für-die-oberfläche)
+5. [Messung der Faustregeln](#messung-der-faustregeln-t4) – Wert je Regel in Cent
+6. [Didaktik](#didaktik) – wie der Tutor fragt, rät und bewertet
+7. [Wie der Tutor rechnet](#wie-der-tutor-rechnet) – Schwellen, Automatikmodus, Grenzen
+8. [Textvorschläge für die Oberfläche](#textvorschläge-für-die-oberfläche)
 
 ---
 
@@ -460,6 +461,130 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
   eigenen gefährlichen Karten ab – Zehner und hohe Karten, die später selbst stechen würden.
 - **Ausnahmen:** Wer auf Durchmarsch spielt, macht das Gegenteil.
 - **Quelle:** BOT (Annahme 74); WT.
+
+## Messung der Faustregeln (T4)
+
+Jede Regel hat einen gemessenen Wert: Wie viele Cent bringt es im Schnitt, sie in einer Lage zu
+befolgen, statt die beste andere Möglichkeit zu nehmen? Max nennt bei mehreren greifenden Regeln
+die mit dem höheren Wert zuerst und darf den Wert in der Begründung nennen („Gemessen bringt sie im
+Schnitt etwa 8 Cent“) – aber nur, wenn er sicher über null liegt (mehr als zwei Standardfehler).
+
+### Verfahren
+
+Gepaarter Vergleich wie in B2 (Code: `packages/tutor/scripts/messen.ts`):
+
+1. Alle vier Sitze spielen den **Heuristik-Bot** (feste Seeds; Spiel _i_ hat Seed _i_, Geber _i_ mod 4,
+   Bots Seed 2000 + 4*i* + Sitz). Heuristik statt „Stark“, weil sie schnell und über den Seed
+   vollständig reproduzierbar ist und weil die Regeln großteils aus ihr stammen; „Stark“ würde die
+   Messung um ein Vielfaches verlangsamen.
+2. Im Grundlauf wird bei jeder Entscheidung geprüft, welche Regeln greifen (`ruleHits`). Vorkommen
+   werden gezählt (alle Sitze, daraus „Vorkommen je Spiel“).
+3. Beim **ersten Vorkommen je Regel, Sitz und Spiel** wird das Spiel zweimal von vorn gespielt,
+   mit denselben Karten und Bots, nur an dieser einen Stelle verschieden:
+   - Arm **folgt**: die Möglichkeit, für die die Regel spricht, die der Tutor (`advise`, Suche)
+     am höchsten bewertet;
+   - Arm **widerspricht**: die höchstbewertete Möglichkeit, für die die Regel _nicht_ spricht –
+     die beste Alternative.
+     Danach spielt wieder die Heuristik. Das Maß ist die Zahlung des Sitzes am Spielende.
+4. **Wert** = Mittel von (Zahlung folgt − Zahlung widerspricht) über die Lagen, in Cent;
+   **Fehler** = Standardfehler dieses Mittels. Je Regel höchstens 1500 Lagen, gesucht wird in
+   20 000 Spielen. Weniger als 30 Lagen gelten als „zu selten“.
+5. Regelsätze: Standard; für Kontra/Re mit eingeschaltetem Kontra, für Ramsch mit „Alle weiter →
+   Ramsch“, für die Hochzeit mit erlaubter Hochzeit (`regelsatzFuer`).
+
+Einschränkungen: Die Mitspieler spielen Heuristik, nicht wie Menschen. Die Bewertung der beiden
+Arme stammt aus der Suche des Tutors; gemessen wird aber, was nach der Wahl tatsächlich am Spielende
+herauskommt. Bei Regeln, die den Heuristik-Bot selbst beschreiben, ist der Unterschied klein, weil
+der Bot ihnen ohnehin folgt – der Wert zeigt dann, was ein Abweichen kostet.
+**`re.mit.reserve`** ließ sich nicht messen: Heuristik-Gegner sagen nie Kontra, also entsteht keine
+Lage für ein Re (0 Vorkommen in 20 000 Spielen). Auch **`bettel.spieler.drunter`**,
+**`bettel.gegner.klein`** und **`ramsch.durchmarsch.verhindern`** sind selten (39, 117 und 83 Lagen)
+– die Zahlen stehen mit großem Fehler in der Tabelle, ein Wert wird dafür nicht genannt.
+`karte.abspatzen` und die Hochzeitsregeln sind so gemessen, wie sie in diesem Stand stehen; T3 ändert
+beide (abspatzen getrennt, Hochzeit beraten), danach ist neu zu messen.
+
+### Ergebnis (Stand: 20 000 Spiele)
+
+| Regel                                | Wert (ct) | ± Fehler | Lagen | Vorkommen je Spiel | Urteil                |
+| ------------------------------------ | --------: | -------: | ----: | -----------------: | --------------------- |
+| `ansage.wenz.unter.und.farben`       |      49,6 |      3,3 |  1500 |              0,254 | nützlich              |
+| `ansage.solo.trumpflaenge`           |      44,4 |      3,0 |  1500 |              1,017 | nützlich              |
+| `kontra.gegen.einzelspiel`           |      32,2 |      1,4 |  1500 |              0,215 | nützlich              |
+| `ansage.sauspiel.grundblatt`         |      26,3 |      2,2 |  1500 |              1,324 | nützlich              |
+| `zweikampf.eigener.wert`             |      22,1 |      2,5 |  1500 |              1,542 | nützlich              |
+| `karte.stechen.lohnt`                |      17,1 |      2,2 |  1500 |              0,839 | nützlich              |
+| `kontra.gegen.partnerspiel`          |      13,9 |      0,6 |  1500 |              0,273 | nützlich              |
+| `bettel.spieler.drunter`             |       7,7 |      7,7 |    39 |              0,011 | kein messbarer Nutzen |
+| `ansage.bettel.nur.sicher`           |       7,2 |      1,0 |  1223 |              0,066 | nützlich              |
+| `hochzeit.zwei.sauen`                |       6,3 |      0,6 |  1113 |              0,147 | nützlich              |
+| `spieler.farbe.nach.trumpf`          |       6,0 |      2,8 |  1500 |              0,563 | nützlich              |
+| `spieler.trumpf.ziehen`              |       4,3 |      1,7 |  1500 |              2,688 | nützlich              |
+| `gegner.kein.trumpf.anspielen`       |       3,7 |      0,8 |  1500 |              1,712 | nützlich              |
+| `karte.schmieren`                    |       2,7 |      0,6 |  1500 |              1,456 | nützlich              |
+| `ramsch.hoch.drunter`                |       2,7 |      0,7 |  1500 |              0,497 | nützlich              |
+| `karte.farbe.freimachen`             |       2,3 |      1,5 |  1500 |              1,556 | kein messbarer Nutzen |
+| `karte.nicht.vorschnell.schmieren`   |       2,2 |      0,6 |  1500 |              0,867 | nützlich              |
+| `karte.abspatzen`                    |       1,8 |      0,7 |  1500 |              6,319 | nützlich              |
+| `ansage.zu.schwach`                  |       1,6 |      0,5 |  1500 |              1,895 | nützlich              |
+| `spieler.solo.von.oben`              |       1,2 |      3,2 |  1500 |              0,415 | kein messbarer Nutzen |
+| `ramsch.durchmarsch.verhindern`      |       1,1 |      3,3 |    83 |              0,004 | kein messbarer Nutzen |
+| `gegner.rufsau.suchen`               |       1,0 |      0,4 |  1500 |              0,528 | nützlich              |
+| `spieler.rufsau.nicht.selbst.suchen` |       0,9 |      0,5 |  1500 |              0,632 | kein messbarer Nutzen |
+| `gegner.sau.frisch`                  |       0,8 |      0,8 |  1500 |              0,764 | kein messbarer Nutzen |
+| `mitspieler.trumpf.spielen`          |       0,6 |      0,5 |  1500 |              0,335 | kein messbarer Nutzen |
+| `gegner.kurzer.weg.lange.farbe`      |       0,1 |      1,3 |  1500 |              0,342 | kein messbarer Nutzen |
+| `bettel.gegner.klein`                |       0,0 |      0,0 |   117 |              0,022 | kein messbarer Nutzen |
+| `karte.hinten.billig.stechen`        |      -1,7 |      1,3 |  1500 |              0,663 | kein messbarer Nutzen |
+| `ansage.tout.nur.sicher`             |      -3,9 |      4,1 |  1500 |              0,165 | kein messbarer Nutzen |
+| `ansage.ruffarbe.kurz`               |      -8,7 |      1,7 |  1500 |              0,307 | schadet               |
+| `re.mit.reserve`                     |         – |        – |     0 |              0,000 | zu selten             |
+
+„Vorkommen je Spiel“ zählt alle vier Sitze zusammen, jedes Vorkommen. „Kein messbarer Nutzen“
+heißt: Der Wert liegt innerhalb von zwei Standardfehlern um null.
+
+### Einordnung
+
+- **Ganz vorn: die Ansage.** Wenz, Solo, Sauspiel-Grundblatt und Zweikampf bringen 20–50 Cent je
+  Vorkommen, auch Kontra gegen ein Einzelspiel (32 Cent) und gegen ein Partnerspiel (14 Cent).
+  Hier entscheidet sich der Gewinn eines Spiels – deshalb stehen diese Regeln bei Max vorn.
+- **Kartenspiel: klein, aber messbar.** Stechen, wenn es lohnt (17 Cent), und Farbe nach dem Trumpf
+  (6 Cent) tragen; die meisten übrigen Kartenregeln bringen 1–4 Cent je Vorkommen. Sie kommen dafür
+  oft vor (`karte.abspatzen` mehr als sechsmal je Spiel am Tisch).
+- **Schadet: `ansage.ruffarbe.kurz` (−8,7 ± 1,7).** Die Regel zieht die Sau zur eigenen Zehn vor;
+  die Heuristik rechnet eine Zehn in der Ruffarbe als Kostenpunkt – und liegt nach der Messung
+  richtig. **Kandidat zum Umformulieren:** die Zehn-Vorliebe streichen, nur „kurze Ruffarbe“ behalten.
+  Bis dahin steht die Regel weiter im Katalog (nichts stillschweigend gelöscht).
+- **Kein messbarer Nutzen:** `spieler.solo.von.oben`, `spieler.rufsau.nicht.selbst.suchen`,
+  `gegner.sau.frisch`, `mitspieler.trumpf.spielen`, `gegner.kurzer.weg.lange.farbe`,
+  `karte.farbe.freimachen`, `karte.hinten.billig.stechen` (−1,7 ± 1,3), `ansage.tout.nur.sicher`,
+  `bettel.spieler.drunter`, `bettel.gegner.klein`, `ramsch.durchmarsch.verhindern`. Sie bleiben
+  als Lehrstoff im Katalog, Max nennt keinen Wert dazu und ordnet sie hinter die gemessenen. **Kandidaten
+  zum Streichen oder Umformulieren** nach Prüfung mit anderen Mitspielern als der Heuristik:
+  `karte.hinten.billig.stechen` und `gegner.kurzer.weg.lange.farbe` (Wert ≈ 0 bei 1500 Lagen),
+  `ansage.tout.nur.sicher` (bei den Tout-Entscheidungen liegt der Fehler bei über 4 Cent).
+- **Zu selten:** `re.mit.reserve` (keine Lage mit Heuristik-Gegnern).
+
+### Messung wiederholen
+
+Läuft nicht in CI und kostet Rechenzeit. Ergebnis je Regel liegt in `packages/tutor/messungen/<regel>.json`;
+daraus entstehen `packages/tutor/src/werte.ts` (liest Max) und `messungen/tabelle.md`.
+
+```bash
+# alles messen (16 Prozesse parallel, je ein Teil der Regeln); Dauer etwa 15 Minuten
+for i in $(seq 0 15); do
+  TUTOR_MESSEN=1 TUTOR_MESSEN_SPIELE=20000 TUTOR_MESSEN_LAGEN=1500 TUTOR_MESSEN_TEIL=$i/16 \
+    npx vitest run packages/tutor/test/messen.test.ts &
+done; wait
+# Tabelle und werte.ts erzeugen
+TUTOR_MESSEN_ZUSAMMEN=1 npx vitest run packages/tutor/test/messen.test.ts
+```
+
+Einzelne Regeln: `TUTOR_MESSEN_REGELN=karte.schmieren,… TUTOR_MESSEN=1 npx vitest run …`.
+Gemessen auf AMD Ryzen 7 7800X3D (8 Kerne, 16 Threads), Node 22. Ohne Parameter sind es 3000 Spiele
+und 300 Lagen je Regel. Die Messung ist über die Seeds reproduzierbar (gleiche Zahlen bei gleichem Stand
+des Codes). Nach einer Regeländerung die betroffene Regel neu messen.
+
+---
 
 ## Didaktik
 

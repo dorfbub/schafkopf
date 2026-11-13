@@ -297,6 +297,7 @@ function Reasons({ advice, re }: { advice: Advice; re: boolean }) {
           <p key={r.id} className="tutor-blase__text">
             <strong className="tutor-blase__regel">{T.ruleTitle(r.id)}.</strong>{' '}
             {T.ruleReason(r.id)}
+            {r.wert ? ` ${T.ruleValue(r.wert.cents)}` : ''}
           </p>
         ))
       )}

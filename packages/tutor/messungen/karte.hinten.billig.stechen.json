@@ -1,0 +1,18 @@
+{
+  "regel": "karte.hinten.billig.stechen",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 13267,
+  "lagen": 1500,
+  "cents": -1.73,
+  "fehler": 1.31,
+  "folgt": 18.85,
+  "widerspricht": 20.58,
+  "verschieden": 321,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

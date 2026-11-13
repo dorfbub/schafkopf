@@ -1,0 +1,18 @@
+{
+  "regel": "re.mit.reserve",
+  "regelsatz": "kontra",
+  "spiele": 20000,
+  "vorkommen": 0,
+  "lagen": 0,
+  "cents": null,
+  "fehler": null,
+  "folgt": null,
+  "widerspricht": null,
+  "verschieden": 0,
+  "zuSelten": true,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

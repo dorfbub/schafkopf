@@ -1,0 +1,18 @@
+{
+  "regel": "ramsch.durchmarsch.verhindern",
+  "regelsatz": "ramsch",
+  "spiele": 20000,
+  "vorkommen": 83,
+  "lagen": 83,
+  "cents": 1.08,
+  "fehler": 3.25,
+  "folgt": 7.59,
+  "widerspricht": 6.51,
+  "verschieden": 42,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

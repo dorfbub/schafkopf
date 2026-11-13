@@ -1,0 +1,18 @@
+{
+  "regel": "ansage.wenz.unter.und.farben",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 5077,
+  "lagen": 1500,
+  "cents": 49.6,
+  "fehler": 3.33,
+  "folgt": 51.23,
+  "widerspricht": 1.63,
+  "verschieden": 1038,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

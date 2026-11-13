@@ -1,0 +1,18 @@
+{
+  "regel": "ramsch.hoch.drunter",
+  "regelsatz": "ramsch",
+  "spiele": 20000,
+  "vorkommen": 9932,
+  "lagen": 1500,
+  "cents": 2.71,
+  "fehler": 0.65,
+  "folgt": 3.22,
+  "widerspricht": 0.51,
+  "verschieden": 475,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

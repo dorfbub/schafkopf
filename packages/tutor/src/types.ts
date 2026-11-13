@@ -67,6 +67,21 @@ export interface RuleHit {
   area: Area;
   favored: TutorOption[];
   params: Params;
+  /**
+   * Gemessener Wert der Regel (T4), wenn sie sich messen ließ: Cent je Vorkommen und
+   * Standardfehler. Nur gesetzt, wenn der Wert sicher über null liegt – dann darf Max ihn nennen.
+   */
+  wert?: RuleValue;
+}
+
+/** Messergebnis einer Faustregel (`werte.ts`, erzeugt vom Messskript). */
+export interface RuleValue {
+  /** Mittlerer Gewinn je Vorkommen gegenüber der besten Alternative, in Cent. */
+  cents: number;
+  /** Standardfehler dieses Werts, in Cent. */
+  fehler: number;
+  /** Zahl der gemessenen Lagen. */
+  lagen: number;
 }
 
 /** Wert einer Möglichkeit in Cent (aus Sicht des Fragenden). */

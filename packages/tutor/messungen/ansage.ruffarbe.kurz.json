@@ -1,0 +1,18 @@
+{
+  "regel": "ansage.ruffarbe.kurz",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 6146,
+  "lagen": 1500,
+  "cents": -8.72,
+  "fehler": 1.73,
+  "folgt": 11.09,
+  "widerspricht": 19.81,
+  "verschieden": 988,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

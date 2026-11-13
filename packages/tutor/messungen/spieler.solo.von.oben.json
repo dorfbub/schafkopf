@@ -1,0 +1,18 @@
+{
+  "regel": "spieler.solo.von.oben",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 8301,
+  "lagen": 1500,
+  "cents": 1.22,
+  "fehler": 3.21,
+  "folgt": 108.48,
+  "widerspricht": 107.26,
+  "verschieden": 335,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

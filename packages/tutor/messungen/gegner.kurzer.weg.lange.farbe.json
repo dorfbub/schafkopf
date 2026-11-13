@@ -1,0 +1,18 @@
+{
+  "regel": "gegner.kurzer.weg.lange.farbe",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 6837,
+  "lagen": 1500,
+  "cents": 0.05,
+  "fehler": 1.34,
+  "folgt": -28.9,
+  "widerspricht": -28.95,
+  "verschieden": 391,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

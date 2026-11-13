@@ -1,0 +1,18 @@
+{
+  "regel": "hochzeit.zwei.sauen",
+  "regelsatz": "hochzeit",
+  "spiele": 20000,
+  "vorkommen": 2934,
+  "lagen": 1113,
+  "cents": 6.3,
+  "fehler": 0.61,
+  "folgt": -5.26,
+  "widerspricht": -11.55,
+  "verschieden": 404,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

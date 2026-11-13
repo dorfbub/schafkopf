@@ -1,0 +1,18 @@
+{
+  "regel": "gegner.sau.frisch",
+  "regelsatz": "standard",
+  "spiele": 20000,
+  "vorkommen": 15273,
+  "lagen": 1500,
+  "cents": 0.82,
+  "fehler": 0.83,
+  "folgt": -15.13,
+  "widerspricht": -15.95,
+  "verschieden": 438,
+  "zuSelten": false,
+  "parameter": {
+    "spiele": 20000,
+    "lagen": 1500,
+    "mindestLagen": 30
+  }
+}

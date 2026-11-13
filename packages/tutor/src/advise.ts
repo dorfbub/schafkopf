@@ -27,6 +27,7 @@ import {
 } from '@schafkopf/bots';
 import { type Lage, buildLage } from './lage';
 import { RULES } from './rules';
+import { ruleValue } from './werte';
 import type {
   Advice,
   AskKind,
@@ -282,15 +283,7 @@ function analyse(input: TutorInput, ask: AskKind | null, options: TutorOptions):
   const naive = naiveChoice(input, lage, ask, seed);
 
   // Faustregeln: nur die mit Aussage (spricht für einige, aber nicht für alle Möglichkeiten).
-  const hits: RuleHit[] = [];
-  for (const rule of RULES) {
-    if (rule.ask !== ask) continue;
-    const check = rule.check(lage);
-    if (!check) continue;
-    const favored = dedupe(check.favored.filter((o) => keys.has(optionKey(o))));
-    if (favored.length === 0 || favored.length === keys.size) continue;
-    hits.push({ id: rule.id, area: rule.area, favored, params: check.params });
-  }
+  const hits = collectHits(lage, ask, keys);
   const support = (o: TutorOption) => {
     const k = optionKey(o);
     return hits.reduce(
@@ -364,6 +357,39 @@ function analyse(input: TutorInput, ask: AskKind | null, options: TutorOptions):
     importance: { stakeCents: round(stake), level, auto: level === 'hoch' },
   };
   return { advice, hits, valued: valueOf };
+}
+
+/**
+ * Greifende Faustregeln mit Aussage, nach gemessenem Wert sortiert (T4): Wer mehr bringt, steht
+ * vorn und wird zuerst genannt. Regeln ohne Messung zählen 0 und behalten ihre Reihenfolge.
+ */
+function collectHits(lage: Lage, ask: AskKind, keys: ReadonlySet<string>): RuleHit[] {
+  const hits: RuleHit[] = [];
+  for (const rule of RULES) {
+    if (rule.ask !== ask) continue;
+    const check = rule.check(lage);
+    if (!check) continue;
+    const favored = dedupe(check.favored.filter((o) => keys.has(optionKey(o))));
+    if (favored.length === 0 || favored.length === keys.size) continue;
+    const wert = ruleValue(rule.id);
+    hits.push({
+      id: rule.id,
+      area: rule.area,
+      favored,
+      params: check.params,
+      ...(wert ? { wert } : {}),
+    });
+  }
+  return hits
+    .map((h, i) => ({ h, i }))
+    .sort((a, b) => (b.h.wert?.cents ?? 0) - (a.h.wert?.cents ?? 0) || a.i - b.i)
+    .map((x) => x.h);
+}
+
+/** Greifende Faustregeln einer Frage (für das Messen der Regeln, T4). */
+export function ruleHits(input: TutorInput, ask: AskKind): RuleHit[] {
+  const opts = optionsFor(input, ask);
+  return collectHits(buildLage(input), ask, new Set(opts.map(optionKey)));
 }
 
 function dedupe(options: TutorOption[]): TutorOption[] {
