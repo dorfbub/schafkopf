@@ -291,7 +291,7 @@ Bettel-Reihenfolge und die Rangfolge der Spielarten (feste Regeln).
 ## Annahmen
 
 Diese Punkte wurden nicht abgefragt und nach gängiger Spielweise festgelegt. Jede Runde spielt
-etwas anders; Abweichungen bitte hier korrigieren. Stand 12.11.2026: Alle Annahmen (1–74) hat Lukas
+etwas anders; Abweichungen bitte hier korrigieren. Stand 13.11.2026: Alle Annahmen (1–75) hat Lukas
 bestätigt.
 
 1. **Ansage zweistufig** (Ablauf oben von Lukas festgelegt). Angenommen: Im Zweikampf fordert der
@@ -499,7 +499,7 @@ spielen. **Von Lukas am 12.11.2026 bestätigt.**
 ### Annahmen zu den Bots (B4)
 
 Bei der Umsetzung von B4 ohne Rückfrage festgelegt (Lukas war nicht erreichbar). Spielregeln ändern
-sie nicht, nur wie die Bots ansagen. **Noch nicht bestätigt.**
+sie nicht, nur wie die Bots ansagen. **Von Lukas am 13.11.2026 bestätigt.**
 
 75. **Ansage nach Erwartungswert:** Bots (Normal, Anfänger, Stark) sagen ein Spiel an, wenn es laut
     Ansage-Tabelle im Schnitt mehr bringt als „weiter“ (`ANSAGE_SCHWELLE`, in Vielfachen des
