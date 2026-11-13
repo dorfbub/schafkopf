@@ -457,7 +457,9 @@ export const FAELLE: Fall[] = [
     title: 'Gegen den Bettel: klein anspielen',
     lage: () => {
       const hands = deal({
-        0: ['E7', 'EA', 'EK', 'G10', 'GA', 'SA', 'SK', 'HA'],
+        // Neben der Eichel-Sieben nur Sauen und Könige (B4: mit der Gras-Zehn daneben entschied
+        // die Suche je nach Seed anders – beide kleinen Anspiele waren vertretbar).
+        0: ['E7', 'EA', 'EK', 'GK', 'GA', 'SA', 'SK', 'HA'],
         2: ['E8', 'E9', 'G7', 'G8', 'S7', 'S8', 'H7', 'H8'],
       });
       return at(declare(fixedHand(hands), 2, { kind: 'bettel' }), 0);

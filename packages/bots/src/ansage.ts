@@ -35,6 +35,30 @@ import { ANSAGE_TABELLE } from './ansageTabelle';
  * auch für eigene Tarife. Verfahren, Merkmale und Genauigkeit: docs/STRATEGIEN.md, „Ansage-Tabellen“.
  */
 
+/**
+ * Merkmale, mit denen der Bettel geschätzt wird. Beim Bettel zählt nur, ob man überall drunter
+ * kommt; Trümpfe, Augen oder Sauen als Stichbringer bedeuten nichts und machten das Modell
+ * unruhig (Fund bei der Abnahme von B4).
+ */
+export const BETTEL_MERKMALE: readonly Merkmal[] = [
+  'fK1',
+  'fK2',
+  'fK3',
+  'fS1',
+  'fS2',
+  'fS3',
+  'fS4',
+  'fS5',
+  'fS6',
+  'fDoppelt',
+  'fEinzelSicher',
+  'gefahrFest',
+  'festeLuecken',
+  'frei',
+  'vorhand',
+  'hinterhand',
+];
+
 /** Merkmale eines Blatts für ein Spiel (Reihenfolge = Spalten der Modelle). */
 export const MERKMALE = [
   /** Zahl der Trümpfe (Hawaii-Habicht: in den Stichen 1–4). */
@@ -79,12 +103,42 @@ export const MERKMALE = [
   'spaet2',
   /** Bettel: Lücken (Karten, unter die man nicht sicher drunter kommt). */
   'luecken',
-  /** Bettel: Sauen und Könige. */
-  'hohe',
   /** Längste Farbe ohne Trümpfe (lange Farben bringen im Wenz Stiche, im Bettel Sicherheit). */
   'lange',
-  /** Bettel: wie weit die Lücken über der sicheren Grenze liegen (Summe der Ränge). */
-  'tiefe',
+  /**
+   * Bettel: größte Gefahr in einer Farbe – wie viele Karten der Gegner unter einer eigenen Karte
+   * liegen, die man nicht mit kleineren eigenen abfangen kann (je Farbe das Maximum von
+   * Rang − 2 × Zahl der kleineren eigenen Karten). 0 heißt „von unten gedeckt“.
+   */
+  'gefahr',
+  /**
+   * Bettel, je Farbe gezählt (wie viele Farben fallen in die Klasse): `fS…` – gefährdete
+   * Farben nach ihrer Gefahr (1 bis 5, `fS6` ab 6); `fK…` – zusätzlich, wenn schon die
+   * niedrigste eigene Karte über Karten der Gegner liegt (über 1, 2, ab 3: jede davon ist ein
+   * Anspiel, das sofort fängt). `fDoppelt`: Farben mit mindestens zwei gefährdeten Karten.
+   */
+  'fK1',
+  'fK2',
+  'fK3',
+  'fS1',
+  'fS2',
+  'fS3',
+  'fS4',
+  'fS5',
+  'fS6',
+  'fDoppelt',
+  /**
+   * Bettel: Farben mit nur einer, ungefährdeten Karte – nach dem ersten Anspiel ist man dort
+   * frei und kann eine gefährdete Karte abwerfen.
+   */
+  'fEinzelSicher',
+  /**
+   * Bettel: größte Gefahr, wenn es keine Gelegenheit zum Abwerfen gibt (keine freie Farbe, keine
+   * einzelne sichere Karte) – dann muss die gefährdete Karte irgendwann zugegeben werden.
+   */
+  'gefahrFest',
+  /** Bettel: gefährdete Karten, die man nicht abwerfen kann (Lücken − freie und einzelne Farben). */
+  'festeLuecken',
 ] as const;
 export type Merkmal = (typeof MERKMALE)[number];
 
@@ -101,10 +155,10 @@ export type Ziel = (typeof ZIELE)[number];
 
 /**
  * Ein logistisches Modell je Zielgröße: [Achsenabschnitt, ein Gewicht je Merkmal in der
- * Reihenfolge von `MERKMALE`] als ganze Zahlen in `1 / MODELL_SKALA` (fehlende Einträge am Ende
- * und Merkmale, die bei der Spielart nicht vorkommen, sind 0).
+ * Reihenfolge von `MERKMALE`] als ganze Zahlen in `1 / MODELL_SKALA`. Fehlende Einträge (am Ende
+ * oder als Lücke `[1,,2]` – hält die Datei klein) sind 0.
  */
-export type AnsageModell = Partial<Record<Ziel, readonly number[]>>;
+export type AnsageModell = Partial<Record<Ziel, readonly (number | undefined)[]>>;
 
 /** Gewichte stehen in Hundertsteln in der Tabelle (kleinere Datei, Fehler unter 0,005 je Gewicht). */
 export const MODELL_SKALA = 100;
@@ -114,7 +168,15 @@ export type Besetzung = `${DeckKind}/${number}`;
 
 export interface AnsageTabelle {
   /** Wie erzeugt (Seed, Zahl der Blätter und Verteilungen) – nur zur Dokumentation. */
-  erzeugung: { seed: number; blaetter: number; verteilungen: number; stand: string };
+  erzeugung: {
+    seed: number;
+    blaetter: number;
+    verteilungen: number;
+    /** Bettel, mit „Stark“ als Gegenspieler gemessen. */
+    bettelBlaetter?: number;
+    bettelVerteilungen?: number;
+    stand: string;
+  };
   modelle: Partial<Record<string, Partial<Record<ContractKind, AnsageModell>>>>;
 }
 
@@ -140,30 +202,39 @@ function runFromTop(hand: readonly Card[], trumps: readonly Card[]): number {
 }
 
 /**
- * Bettel: Lücken nach derselben Regel wie `bettelSafe` – in jeder Farbe muss die k-t-niedrigste
- * eigene Karte unter den 2k+1 niedrigsten liegen; jede Karte, die das verletzt, ist eine Lücke.
+ * Bettel nach Farben. In jeder Farbe sind die eigenen Karten nach Rang von unten sortiert (Rang 0
+ * = Sieben); die k-te Karte (ab 0) ist gefährdet, wenn ihr Rang über 2k liegt – dann liegen unter
+ * ihr mehr Karten der Gegner, als man mit den kleineren eigenen abfangen kann (wie `bettelSafe`).
+ * Die Gefahr einer Farbe ist das größte Rang − 2k. Daraus: Lücken (gefährdete Karten), größte
+ * Gefahr und die Klassen je Farbe (siehe `MERKMALE`).
  */
 function bettelGaps(
   hand: readonly Card[],
   rankOrder: readonly string[],
   deck: DeckKind,
-): { gaps: number; depth: number } {
+): { gaps: number; danger: number; klassen: Partial<Record<Merkmal, number>> } {
   const low = [...rankOrder].reverse().filter((r) => deck === 'lang' || (r !== '7' && r !== '8'));
   let gaps = 0;
-  let depth = 0;
+  let danger = 0;
+  const klassen: Partial<Record<Merkmal, number>> = {};
+  const add = (m: Merkmal) => (klassen[m] = (klassen[m] ?? 0) + 1);
   for (const suit of SUITS) {
     const idx = hand
       .filter((c) => suitOf(c) === suit)
       .map((c) => low.indexOf(rankOf(c)))
       .sort((a, b) => a - b);
-    idx.forEach((i, k) => {
-      if (i > 2 * k) {
-        gaps++;
-        depth += i - 2 * k;
-      }
-    });
+    const d = Math.max(0, ...idx.map((i, k) => i - 2 * k));
+    const endangered = idx.filter((i, k) => i > 2 * k).length;
+    gaps += endangered;
+    danger = Math.max(danger, d);
+    if (idx.length === 1 && d === 0) add('fEinzelSicher');
+    if (d > 0) {
+      add(`fS${Math.min(d, 6)}` as Merkmal);
+      if (idx[0]! > 0) add(`fK${Math.min(idx[0]!, 3)}` as Merkmal);
+      if (endangered >= 2) add('fDoppelt');
+    }
   }
-  return { gaps, depth };
+  return { gaps, danger, klassen };
 }
 
 /** Merkmale des Blatts `hand` für das Spiel `contract` (vor dem ersten Stich). */
@@ -227,8 +298,10 @@ export function merkmaleOf(
   if (contract.kind === 'bettel') {
     const gaps = bettelGaps(hand, order.rankOrder, deckKind);
     f.luecken = gaps.gaps;
-    f.tiefe = gaps.depth;
-    f.hohe = hand.filter((c) => rankOf(c) === 'A' || rankOf(c) === 'K').length;
+    f.gefahr = gaps.danger;
+    Object.assign(f, gaps.klassen);
+    f.gefahrFest = f.frei + f.fEinzelSicher === 0 ? f.gefahr : 0;
+    f.festeLuecken = Math.max(0, f.luecken - f.frei - f.fEinzelSicher);
   }
   return f;
 }
@@ -271,7 +344,7 @@ const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
 function predict(model: AnsageModell, ziel: Ziel, f: Record<Merkmal, number>): number | null {
   const w = model[ziel];
   if (!w) return null;
-  let x = w[0]!;
+  let x = w[0] ?? 0;
   MERKMALE.forEach((m, i) => {
     x += (w[i + 1] ?? 0) * f[m];
   });

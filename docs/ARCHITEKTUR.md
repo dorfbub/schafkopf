@@ -330,7 +330,9 @@ packages/bots`.
 - `scripts/ansage-tabellen.ts`, `scripts/ansage-schreiben.ts` – Erzeugung der Tabelle unter Node
   (nicht im Browser, nicht in CI), gestartet über `test/ansageTabellen.test.ts` mit
   Umgebungsvariablen; Verfahren und Befehle in `docs/STRATEGIEN.md`, „Ansage-Tabellen“. Probespiele
-  über `playOutHand` aus `strongBot.ts` (Heuristik an allen Sitzen).
+  über `playOutHand` aus `strongBot.ts` (Heuristik an allen Sitzen); beim Bettel
+  (`STARK_VERTEIDIGT`) über den Kern mit „Stark“ als Gegenspielern. `messeBlatt` misst ein
+  einzelnes Blatt (Diagnose).
 - `hochzeit.ts` – Hochzeit und arabische Hochzeit: ansagen, annehmen, zurückgeben.
 - `doubling.ts` – Kontra und Re.
 - `prelude.ts` – einfacher Vorspiel-Zug (ablehnen, billigste Karten) für den Zufalls-Bot.

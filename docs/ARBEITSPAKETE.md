@@ -605,10 +605,15 @@ lässt sich als Erwartungswert in Cent ausrechnen.
   beim Abfragen; 26 Zellen: alle Spielarten inklusive Hochzeit, Eisenbahner, Hawaii-Habicht in
   allen drei Besetzungen), Abfrage `ansageWert` in `ansage.ts`. Heuristik, Anfänger und Stark sagen
   danach an (Zweikampf und Tout eingeschlossen), Max bewertet die Ansage damit und nennt den Wert
-  (`Advice.ansage`). Gepaart: Normal +5,0 ct je Spiel (lang/4), +11 bis +15 ct (Hausregeln, kurz/4,
-  kurz/3), Stark +2,8 ct. Verfahren, Zahlen und Grenzen: `docs/STRATEGIEN.md`, „Ansage-Tabellen“;
-  neue Bot-Annahme 75 in `docs/REGELN.md` (noch nicht bestätigt). Offen: die Faustregel-Werte aus T4
-  mit den neuen Bots nachmessen.
+  (`Advice.ansage`). Gepaart: Normal +4,9 ct je Spiel (lang/4), +11 bis +15 ct (Hausregeln, kurz/4,
+  kurz/3), Stark +2,9 ct. Verfahren, Zahlen und Grenzen: `docs/STRATEGIEN.md`, „Ansage-Tabellen“;
+  neue Bot-Annahme 75 in `docs/REGELN.md` (noch nicht bestätigt). **Korrektur nach der Abnahme:**
+  Der Bettel war stark überschätzt (blanker Schellen-Ober und -Zehner: +9 bis +19 Cent, gemessen
+  −66 bis −28). Jetzt verteidigen beim Bettel „Stark“-Gegenspieler in den Probespielen (4000 Blätter
+  × 32 Verteilungen je Besetzung), die Heuristik verteidigt den Bettel besser, und der Bettel hat
+  eigene Merkmale je Farbe; Fall-Tests in `packages/bots/test/ansage.test.ts`. Bekannte Abweichung:
+  Bettel-Blätter der Verteilung 2-2-2-2 ohne freie Farbe (siehe STRATEGIEN, „Grenzen“). Offen: die
+  Faustregel-Werte aus T4 mit den neuen Bots nachmessen.
 
 ### B5 · „Stark“ mit gewichteten Verteilungen
 

@@ -54,8 +54,10 @@ Trumpfstärke des Spiels plus Sauen. Re nur mit deutlich mehr, als das Spiel bra
   oder mehr Augen auch unsicher mit dem höchsten Stecher; sonst abspatzen.
 - „Billig“ heißt: wenig Augen, keine Trümpfe, keine sicheren Stiche, eher aus kurzen Farben.
 - Bettel: Der Spieler bleibt mit der höchsten möglichen Karte drunter, spielt niedrig an. Die
-  Gegner spielen niedrig an (in Farben, die der Spieler hat) und bleiben niedrig, solange er noch
-  kommt.
+  Gegner spielen die Karte an, unter die er am schwersten drunter kommt (möglichst wenige
+  ungesehene kleinere Karten derselben Farbe, in einer Farbe, die er noch haben kann), bleiben
+  niedrig, solange er noch kommt, und werfen hohe Karten ab, wenn sie nicht bedienen können –
+  die kleinen brauchen sie zum Anspielen (seit B4).
 - Ramsch (Annahme 74): Stiche und Augen vermeiden, unter einer höheren Karte die eigenen hohen
   Karten loswerden; Durchmarsch nur mit fast sicherem Blatt; hat ein anderer alle Stiche, einen
   sicheren Stich nehmen.
@@ -209,8 +211,10 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
   die Farbe, in der man nicht drunter kommt. Eine Lücke findet man selten rechtzeitig selbst.
 - **Ausnahmen:** keine; der Tutor meldet ein lückenhaftes Bettel-Blatt aber nur, wenn kein anderes
   Spiel lohnt.
-- **Ansage-Tabelle (B4):** Von unten gedeckt etwa +130 Cent; mit einer Lücke gegen Bots immer noch
-  etwa +50 bis +70 Cent (die Heuristik findet die Lücke oft nicht). Gegen Menschen gilt die Regel.
+- **Ansage-Tabelle (B4):** Von unten gedeckt etwa +130 Cent; mit blankem Schellen-Ober und -Zehner
+  etwa −43 bis −5 Cent, mit blankem König oder blanker Sau etwa −70 bis −100 Cent. Eine hohe Karte
+  über der Sieben ist tragbar, wenn man sie früh abwerfen kann (einzelne Sieben daneben: gemessen
+  +26 bis +54 Cent). Die Regel stimmt also, mit der Ausnahme „früh abwerfen“.
 - **Quelle:** BOT, WT.
 
 #### `ansage.tout.nur.sicher`
@@ -692,8 +696,12 @@ Code: `packages/bots/scripts/ansage-tabellen.ts` (Erzeugung und Schätzung) und
 2. **Durchspielen.** Jedes Blatt auf **64 zufälligen Verteilungen** der übrigen Karten bis zum Ende,
    alle Sitze nach der Heuristik (`playOutHand`, derselbe Kern wie die Ansage-Suche von „Stark“).
    Heuristik statt „Stark“ als Spielweise, weil Stark an allen Sitzen etwa 2000-mal teurer wäre
-   (16,6 Millionen Probespiele hätten Wochen gedauert) und weil Stark selbst in seinen
-   Probespielen ebenfalls mit der Heuristik rechnet. Hochzeiten mit Vorspiel: Die anderen nehmen an
+   (rund 15 Millionen Probespiele hätten Wochen gedauert) und weil Stark selbst in seinen
+   Probespielen ebenfalls mit der Heuristik rechnet. **Ausnahme Bettel** (`STARK_VERTEIDIGT`):
+   Sein Wert hängt fast nur an der Verteidigung, und die Heuristik verteidigte zu schwach – die
+   Tabelle hatte das als Wert gelernt (Fund bei der Abnahme: ein Bettel mit blankem Schellen-Ober
+   und -Zehner stand bei +9 bis +19 Cent). Darum spielen beim Bettel die Gegenspieler „Stark“
+   (der Ansager Heuristik), mit 4000 Blättern je Besetzung und 32 Verteilungen je Blatt. Hochzeiten mit Vorspiel: Die anderen nehmen an
    wie der Heuristik-Bot, der Partner gibt zurück wie er; nimmt keiner an, zählt es 0 (wie „weiter“).
    Ohne Kontra und Re.
 3. **Zählen.** Je Probespiel: gewonnen, mit Schneider, mit Schwarz, verloren mit Schneider (und für
@@ -718,8 +726,19 @@ Code: `packages/bots/scripts/ansage-tabellen.ts` (Erzeugung und Schätzung) und
 und ihr Quadrat, höchster und zweithöchster Trumpf, Zahl der vier höchsten Trümpfe und der Plätze 5–8,
 eigene Laufende von oben, Sauen, Sau mit Zehn, blanke Zehner, freie Farben, einzelne Karten, sichere
 Farbstiche (Folgen von oben), längste Farbe, Augen, Vorhand, Hinterhand; dazu je Spielart Länge und
-Zehner der Ruffarbe (Sauspiel), Trümpfe ab Stich 5 und ihr Quadrat (Hawaii-Habicht) sowie Lücken und
-ihre Tiefe, Sauen und Könige (Bettel).
+Zehner der Ruffarbe (Sauspiel), Trümpfe ab Stich 5 und ihr Quadrat (Hawaii-Habicht).
+
+**Bettel** hat eigene Merkmale (`BETTEL_MERKMALE`), denn dort zählt nur, ob man überall drunter
+kommt. Je Farbe: die eigenen Karten von unten sortiert; die k-te (ab 0) ist gefährdet, wenn ihr
+Rang über 2k liegt (wie `bettelSafe`), die **Gefahr** der Farbe ist das größte Rang − 2k – wie
+viele Karten der Gegner unter ihr liegen, die man nicht abfangen kann. Merkmale sind die Zahl der
+Farben je Gefahr (1 bis 6), zusätzlich je Farbe, ob schon die niedrigste Karte offen liegt (über 1,
+2, ab 3 Karten der Gegner – jedes kleine Anspiel fängt sofort), Farben mit zwei gefährdeten
+Karten, einzelne sichere Karten (dort wird man bald frei und kann abwerfen), freie Farben, die
+Gefahr ohne jede Abwurfmöglichkeit, Lücken abzüglich der Abwurfmöglichkeiten und die Position.
+Ein erster Versuch mit summierten Merkmalen (Lücken, ihre Tiefe, Sauen und Könige) lag in den
+Gruppen der Daten deutlich daneben; mit den Merkmalen je Farbe stimmen die Gruppen (z. B. Gefahr 6:
+beobachtet 23 % gewonnen, Modell 27 %).
 
 ### Ergebnis
 
@@ -733,7 +752,7 @@ Entscheidungen „spielen oder nicht“ im Schnitt je Blatt im Bereich kosten, i
 | lang/4    | Wenz           | 0,87 |    95 % |            2,18 |                   3,93 |
 | lang/4    | Geier          | 0,88 |    95 % |            2,10 |                   3,51 |
 | lang/4    | Farbwenz       | 0,97 |    99 % |            0,22 |                   2,70 |
-| lang/4    | Bettel         | 0,83 |    89 % |            3,50 |                  51,41 |
+| lang/4    | Bettel         | 0,79 |    88 % |            3,34 |                  46,40 |
 | lang/4    | Eisenbahner    | 0,93 |    95 % |            2,32 |                  12,13 |
 | lang/4    | Hawaii-Habicht | 0,91 |    98 % |            0,72 |                   1,79 |
 | lang/4    | Hochzeit       | 0,31 |    95 % |            0,08 |                   4,83 |
@@ -743,10 +762,11 @@ Entscheidungen „spielen oder nicht“ im Schnitt je Blatt im Bereich kosten, i
 | kurz/4    | Wenz           | 0,94 |    97 % |            0,99 |                   3,51 |
 | kurz/3    | Solo           | 0,93 |    97 % |            0,66 |                   3,83 |
 | kurz/3    | Wenz           | 0,82 |    90 % |            2,88 |                   7,26 |
-| kurz/3    | Bettel         | 0,80 |    88 % |            3,01 |                  16,66 |
+| kurz/3    | Bettel         | 0,76 |    89 % |            3,05 |                  10,14 |
 
 In allen 26 Zellen entscheidet die Tabelle besser als die alten Schwellen. Das R² enthält das
-Rauschen der Messung selbst (64 Verteilungen je Blatt, Standardfehler 3–13 Cent je Blatt); bei den
+Rauschen der Messung selbst (64 Verteilungen je Blatt, Standardfehler 3–13 Cent je Blatt, beim
+Bettel mit 32 Verteilungen 12–21 Cent); bei den
 Hochzeiten ist es niedrig, weil fast jedes Blatt sich lohnt und die Werte eng beieinander liegen.
 
 **Beispiele** (Standardtarif, Vorhand / Hinterhand, Cent für den Ansager):
@@ -761,8 +781,9 @@ Hochzeiten ist es niedrig, weil fast jedes Blatt sich lohnt und die Werte eng be
 | E-Ober, E-Unter, S-Unter, H-Sau, H-10, H-9, G-Sau, S-7                 | Herz-Solo           | +17 / +24   |
 | E-, G-, S-Unter, E-Sau, E-10, E-König, G-Sau, G-10                     | Wenz                | +250 / +253 |
 | E-Unter, H-Unter, E-Sau, E-10, G-Sau, G-9, S-7, H-8                    | Wenz                | −65 / −68   |
-| E-7, E-8, G-7, G-8, H-7, H-9, S-7, S-8                                 | Bettel              | +132 / +137 |
-| E-7, E-9, G-7, G-8, H-7, H-König, S-7, S-8 (Lücke in Herz)             | Bettel              | +49 / +70   |
+| E-7, E-8, G-7, G-8, H-7, H-9, S-7, S-8                                 | Bettel              | +127 / +136 |
+| G-Ober, S-Ober, G-Unter, H-7, G-Sau, G-9, G-7, S-10                    | Bettel              | −43 / −5    |
+| H-König (blank), E-7, E-8, G-7, G-8, G-9, S-7, S-8                     | Bettel              | −96 / −68   |
 | S-Unter, E-Sau, E-10, G-Sau, G-9, S-7, S-8, E-7                        | Hochzeit            | +7 / +7     |
 | alle vier Ober, E-Unter, G-Unter, H-Sau, H-10                          | Herz-Solo Tout      | +660        |
 | E-, G-, H-Ober, E-, G-Unter, H-Sau, H-10, E-Sau                        | Herz-Solo Tout      | −330 / −265 |
@@ -778,8 +799,8 @@ Was daraus folgt (und was die Bots jetzt anders machen):
   sehr gutes Spiel; zwei Unter mit zwei Sauen kosten im Schnitt Geld.
 - **Hochzeit fast immer:** Mit genau einem Trumpf lohnt das Anbieten fast immer (95 % der Blätter),
   denn annehmen tut nur, wer ein starkes Blatt hat, und scheitert es, kostet es nichts.
-- **Bettel gegen Bots:** Die Werte sind hoch, auch mit einer Lücke – die Heuristik als Gegner findet
-  die Lücke oft nicht. Gegen Menschen ist das vorsichtiger zu lesen (siehe „Grenzen“).
+- **Bettel:** Von unten gedeckt sehr gut (+130 Cent); jede offene hohe Karte, die man nicht früh
+  abwerfen kann, macht ihn zum Verlust. Gemessen gegen „Stark“ als Verteidigung.
 - **Position:** Vorhand oder Hinterhand macht nur wenige Cent aus.
 - **Hawaii-Habicht:** Entscheidend sind die Trümpfe _nach_ dem Wechsel. Mit allen vier Königen,
   drei Gras und der Herz-Sau bringt Herz zuerst, Gras ab Stich 5 etwa +326 Cent, umgekehrt etwa
@@ -810,6 +831,9 @@ Was daraus folgt (und was die Bots jetzt anders machen):
 
 ### Gepaarter Vergleich und Schwelle
 
+Stand nach der Bettel-Korrektur (Bettel mit „Stark“ gemessen, bessere Bettel-Verteidigung der
+Heuristik, eigene Bettel-Merkmale); vorher lagen die Werte innerhalb von 0,2 Cent gleich.
+
 Wie in B2 (`packages/bots/test/strengthTabelle.test.ts`): Ein Bot mit Tabelle sitzt unter Bots mit
 den alten Schwellen; dieselbe Verteilung wird ein zweites Mal ganz ohne Tabelle gespielt. Gemessen
 wird der Unterschied seiner Zahlung (Cent je Spiel). Platz und Geber wandern, sodass jede Position
@@ -818,11 +842,11 @@ vorkommt (vor B4 war der Prüfling in `duel` immer Geber). „Stark“ wird ande
 
 | Vergleich                               | Spiele | Vorteil der Tabelle (ct je Spiel) |
 | --------------------------------------- | -----: | --------------------------------: |
-| Normal, lang/4, Standardregeln          | 20 000 |                      +5,01 ± 0,39 |
-| Normal, lang/4, alle Hausregeln erlaubt | 20 000 |                       +11,4 ± 0,5 |
-| Normal, kurz/4                          | 20 000 |                       +15,0 ± 0,6 |
-| Normal, kurz/3                          | 20 000 |                       +13,6 ± 0,4 |
-| Stark mit gegen Stark ohne Tabelle      |   4000 |                        +2,8 ± 0,8 |
+| Normal, lang/4, Standardregeln          | 20 000 |                      +4,93 ± 0,39 |
+| Normal, lang/4, alle Hausregeln erlaubt | 20 000 |                       +11,3 ± 0,5 |
+| Normal, kurz/4                          | 20 000 |                       +14,9 ± 0,6 |
+| Normal, kurz/3                          | 20 000 |                       +13,4 ± 0,4 |
+| Stark mit gegen Stark ohne Tabelle      |   4000 |                        +2,9 ± 0,8 |
 
 (± ist der Standardfehler.) Die Schwellen der großen Läufe (`BOTS_FULL=1`): mindestens +3 Cent
 (lang/4) bzw. +8 Cent (übrige) und mehr als drei Standardfehler; Stark mindestens +1 Cent. Im
@@ -830,15 +854,21 @@ normalen Lauf (`npm run check`) nur die Richtung mit 1000 Spielen je Besetzung; 
 Lauf (etwa 30 Minuten).
 
 **Schwelle.** `ANSAGE_SCHWELLE` (Mindestwert eines Spiels in Vielfachen des Sauspiel-Tarifs) wurde
-mit denselben Läufen bei −1, −½, 0 und +½ gemessen: In allen Besetzungen liegen die Ergebnisse
+mit denselben Läufen (vor der Bettel-Korrektur) bei −1, −½, 0 und +½ gemessen: In allen Besetzungen liegen die Ergebnisse
 innerhalb von 0,5 Cent je Spiel beieinander (lang/4: +4,95 / +5,05 / +5,01 / +4,79), also im
 Rauschen. Gewählt ist **0** – spielen, sobald das Spiel im Schnitt mehr bringt als „weiter“.
 
 ### Grenzen
 
-- Gespielt wird in den Probespielen wie die **Heuristik**, nicht wie Menschen. Besonders im Bettel
-  (die Heuristik verteidigt schwach) und bei der Hochzeit (sie nimmt nach festen Regeln an) gelten
-  die Werte zuerst gegen Bots.
+- Gespielt wird in den Probespielen wie die **Heuristik** (beim Bettel verteidigt „Stark“), nicht
+  wie Menschen. Bei der Hochzeit (angenommen wird nach festen Regeln) gelten die Werte zuerst
+  gegen Bots.
+- **Bettel, einzelne Blätter:** Die Gruppen stimmen, einzelne Blätter können deutlich abweichen.
+  Bekannt: Bei der Verteilung 2-2-2-2 ohne freie Farbe (E-7, E-9, G-7, G-8, H-7, H-König, S-7, S-8)
+  sagt die Tabelle +46 bis +78 Cent, gemessen sind −33 bis −11 Cent (diese Verteilung kommt in den
+  Daten kaum vor). Auf zufälligen Blättern liegt die direkte Messung im Schnitt etwas unter der
+  Messung in den Daten (64 % statt 69 % gewonnen, acht Blätter, etwa 1,6 Standardfehler) – die
+  Bettel-Werte sind eher etwas zu hoch.
 - Die **Ansage der anderen** fließt nicht ein: Hat vorher jemand „Ich würde“ gesagt, sind die Gegner
   stärker als im Schnitt; haben alle „weiter“ gesagt, schwächer. Ebenso fehlen Kontra und Re.
 - „Weiter“ zählt 0 (wie bisher beim starken Bot und bei Max).
@@ -864,11 +894,14 @@ ANSAGE_ZUSAMMEN=1 npx vitest run packages/bots/test/ansageTabellen.test.ts
 ```
 
 Standard (`STANDARD_PARAMETER`): Seed 2026, 10 000 Blätter je Spielart und Besetzung, 64
-Verteilungen je Blatt, Stücke zu 250 Blättern – zusammen 16,6 Millionen Probespiele, rund 250
-CPU-Minuten (16 Threads, AMD Ryzen 7 7800X3D, Node 26). Jedes Stück hat einen eigenen, aus dem Seed
+Verteilungen je Blatt, Stücke zu 250 Blättern – zusammen 14,7 Millionen Probespiele, rund 250
+CPU-Minuten (16 Threads, AMD Ryzen 7 7800X3D, Node 26). Bettel mit „Stark“ als Verteidigung:
+4000 Blätter × 32 Verteilungen je Besetzung, rund 775 CPU-Minuten (50 Minuten auf 16 Threads);
+die Rohdaten tragen dafür eigene Dateinamen (`…_bettel_stark-4000-32_…`). Jedes Stück hat einen eigenen, aus dem Seed
 abgeleiteten Seed; die Aufteilung auf Prozesse ändert nichts am Ergebnis, abgebrochene Läufe setzen
-fort. Andere Werte: `ANSAGE_BLAETTER`, `ANSAGE_VERTEILUNGEN`, `ANSAGE_SEED` (bei beiden Befehlen
-gleich setzen). Neu erzeugen nach Änderungen am Kartenspiel der Heuristik oder an den Regeln einer
+fort. Andere Werte: `ANSAGE_BLAETTER`, `ANSAGE_VERTEILUNGEN`, `ANSAGE_SEED`,
+`ANSAGE_BETTEL_BLAETTER`, `ANSAGE_BETTEL_VERTEILUNGEN` (bei beiden Befehlen gleich setzen). Nach
+einer Änderung an der Bettel-Verteidigung genügt es, die Bettel-Dateien zu löschen und neu zu messen. Neu erzeugen nach Änderungen am Kartenspiel der Heuristik oder an den Regeln einer
 Spielart; nach einer Änderung nur der Merkmale reicht der zweite Befehl.
 
 ---

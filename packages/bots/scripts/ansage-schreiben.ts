@@ -48,12 +48,12 @@ export function schreibeTabelle(
     for (const [kind, model] of Object.entries(kinds)) {
       lines.push(`      ${kind}: {`);
       for (const [ziel, w] of Object.entries(model))
-        lines.push(`        ${ziel}: [${w!.join(',')}],`);
+        lines.push(`        ${ziel}: [${w!.map((x) => (x === 0 ? '' : x)).join(',')}],`);
       lines.push('      },');
     }
     lines.push('    },');
   }
-  const erzeugung = `{ seed: ${p.seed}, blaetter: ${p.blaetter}, verteilungen: ${p.verteilungen}, stand: '${stand}' }`;
+  const erzeugung = `{ seed: ${p.seed}, blaetter: ${p.blaetter}, verteilungen: ${p.verteilungen}, bettelBlaetter: ${p.bettelBlaetter}, bettelVerteilungen: ${p.bettelVerteilungen}, stand: '${stand}' }`;
   const body = `{\n  erzeugung: ${erzeugung},\n  modelle: {\n${lines.join('\n')}\n  },\n}`;
   writeFileSync(
     SRC,
@@ -63,6 +63,8 @@ export function schreibeTabelle(
  * Erzeugt von \`packages/bots/scripts/ansage-tabellen.ts\` (B4) – nicht von Hand ändern.
  * Anleitung: docs/STRATEGIEN.md, „Ansage-Tabellen“.
  */
+// Gewichte 0 stehen als Lücke im Feld ([1,,2]); das liest \`ansage.ts\` als 0 und spart Platz im Bündel.
+/* eslint-disable no-sparse-arrays */
 // prettier-ignore
 export const ANSAGE_TABELLE: AnsageTabelle = ${body};
 `,
@@ -77,7 +79,8 @@ export const ANSAGE_TABELLE: AnsageTabelle = ${body};
     `# Ansage-Tabellen – Güte (B4)
 
 Erzeugt von \`packages/bots/scripts/ansage-schreiben.ts\` am ${stand}. Seed ${p.seed}, ${p.blaetter}
-Blätter je Spielart und Besetzung, je ${p.verteilungen} Verteilungen. Geprüft auf jedem fünften
+Blätter je Spielart und Besetzung, je ${p.verteilungen} Verteilungen, Gegenspieler Heuristik; Bettel:
+${p.bettelBlaetter} Blätter, je ${p.bettelVerteilungen} Verteilungen, Gegenspieler „Stark“. Geprüft auf jedem fünften
 Blatt, geschätzt auf den übrigen (die Tabelle selbst nutzt danach alle). Cent nach Standardtarif,
 aus Sicht des Ansagers, gewichtet wie gezogen.
 
