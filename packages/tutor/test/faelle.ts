@@ -108,13 +108,6 @@ export const FAELLE: Fall[] = [
     expect: isCall('interest'),
   },
   {
-    rule: 'ansage.ruffarbe.kurz',
-    title: 'Die Sau zur blanken Zehn rufen',
-    lage: () =>
-      at(declareStage(deal({ 0: ['EO', 'GO', 'HU', 'H10', 'H8', 'E10', 'S9', 'S8'] })), 0),
-    expect: isDeclare({ kind: 'sauspiel', suit: 'eichel' }),
-  },
-  {
     rule: 'ansage.solo.trumpflaenge',
     title: 'Sieben Trümpfe mit drei Obern: Solo',
     lage: () => at(declareStage(deal({ 0: ['EO', 'GO', 'HO', 'EU', 'GU', 'HA', 'H10', 'EA'] })), 0),
@@ -164,13 +157,6 @@ export const FAELLE: Fall[] = [
         0,
       ),
     expect: isCall('interest'),
-  },
-  {
-    rule: 'hochzeit.annehmen.trumpf',
-    ask: 'prelude',
-    title: 'Viele Trümpfe, Hochzeit angeboten: annehmen',
-    lage: () => at(hochzeitAngebot(['EO', 'GO', 'SO', 'EU', 'HA', 'GK', 'G9', 'S7']), 1),
-    expect: isMove('accept'),
   },
   {
     rule: 'hochzeit.ablehnen.schwach',

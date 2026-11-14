@@ -47,8 +47,10 @@ describe('Hochzeit: annehmen oder ablehnen', () => {
     const advice = advise(input(state, 1))!;
     expect(move(advice.recommended)?.type).toBe('accept');
     expect(advice.basis).toBe('suche');
-    expect(advice.reasons.map((r) => r.id)).toContain('hochzeit.annehmen.trumpf');
-    expect(advice.hint.key).toBe('denkanstoss.hochzeit.annehmen.trumpf');
+    // Für das Annehmen gibt es keine Faustregel (T5: gemessen nie besser als Ablehnen, die Suche
+    // entscheidet); der Denkanstoß ist der allgemeine zum Angebot.
+    expect(advice.reasons.map((r) => r.id)).not.toContain('hochzeit.ablehnen.schwach');
+    expect(advice.hint.key).toBe('denkanstoss.hochzeit.annehmen');
     // Beide Möglichkeiten sind bewertet; „ablehnen“ zählt 0, annehmen bringt im Schnitt mehr.
     const cents = (t: string) => advice.options.find((o) => move(o.option)?.type === t)!.cents!;
     expect(cents('decline')).toBe(0);

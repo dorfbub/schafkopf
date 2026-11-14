@@ -30,7 +30,7 @@ export function schreibeWerte(results: readonly Messergebnis[]): void {
     })
     .join('\n');
   const src = (readFileSync(SRC, 'utf8') as string).replace(
-    /export const REGELWERTE: Partial<Record<RuleId, Messung>> = \{[\s\S]*?\n\};/,
+    /export const REGELWERTE: Partial<Record<RuleId, Messung>> = \{[\s\S]*?\};/,
     `export const REGELWERTE: Partial<Record<RuleId, Messung>> = {\n${entries}\n};`,
   );
   writeFileSync(SRC, src);

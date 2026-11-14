@@ -14,12 +14,19 @@ import { FAELLE, inputOf } from './faelle';
 const mehrfach = () => (gefunden ??= suche());
 let gefunden: ReturnType<typeof suche> | null = null;
 function suche() {
-  return FAELLE.flatMap((fall) => {
-    const input = inputOf(fall);
-    const ask = fall.ask ?? currentAsk(input)!;
-    const hits = ruleHits(input, ask);
-    return hits.length >= 2 ? [{ fall, input, ask, ids: hits.map((h) => h.id) }] : [];
-  });
+  // Ohne Messwerte: Die Kennungen stehen dann in der Reihenfolge des Katalogs.
+  const messwerte = { ...REGELWERTE };
+  for (const id of Object.keys(REGELWERTE)) delete REGELWERTE[id as RuleId];
+  try {
+    return FAELLE.flatMap((fall) => {
+      const input = inputOf(fall);
+      const ask = fall.ask ?? currentAsk(input)!;
+      const hits = ruleHits(input, ask);
+      return hits.length >= 2 ? [{ fall, input, ask, ids: hits.map((h) => h.id) }] : [];
+    });
+  } finally {
+    Object.assign(REGELWERTE, messwerte);
+  }
 }
 
 const gesichert = { ...REGELWERTE };
