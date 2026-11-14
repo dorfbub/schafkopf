@@ -1,4 +1,5 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { describe, it } from 'vitest';
 import { RULE_IDS, type RuleId } from '../src';
 import { type Messergebnis, STANDARD_PARAMETER, messen, regelsatzFuer } from '../scripts/messen';
@@ -13,9 +14,11 @@ import { schreibeWerte } from '../scripts/werte';
  *
  * Einstellungen (alle optional): TUTOR_MESSEN_TEIL=i/n (nur jede n-te Regel, ab i; zum
  * Parallelisieren), TUTOR_MESSEN_REGELN=a,b (nur diese Regeln), TUTOR_MESSEN_SPIELE,
- * TUTOR_MESSEN_LAGEN.
+ * TUTOR_MESSEN_LAGEN, TUTOR_MESSEN_DIR (Ausgabeordner statt messungen/, zum Vergleichen von Varianten).
  */
-const DIR = new URL('../messungen/', import.meta.url);
+const DIR = process.env.TUTOR_MESSEN_DIR
+  ? pathToFileURL(process.env.TUTOR_MESSEN_DIR.replace(/\/?$/, '/'))
+  : new URL('../messungen/', import.meta.url);
 
 describe.skipIf(!process.env.TUTOR_MESSEN)('Faustregeln messen', () => {
   it(

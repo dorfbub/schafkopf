@@ -16,17 +16,17 @@ import {
   tricksPlayed,
 } from '@schafkopf/core';
 import {
+  ANSAGE_SCHWELLE,
   RE_MARGIN_DECLARER,
   RE_MARGIN_PARTNER,
-  bettelSafe,
   candidateContracts,
+  contractValue,
   kontraStrength,
   rateContract,
   chooseWeddingGive,
   rateAcceptWedding,
   rateWedding,
   sideVoids,
-  toutSafe,
   weddingSize,
 } from '@schafkopf/bots';
 import type { Lage } from './lage';
@@ -45,14 +45,12 @@ export const RULE_IDS = [
   // Ansage
   'ansage.zu.schwach',
   'ansage.sauspiel.grundblatt',
-  'ansage.ruffarbe.kurz',
   'ansage.solo.trumpflaenge',
   'ansage.wenz.unter.und.farben',
   'ansage.bettel.nur.sicher',
   'ansage.tout.nur.sicher',
   'zweikampf.eigener.wert',
   'hochzeit.zwei.sauen',
-  'hochzeit.annehmen.trumpf',
   'hochzeit.ablehnen.schwach',
   'hochzeit.zurueckgeben.farbe.frei',
   'hochzeit.zurueckgeben.klein',
@@ -196,6 +194,14 @@ function rated(l: Lage): { contract: Contract; margin: number }[] {
   }));
 }
 
+/** Erwartete Werte (Cent, Ansage-Tabelle) aller am Tisch möglichen Spiele für das eigene Blatt. */
+function valued(l: Lage): { contract: Contract; value: number }[] {
+  return candidateContracts(l.hand, l.rules, l.view.auction.failed).map((contract) => ({
+    contract,
+    value: contractValue(l.view, contract, l.rules),
+  }));
+}
+
 const SAUSPIEL_ORDER = orderFor({ kind: 'sauspiel', suit: 'eichel' }, 0);
 const SIDE_SUITS = SUITS.filter((s) => s !== 'herz');
 
@@ -241,8 +247,10 @@ export const RULES: readonly RuleDef[] = [
     ask: 'bid',
     check(l) {
       if (!bidTurn(l) || l.view.auction.stage === 'declare') return null;
-      const best = Math.max(-10, ...rated(l).map((r) => r.margin));
-      if (best >= WEAK_HAND) return null;
+      // Zu schwach heißt: Kein Spiel bringt laut Ansage-Tabelle mehr als die Schwelle (T5: früher
+      // die alte Marge der Heuristik, die mit der Tabelle nicht mehr übereinstimmte).
+      const min = ANSAGE_SCHWELLE * l.rules.tariff.sauspiel;
+      if (valued(l).some((r) => r.value > min)) return null;
       return hit(passCalls(l), { trumpf: sauspielShape(l.hand).t });
     },
   },
@@ -261,26 +269,6 @@ export const RULES: readonly RuleDef[] = [
       const suits = MODES.sauspiel.suitChoices?.(l.hand) ?? [];
       const wanted = suits.map((suit): Contract => ({ kind: 'sauspiel', suit }));
       return hit(wantCalls(l, wanted), { trumpf: s.t, frei: s.free, sauen: s.aces });
-    },
-  },
-  {
-    id: 'ansage.ruffarbe.kurz',
-    area: 'ansage',
-    ask: 'bid',
-    check(l) {
-      if (!bidTurn(l) || l.view.auction.stage !== 'declare') return null;
-      const calls = l.view.legalCalls.filter(
-        (c) => c.type === 'declare' && c.contract.kind === 'sauspiel' && !c.contract.tout,
-      );
-      if (calls.length < 2) return null;
-      const suitOfCall = (c: BidCall) => (c.type === 'declare' ? c.contract.suit! : 'eichel');
-      const cards = (c: BidCall) =>
-        l.hand.filter((h) => suitOf(h) === suitOfCall(c) && !SAUSPIEL_ORDER.trumps.includes(h));
-      const withTen = calls.filter((c) => cards(c).some((h) => rankOf(h) === '10'));
-      const pool = withTen.length > 0 ? withTen : calls;
-      const best = minBy(pool, (c) => cards(c).length);
-      if (best.length === calls.length) return null;
-      return hit(callOpts(best), { farbe: suitOfCall(best[0]!), zehn: withTen.length > 0 ? 1 : 0 });
     },
   },
   {
@@ -322,14 +310,17 @@ export const RULES: readonly RuleDef[] = [
     ask: 'bid',
     check(l) {
       if (!bidTurn(l) || !availableKinds(l.rules).includes('bettel')) return null;
-      const order = orderFor({ kind: 'bettel' }, 0);
-      if (bettelSafe(l.hand, order, deckSize(l))) {
-        return hit(wantCalls(l, [{ kind: 'bettel' }]), { sicher: 1 });
+      // Maßstab ist die Ansage-Tabelle (B4, simuliert mit „Stark“), nicht „jede Farbe gedeckt“:
+      // Eine einzelne hohe Karte ist tragbar, wenn man sie früh abwerfen kann.
+      const min = ANSAGE_SCHWELLE * l.rules.tariff.sauspiel;
+      const bettel: Contract = { kind: 'bettel' };
+      if (contractValue(l.view, bettel, l.rules) > min) {
+        return hit(wantCalls(l, [bettel]), { sicher: 1 });
       }
-      // Verlockend, aber nicht sicher: kaum hohe Karten, trotzdem eine Lücke.
+      // Verlockend, aber laut Tabelle nicht lohnend: kaum hohe Karten, trotzdem Lücken.
       const high = l.hand.filter((c) => ['A', '10', 'K', 'O'].includes(rankOf(c))).length;
       if (high > 1 || l.view.auction.stage === 'declare') return null;
-      if (rated(l).some((r) => r.contract.kind !== 'bettel' && r.margin >= 0)) return null;
+      if (valued(l).some((r) => r.contract.kind !== 'bettel' && r.value > min)) return null;
       return hit(passCalls(l), { sicher: 0 });
     },
   },
@@ -344,14 +335,17 @@ export const RULES: readonly RuleDef[] = [
         (c) => (c.type === 'name' && c.level.tout) || (c.type === 'declare' && c.contract.tout),
       );
       if (!hasTout) return null;
-      const strong = rated(l).filter((r) => !r.contract.tout && r.margin >= TOUT_TEMPTING);
-      if (strong.length === 0) return null;
-      const safe = strong
-        .map((r) => ({ ...r.contract, tout: true }))
-        .filter((c) => toutSafe(l.hand, c, orderFor(c, 0)));
-      if (safe.length > 0) return hit(wantCalls(l, safe), { sicher: 1, spiel: safe[0]!.kind });
-      const plain = strong.map((r) => r.contract);
-      return hit(wantCalls(l, plain), { sicher: 0, spiel: plain[0]!.kind });
+      // Tout oder nicht: das Spiel mit dem höchsten Tabellenwert (Tout mitgerechnet) – Tout lohnt
+      // nur, wo die Tabelle es höher bewertet als dasselbe Spiel ohne.
+      const all = valued(l).filter((r) => Number.isFinite(r.value));
+      const best = maxBy(all, (r) => r.value)[0];
+      if (!best) return null;
+      const plainBest = Math.max(...all.filter((r) => !r.contract.tout).map((r) => r.value));
+      if (plainBest < TOUT_TEMPTING_CENT * l.rules.tariff.sauspiel) return null;
+      return hit(wantCalls(l, [best.contract]), {
+        sicher: best.contract.tout ? 1 : 0,
+        spiel: best.contract.kind,
+      });
     },
   },
   {
@@ -385,16 +379,6 @@ export const RULES: readonly RuleDef[] = [
     },
   },
 
-  {
-    id: 'hochzeit.annehmen.trumpf',
-    area: 'hochzeit',
-    ask: 'prelude',
-    check(l) {
-      if (!weddingOffer(l)) return null;
-      if (rateAcceptWedding(l.hand, weddingSize(l.contract!.kind)) < 0) return null;
-      return hit(preludeOpts(l.view.legalMoves.filter((m) => m.type === 'accept')), {});
-    },
-  },
   {
     id: 'hochzeit.ablehnen.schwach',
     area: 'hochzeit',
@@ -637,6 +621,8 @@ export const RULES: readonly RuleDef[] = [
     check(l) {
       if (!cardTurn(l) || !pointsGame(l) || l.leading || l.laterSeats.length > 0) return null;
       if (l.winnerSeat === null || l.sideOf(l.winnerSeat) === 'friend') return null;
+      // Nur wenn der Stich schon etwas wert ist (T5): Für ein paar Augen lohnt der Trumpf nicht.
+      if (l.trickPoints < HINTEN_STECHEN_AUGEN) return null;
       const winners = legal(l).filter(l.wins);
       if (winners.length < 2 || trumpsIn(l, winners).length === 0) return null;
       const side = sideIn(l, winners);
@@ -768,10 +754,10 @@ export const RULES: readonly RuleDef[] = [
   },
 ];
 
-/** Unter dieser Marge der Heuristik (für jedes Spiel) gilt ein Blatt als klar zu schwach. */
-const WEAK_HAND = -1.5;
-/** Ab dieser Marge ist ein Blatt so stark, dass ein Tout verlockt. */
-const TOUT_TEMPTING = 2.5;
+/** Ab so vielen Augen im Stich lohnt es, hinten billig zu stechen. */
+const HINTEN_STECHEN_AUGEN = 14;
+/** Ab diesem Wert (in Sauspiel-Tarifen) des besten Spiels ohne Tout verlockt ein Tout. */
+const TOUT_TEMPTING_CENT = 5;
 
 export function ruleById(id: RuleId): RuleDef {
   return RULES.find((r) => r.id === id)!;

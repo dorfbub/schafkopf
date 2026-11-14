@@ -1,10 +1,12 @@
 | Regel                                | Wert (ct) | ± Fehler | Lagen | Vorkommen je Spiel | Urteil                |
 | ------------------------------------ | --------: | -------: | ----: | -----------------: | --------------------- |
 | `ansage.wenz.unter.und.farben`       |      65,1 |      3,3 |  1500 |              0,281 | nützlich              |
+| `ansage.tout.nur.sicher`             |      56,4 |      4,3 |  1500 |              0,593 | nützlich              |
 | `ansage.solo.trumpflaenge`           |      55,1 |      3,2 |  1500 |              1,152 | nützlich              |
 | `ansage.sauspiel.grundblatt`         |      31,1 |      2,5 |  1500 |              1,276 | nützlich              |
 | `kontra.gegen.einzelspiel`           |      30,3 |      1,4 |  1500 |              0,326 | nützlich              |
 | `karte.stechen.lohnt`                |      26,4 |      2,6 |  1500 |              0,797 | nützlich              |
+| `ansage.bettel.nur.sicher`           |      25,3 |      2,1 |  1500 |              0,220 | nützlich              |
 | `bettel.spieler.drunter`             |      20,1 |      4,6 |   626 |              0,160 | nützlich              |
 | `zweikampf.eigener.wert`             |      17,0 |      2,6 |  1500 |              2,416 | nützlich              |
 | `spieler.farbe.nach.trumpf`          |      15,8 |      2,5 |  1500 |              0,623 | nützlich              |
@@ -28,11 +30,7 @@
 | `spieler.rufsau.nicht.selbst.suchen` |       0,6 |      0,5 |  1500 |              0,519 | kein messbarer Nutzen |
 | `mitspieler.trumpf.spielen`          |       0,4 |      0,4 |  1500 |              0,243 | kein messbarer Nutzen |
 | `gegner.sau.frisch`                  |       0,1 |      0,9 |  1500 |              0,781 | kein messbarer Nutzen |
-| `ansage.zu.schwach`                  |      -0,6 |      0,8 |  1500 |              2,133 | kein messbarer Nutzen |
-| `hochzeit.annehmen.trumpf`           |      -1,7 |      0,7 |  1288 |              0,064 | schadet               |
-| `karte.hinten.billig.stechen`        |      -6,4 |      1,6 |  1500 |              0,637 | schadet               |
-| `ansage.bettel.nur.sicher`           |      -9,5 |      1,7 |  1223 |              0,089 | schadet               |
-| `ansage.tout.nur.sicher`             |     -13,6 |      3,7 |  1500 |              0,154 | schadet               |
-| `ansage.ruffarbe.kurz`               |     -13,6 |      2,0 |  1500 |              0,275 | schadet               |
+| `ansage.zu.schwach`                  |      -0,3 |      0,3 |  1500 |              2,147 | kein messbarer Nutzen |
+| `karte.hinten.billig.stechen`        |      -0,5 |      1,3 |  1500 |              0,159 | kein messbarer Nutzen |
 | `re.mit.reserve`                     |         – |        – |     0 |              0,000 | zu selten             |
 | `ramsch.durchmarsch.verhindern`      |         – |        – |    11 |              0,001 | zu selten             |

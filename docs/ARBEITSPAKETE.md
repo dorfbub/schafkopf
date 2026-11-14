@@ -791,7 +791,7 @@ bringt es im Schnitt, sie zu befolgen?
 - **Stand:** erledigt (November 2026), in `main`. Messskript
   `packages/tutor/scripts/messen.ts` (läuft als Test hinter `TUTOR_MESSEN=1`, nicht in CI),
   Ergebnisse in `packages/tutor/messungen/`, Werte für Max in `packages/tutor/src/werte.ts`.
-  Tabelle und Verfahren in `STRATEGIEN.md`, „Messung der Faustregeln“. 34 von 36 Regeln gemessen (neu gemessen nach T3 und nach B4, am 13.11.2026);
+  Tabelle und Verfahren in `STRATEGIEN.md`, „Messung der Faustregeln“. 34 von 34 Regeln gemessen (neu gemessen nach T3 und nach B4, am 13.11.2026);
   `re.mit.reserve` und `ramsch.durchmarsch.verhindern` zu selten. Max ordnet greifende Regeln nach
   Wert und nennt ihn, wenn er sicher über null liegt. Nach B4 schaden `ansage.ruffarbe.kurz` (−13,6 ct),
   `ansage.tout.nur.sicher`, `ansage.bettel.nur.sicher` (Widerspruch zur Ansage-Tabelle, ungeklärt) und
@@ -822,6 +822,13 @@ gestrichen werden.
 - **Abnahme:** Keine Regel im Katalog misst sicher negativ (Wert + 2 Fehler ≥ 0) oder sie ist mit
   Begründung gestrichen. Max widerspricht bei der Ansage nie der Tabelle (Test mit den
   Bettel-/Tout-Grenzfällen). Tabelle und Einordnung in `STRATEGIEN.md` und `werte.ts` aktuell.
+- **Stand:** erledigt (14.11.2026). Bettel (+25,3 ± 2,1 ct) und Tout (+56,4 ± 4,3) folgen der
+  Ansage-Tabelle (Test `packages/tutor/test/ansageTabelle.test.ts`); `karte.hinten.billig.stechen`
+  ab 14 Augen (−0,5 ± 1,3), `ansage.zu.schwach` an die Tabelle angeglichen (−0,3 ± 0,3);
+  `ansage.ruffarbe.kurz` und `hochzeit.annehmen.trumpf` mit Begründung gestrichen (34 Regeln).
+  Nebenbei: Der Generator `scripts/werte.ts` schrieb `src/werte.ts` seit T4 nie (die Ersetzung
+  traf `{}` nicht); behoben, `werte.ts` enthält jetzt die Messwerte, Max nennt und ordnet nach
+  ihnen.
 
 ---
 

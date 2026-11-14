@@ -592,8 +592,6 @@ type HintText = (p: TutorParams, c: TutorTextContext) => string;
 
 const seatName = (p: TutorParams, key: string, c: TutorTextContext, fallback: string) =>
   typeof p[key] === 'number' ? c.name(p[key]) : fallback;
-const suitWord = (p: TutorParams) =>
-  typeof p.farbe === 'string' && p.farbe in SUIT_NAME ? SUIT_NAME[p.farbe as Suit] : 'Ruf';
 const kindWord = (p: TutorParams) =>
   typeof p.spiel === 'string' && p.spiel in KIND_NAME
     ? KIND_NAME[p.spiel as ContractKind]
@@ -603,14 +601,12 @@ const kindWord = (p: TutorParams) =>
 const RULE_TITLE: Record<string, string> = {
   'ansage.zu.schwach': 'Mit schwachem Blatt „weiter“',
   'ansage.sauspiel.grundblatt': 'Ein Sauspiel braucht zwei Farben im Griff',
-  'ansage.ruffarbe.kurz': 'Die Sau zur eigenen Zehn rufen',
   'ansage.solo.trumpflaenge': 'Solo nur mit der Mehrheit der Trümpfe',
   'ansage.wenz.unter.und.farben': 'Wenz: hohe Unter und starke Farben',
-  'ansage.bettel.nur.sicher': 'Bettel nur ohne Lücke',
-  'ansage.tout.nur.sicher': 'Tout nur, wenn kein Stich verloren geht',
+  'ansage.bettel.nur.sicher': 'Bettel nur, wenn er sich lohnt',
+  'ansage.tout.nur.sicher': 'Tout nur, wo es mehr bringt',
   'zweikampf.eigener.wert': 'Im Zweikampf zählt das eigene Blatt',
   'hochzeit.zwei.sauen': 'Hochzeit nur mit Sauen',
-  'hochzeit.annehmen.trumpf': 'Die Hochzeit mit starkem Blatt annehmen',
   'hochzeit.ablehnen.schwach': 'Die Hochzeit mit schwachem Blatt ablehnen',
   'hochzeit.zurueckgeben.farbe.frei': 'Mit der Rückgabe eine Farbe frei machen',
   'hochzeit.zurueckgeben.klein': 'Eine kleine Karte zurückgeben',
@@ -645,22 +641,18 @@ const RULE_REASON: Record<string, string> = {
     'Mit einem schwachen Blatt verliert man meist das Spiel und oft dazu Schneider. „Weiter“ kostet nichts, und als Gegenspieler hilfst du trotzdem mit.',
   'ansage.sauspiel.grundblatt':
     'Ein Sauspiel trägt, wenn ihr zwei Farben im Griff habt: die Ruffarbe und eine Farbe, die du frei bist oder mit der Sau hältst.',
-  'ansage.ruffarbe.kurz':
-    'Rufst du die Sau zu deiner Zehn, fällt die Zehn in den Stich des Partners. Und in einer kurzen Ruffarbe bist du bald frei und stichst.',
   'ansage.solo.trumpflaenge':
     'Allein gegen drei brauchst du die Mehrheit der Trümpfe: Sind sie gezogen, haben die Gegner nur noch Farben, und deine Sauen stechen.',
   'ansage.wenz.unter.und.farben':
     'Im Wenz gibt es nur vier Trümpfe. Mit den hohen Untern holst du dir das Ausspiel zurück; die Stiche kommen aus Sauen und langen Farben.',
   'ansage.bettel.nur.sicher':
-    'Im Bettel reicht ein einziger Stich zum Verlieren, und die Gegner suchen genau die Farbe, in der du nicht drunter kommst.',
+    'Im Bettel reicht ein einziger Stich zum Verlieren, und die Gegner suchen genau die Farbe, in der du nicht drunter kommst. Eine hohe Karte ist tragbar, wenn du sie früh loswirst; mehrere sind es nicht.',
   'ansage.tout.nur.sicher':
-    'Tout verdoppelt den Gewinn, aber ein abgegebener Stich verliert alles. Mit einer Lücke kostet das mehr, als es bringt – ohne Lücke verschenkst du Geld.',
+    'Tout verdoppelt den Gewinn, aber ein abgegebener Stich verliert alles. Es lohnt nur mit einem Blatt, das praktisch jeden Stich macht – sonst ist das Spiel ohne Tout mehr wert.',
   'zweikampf.eigener.wert':
     'Ein höheres Spiel lohnt sich nur, wenn es mit deinem Blatt gewinnt. Als Gegenspieler hast du noch Chancen, mit einem überreizten Solo kaum.',
   'hochzeit.zwei.sauen':
     'Wer die Hochzeit annimmt, hat die Trümpfe; du bringst die Farbstiche mit. Ohne Sauen trägst du nichts bei.',
-  'hochzeit.annehmen.trumpf':
-    'Der Hochzeiter hat keine Trümpfe, nur seine Sauen. Die Trümpfe musst du haben: Mit dem geschenkten Trumpf ist dein Blatt fast ein eigenes Sauspiel.',
   'hochzeit.ablehnen.schwach':
     'Wer annimmt, spielt mit einem Partner ohne Trumpf – ein schwaches Blatt reicht dafür nicht, und du verlierst mit. Ablehnen kostet nichts.',
   'hochzeit.zurueckgeben.farbe.frei':
@@ -719,19 +711,15 @@ const RULE_REASON: Record<string, string> = {
 const HINT: Record<string, HintText> = {
   'ansage.zu.schwach': () => 'Wie viele Stiche machst du mit diesem Blatt sicher selbst?',
   'ansage.sauspiel.grundblatt': () => 'Welche zwei Farben hättest du mit deinem Partner im Griff?',
-  'ansage.ruffarbe.kurz': (p) =>
-    p.zehn === 0
-      ? `Wie schnell bist du in ${suitWord(p)} frei, wenn du die passende Sau rufst?`
-      : `Wo landet deine ${suitWord(p)}-Zehn, wenn du die passende Sau rufst?`,
   'ansage.solo.trumpflaenge': () => 'Wie viele Trümpfe haben die drei anderen zusammen noch?',
   'ansage.wenz.unter.und.farben': () =>
     'Wie kommst du im Wenz ans Spiel zurück – und woher kommen die Stiche?',
-  'ansage.bettel.nur.sicher': () => 'Gibt es eine Farbe, in der du nicht sicher drunter bleibst?',
+  'ansage.bettel.nur.sicher': () =>
+    'Kommst du in jeder Farbe unter den Karten der Gegner durch – und wirst du hohe Karten früh los?',
   'ansage.tout.nur.sicher': () => 'Kann dir irgendein Gegner einen Stich abnehmen?',
   'zweikampf.eigener.wert': (p, c) =>
     `Gewinnst du das höhere Spiel – oder willst du nur ${seatName(p, 'gegner', c, c.opponent === null ? 'den anderen' : c.name(c.opponent))} ausstechen?`,
   'hochzeit.zwei.sauen': () => 'Was bringst du deinem Partner mit, wenn er deinen Trumpf nimmt?',
-  'hochzeit.annehmen.trumpf': () => 'Wie stark wäre dein Blatt mit dem geschenkten Trumpf?',
   'hochzeit.ablehnen.schwach': () =>
     'Reicht dein Blatt für ein Spiel, in dem dein Partner keinen Trumpf hat?',
   'hochzeit.zurueckgeben.farbe.frei': () =>

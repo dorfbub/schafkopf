@@ -10,7 +10,7 @@ Inhalt:
 1. [Was die Bots schon wissen](#was-die-bots-schon-wissen)
 2. [Quellen](#quellen)
 3. [Widersprüche und Entscheidungen](#widersprüche-und-entscheidungen)
-4. [Der Katalog](#der-katalog) – 36 Faustregeln
+4. [Der Katalog](#der-katalog) – 34 Faustregeln
 5. [Messung der Faustregeln](#messung-der-faustregeln-t4) – Wert je Regel in Cent
 6. [Didaktik](#didaktik) – wie der Tutor fragt, rät und bewertet
 7. [Wie der Tutor rechnet](#wie-der-tutor-rechnet) – Schwellen, Automatikmodus, Grenzen
@@ -49,7 +49,7 @@ Trumpfstärke des Spiels plus Sauen. Re nur mit deutlich mehr, als das Spiel bra
   eine Sau, solange die Farbe frisch ist; sonst eine billige Farbkarte in einer Farbe, die der
   Spieler noch hat; Trumpf nur, wenn nichts anderes bleibt.
 - Zugeben: Hält der Partner den Stich sicher, schmieren (viele Augen, aber keine hohen Trümpfe).
-  Ist es unsicher, mit einem sicheren Stecher übernehmen, wenn mindestens zehn Augen drin sind,
+  Ist es unsicher, mit einem sicheren Stecher übernehmen, wenn mindestens vierzehn Augen drin sind,
   sonst billig. Liegt der Gegner vorn: mit dem sicheren Stecher stechen, wenn es lohnt; bei zehn
   oder mehr Augen auch unsicher mit dem höchsten Stecher; sonst abspatzen.
 - „Billig“ heißt: wenig Augen, keine Trümpfe, keine sicheren Stiche, eher aus kurzen Farben.
@@ -141,8 +141,9 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 #### `ansage.zu.schwach`
 
 - **Bereich:** Ansage (Stufe 1 und Zweikampf).
-- **Wann:** Kein am Tisch erlaubtes Spiel kommt nach der Heuristik auch nur in die Nähe (Marge
-  unter −1,5 für jedes).
+- **Wann:** Kein am Tisch erlaubtes Spiel bringt laut Ansage-Tabelle (B4) mehr als die Schwelle –
+  dieselbe Prüfung wie bei der Heuristik am Tisch. (Bis T5: „Marge unter −1,5“ der alten
+  Heuristik, die mit der Tabelle nicht mehr übereinstimmte.)
 - **Begründung:** Wer mit einem schwachen Blatt spielt, verliert meist das Spiel und oft dazu
   Schneider. „Weiter“ kostet nichts, und als Gegenspieler hilft man trotzdem mit.
 - **Ausnahmen:** Muss (dann ist „weiter“ nicht erlaubt).
@@ -162,18 +163,6 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 - **Ansage-Tabelle (B4):** Zwei typische Grundblätter bringen etwa +9 bis +11 Cent; vier kleine
   Trümpfe mit einer Sau etwa −2 Cent, drei Trümpfe etwa −3 Cent. Das Sauspiel ist knapp.
 - **Quelle:** D1 1.1, 1.10; WB; BOT.
-
-#### `ansage.ruffarbe.kurz`
-
-- **Bereich:** Ansage (Stufe 3, Farbe des Sauspiels).
-- **Wann:** Mehrere Ruffarben sind möglich, und sie unterscheiden sich: In einer hat man die Zehn
-  (ohne Sau), oder eine ist kürzer.
-- **Begründung:** Ruft man die Sau zur eigenen Zehn, fällt die Zehn in den Stich des Partners statt
-  in den der Gegner. Eine kurze Ruffarbe hält den Partner leicht auffindbar, und man ist dort bald
-  frei und kann stechen.
-- **Ausnahmen:** Mit drei oder mehr Karten in der Ruffarbe droht das Davonlaufen des Partners
-  ins Leere; eine lange Ruffarbe ist dann die schlechtere Wahl.
-- **Quelle:** D1 1.3; BOT.
 
 #### `ansage.solo.trumpflaenge`
 
@@ -204,27 +193,34 @@ Regeln stehen vor allgemeinen. Der Denkanstoß (`denkanstoss.<kennung>`) steht i
 #### `ansage.bettel.nur.sicher`
 
 - **Bereich:** Ansage.
-- **Wann:** Bettel erlaubt. Spricht dafür, wenn jede Farbe von unten gedeckt ist (zu jeder hohen
-  Karte genug kleinere); dagegen, wenn das Blatt nur verlockend aussieht (kaum hohe Karten), aber
-  eine Lücke hat.
+- **Wann:** Bettel erlaubt. Spricht dafür, wenn die Ansage-Tabelle (B4, mit „Stark“ simuliert) den
+  Bettel höher als die Schwelle bewertet; dagegen, wenn das Blatt nur verlockend aussieht (kaum
+  hohe Karten), die Tabelle ihn aber nicht lohnend nennt und kein anderes Spiel lohnt. (Bis T5:
+  „jede Farbe von unten gedeckt“ – strenger als die Tabelle, nach B4 gemessen schädlich. Die
+  Kennung blieb, der Titel heißt jetzt „Bettel nur, wenn er sich lohnt“.)
 - **Begründung:** Im Bettel reicht ein einziger Stich zum Verlieren, und die Gegner suchen genau
-  die Farbe, in der man nicht drunter kommt. Eine Lücke findet man selten rechtzeitig selbst.
+  die Farbe, in der man nicht drunter kommt. Eine einzelne hohe Karte ist tragbar, wenn man sie
+  früh abwerfen kann; mehrere nicht.
 - **Ausnahmen:** keine; der Tutor meldet ein lückenhaftes Bettel-Blatt aber nur, wenn kein anderes
   Spiel lohnt.
 - **Ansage-Tabelle (B4):** Von unten gedeckt etwa +130 Cent; mit blankem Schellen-Ober und -Zehner
   etwa −43 bis −5 Cent, mit blankem König oder blanker Sau etwa −70 bis −100 Cent. Eine hohe Karte
   über der Sieben ist tragbar, wenn man sie früh abwerfen kann (einzelne Sieben daneben: gemessen
-  +26 bis +54 Cent). Die Regel stimmt also, mit der Ausnahme „früh abwerfen“.
+  +26 bis +54 Cent). Genau das übernimmt die Regel jetzt aus der Tabelle.
 - **Quelle:** BOT, WT.
 
 #### `ansage.tout.nur.sicher`
 
 - **Bereich:** Ansage (Zweikampf und Stufe 3, nur mit „Tout erlaubt“).
-- **Wann:** Ein Spiel ist sehr stark (Marge ab 2,5). Spricht für Tout, wenn es praktisch sicher
-  alle Stiche macht (Solo: nur Trümpfe mit den vier Obern; Wenz/Geier: alle Trümpfe und Farben
-  von oben); sonst für das Spiel ohne Tout.
+- **Wann:** Ein Spiel ist sehr stark (sein Tabellenwert ohne Tout liegt bei mindestens fünf
+  Sauspiel-Tarifen). Spricht für das Spiel, das die Ansage-Tabelle am höchsten bewertet – mit
+  oder ohne Tout. (Bis T5: Tout nur bei „praktisch sicher alle Stiche“ – Solo nur mit den vier
+  Obern und Trümpfen, Wenz nur mit allen Trümpfen und Farben von oben –, nach B4 gemessen
+  schädlich, weil die Tabelle auch bei weniger sicheren Blättern Tout vorn sieht. Kennung und
+  Titel „Tout nur, wo es mehr bringt“.)
 - **Begründung:** Tout verdoppelt den Gewinn, aber ein einziger abgegebener Stich verliert alles.
-  Mit einer Lücke kostet das im Schnitt mehr, als es bringt.
+  Es lohnt nur mit einem Blatt, das praktisch jeden Stich macht – sonst ist das Spiel ohne Tout
+  mehr wert.
 - **Ausnahmen:** keine.
 - **Ansage-Tabelle (B4):** Sicheres Tout (alle Ober, dazu zwei Unter) etwa +660 statt +390 Cent;
   sieben Trümpfe mit drei Obern als Tout etwa −300 Cent, ohne Tout etwa +270 Cent.
@@ -255,18 +251,6 @@ Die vier folgenden Regeln gelten im Vorspiel, wenn man selbst gefragt ist (T3). 
 dem Heuristik-Bot (`hochzeit.ts`, B3) und werden – wie alles – von der Rechnung geprüft: Der Tutor
 spielt die Hochzeit durch (siehe „Wie der Tutor rechnet“) und empfiehlt, was im Schnitt mehr bringt.
 Die Zahl der getauschten Karten ist bei der arabischen Hochzeit zwei statt eins; sonst gilt dasselbe.
-
-#### `hochzeit.annehmen.trumpf`
-
-- **Bereich:** Hochzeit (Annehmen, man wird gefragt).
-- **Wann:** Mit den geschenkten Trümpfen wäre das Blatt fast ein eigenes Sauspiel: mindestens fünf
-  Trümpfe danach, dazu hohe Ober oder Sauen und möglichst eine freie Farbe (Heuristik des Bots,
-  `rateAcceptWedding`).
-- **Begründung:** Der Hochzeiter hat keine Trümpfe und bringt nur seine Sauen mit. Die Trümpfe
-  muss der Partner haben; je stärker sein Blatt, desto sicherer holt die Partei die Stiche.
-- **Ausnahmen:** Hat der Hochzeiter wenige Sauen, trägt auch ein starkes Blatt nicht immer –
-  das sieht die Rechnung, die Faustregel kennt seine Karten nicht.
-- **Quelle:** BOT (Annahme 72); WT.
 
 #### `hochzeit.ablehnen.schwach`
 
@@ -454,9 +438,12 @@ Die Zahl der getauschten Karten ist bei der arabischen Hochzeit zwei statt eins;
 #### `karte.hinten.billig.stechen`
 
 - **Bereich:** Zugeben (als Letzter im Stich).
-- **Wann:** Man sitzt hinten, ein Gegner liegt vorn, und man kann mit mehreren Karten stechen.
+- **Wann:** Man sitzt hinten, ein Gegner liegt vorn, im Stich liegen schon mindestens vierzehn Augen
+  (seit T5; vorher ohne Untergrenze, gemessen schädlich), und man kann mit mehreren Karten
+  stechen.
 - **Begründung:** Als Letzter kann einem niemand mehr überstechen. Also reicht der kleinste Trumpf,
-  der sticht, oder eine höhere Farbkarte; die hohen Trümpfe hebt man für später auf.
+  der sticht, oder eine höhere Farbkarte; die hohen Trümpfe hebt man für später auf. Für ein
+  paar Augen lohnt der Trumpf nicht.
 - **Ausnahmen:** keine.
 - **Quelle:** D1 4.6; BOT.
 
@@ -546,7 +533,7 @@ Die Zahl der getauschten Karten ist bei der arabischen Hochzeit zwei statt eins;
 
 ## Messung der Faustregeln (T4)
 
-Jede der 36 Regeln hat einen gemessenen Wert (oder ist begründet „zu selten“): Wie viele Cent bringt es im Schnitt, sie in einer Lage zu
+Jede der 34 Regeln hat einen gemessenen Wert (oder ist begründet „zu selten“): Wie viele Cent bringt es im Schnitt, sie in einer Lage zu
 befolgen, statt die beste andere Möglichkeit zu nehmen? Max nennt bei mehreren greifenden Regeln
 die mit dem höheren Wert zuerst und darf den Wert in der Begründung nennen („Gemessen bringt sie im
 Schnitt etwa 8 Cent“) – aber nur, wenn er sicher über null liegt (mehr als zwei Standardfehler).
@@ -584,15 +571,17 @@ Lage für ein Re (0 Vorkommen in 20 000 Spielen). Auch **`bettel.spieler.drunter
 – die Zahlen stehen mit großem Fehler in der Tabelle, ein Wert wird dafür nicht genannt.
 Die Hochzeitsregeln und `karte.abspatzen`/`karte.abspatzen.trumpf` sind nach dem Merge von T3 neu gemessen; alle übrigen Regeln hat T3 nicht verändert (Vergleich von `rules.ts`).
 
-### Ergebnis (Stand: 20 000 Spiele, alle 36 Regeln, nach B4)
+### Ergebnis (Stand: 20 000 Spiele, 34 Regeln, nach B4 und T5)
 
 | Regel                                | Wert (ct) | ± Fehler | Lagen | Vorkommen je Spiel | Urteil                |
 | ------------------------------------ | --------: | -------: | ----: | -----------------: | --------------------- |
 | `ansage.wenz.unter.und.farben`       |      65,1 |      3,3 |  1500 |              0,281 | nützlich              |
+| `ansage.tout.nur.sicher`             |      56,4 |      4,3 |  1500 |              0,593 | nützlich              |
 | `ansage.solo.trumpflaenge`           |      55,1 |      3,2 |  1500 |              1,152 | nützlich              |
 | `ansage.sauspiel.grundblatt`         |      31,1 |      2,5 |  1500 |              1,276 | nützlich              |
 | `kontra.gegen.einzelspiel`           |      30,3 |      1,4 |  1500 |              0,326 | nützlich              |
 | `karte.stechen.lohnt`                |      26,4 |      2,6 |  1500 |              0,797 | nützlich              |
+| `ansage.bettel.nur.sicher`           |      25,3 |      2,1 |  1500 |              0,220 | nützlich              |
 | `bettel.spieler.drunter`             |      20,1 |      4,6 |   626 |              0,160 | nützlich              |
 | `zweikampf.eigener.wert`             |      17,0 |      2,6 |  1500 |              2,416 | nützlich              |
 | `spieler.farbe.nach.trumpf`          |      15,8 |      2,5 |  1500 |              0,623 | nützlich              |
@@ -616,12 +605,8 @@ Die Hochzeitsregeln und `karte.abspatzen`/`karte.abspatzen.trumpf` sind nach dem
 | `spieler.rufsau.nicht.selbst.suchen` |       0,6 |      0,5 |  1500 |              0,519 | kein messbarer Nutzen |
 | `mitspieler.trumpf.spielen`          |       0,4 |      0,4 |  1500 |              0,243 | kein messbarer Nutzen |
 | `gegner.sau.frisch`                  |       0,1 |      0,9 |  1500 |              0,781 | kein messbarer Nutzen |
-| `ansage.zu.schwach`                  |      -0,6 |      0,8 |  1500 |              2,133 | kein messbarer Nutzen |
-| `hochzeit.annehmen.trumpf`           |      -1,7 |      0,7 |  1288 |              0,064 | schadet               |
-| `karte.hinten.billig.stechen`        |      -6,4 |      1,6 |  1500 |              0,637 | schadet               |
-| `ansage.bettel.nur.sicher`           |      -9,5 |      1,7 |  1223 |              0,089 | schadet               |
-| `ansage.tout.nur.sicher`             |     -13,6 |      3,7 |  1500 |              0,154 | schadet               |
-| `ansage.ruffarbe.kurz`               |     -13,6 |      2,0 |  1500 |              0,275 | schadet               |
+| `ansage.zu.schwach`                  |      -0,3 |      0,3 |  1500 |              2,147 | kein messbarer Nutzen |
+| `karte.hinten.billig.stechen`        |      -0,5 |      1,3 |  1500 |              0,159 | kein messbarer Nutzen |
 | `re.mit.reserve`                     |         – |        – |     0 |              0,000 | zu selten             |
 | `ramsch.durchmarsch.verhindern`      |         – |        – |    11 |              0,001 | zu selten             |
 
@@ -642,21 +627,32 @@ darum wurden alle Regeln neu gemessen. Zwischenstand vor B4 (nur zum Vergleich):
 - **Bettel jetzt messbar:** `bettel.spieler.drunter` 20 ± 5 ct (626 Lagen, vorher 39 Lagen),
   `bettel.gegner.klein` 2,7 ± 0,7 ct. Grund: Die Bettel-Korrektur (B4) lässt die Heuristik deutlich
   weniger Bettel-Spiele ansagen, die verbleibenden sind besser – und kommen öfter vor als vorher gemessen.
-- **Vorzeichen gekippt, schadet jetzt:**
-  - **`ansage.bettel.nur.sicher` (−9,5 ± 1,7, vorher +7,2).** Die Regel („nur sicher ansagen“, Test
-    `bettelSafe`) und die neue Ansage-Tabelle sind jetzt uneins. **Widerspruch zur Ansage-Tabelle,
-    nicht angepasst** – klären, ob die Regel (strenger als die Tabelle) oder die Tabelle gilt.
-  - **`ansage.tout.nur.sicher` (−13,6 ± 3,7, vorher −3,9 ± 4,1).** Jetzt deutlich.
-    Widerspruch zur Ansage-Tabelle prüfen (nicht angepasst).
-  - **`ansage.ruffarbe.kurz` (−13,6 ± 2,0, vorher −8,7).** Die Zehn-Vorliebe der Regel
-    widerspricht der Heuristik (sie rechnet eine Zehn in der Ruffarbe als Kostenpunkt). **Kandidat
-    zum Umformulieren:** Zehn-Vorliebe streichen. Nichts wurde geändert.
-  - **`karte.hinten.billig.stechen` (−6,4 ± 1,6, vorher −1,7 ± 1,3).** Jetzt sicher schädlich:
-    Kandidat zum Streichen oder Umformulieren.
-  - **`hochzeit.annehmen.trumpf` (−1,7 ± 0,7, vorher +1,7 ± 0,9).** Kleiner Betrag, Vorzeichen gekippt;
-    selten (0,06 je Spiel). Beobachten.
-- **Nutzen entfallen:** `ansage.zu.schwach` (−0,6 ± 0,8, vorher 1,6 ± 0,5): Mit der Tabelle sagt die
-  Heuristik schwache Blätter ohnehin nicht mehr an, die Regel unterscheidet nichts mehr.
+- **Vorzeichen gekippt, schadet jetzt – überarbeitet in T5:**
+  - **`ansage.bettel.nur.sicher` (−9,5 ± 1,7 → +25,3 ± 2,1).** Die Regel verlangte „jede Farbe von
+    unten gedeckt“ und war damit strenger als die Ansage-Tabelle. Entscheidung: Die Tabelle (mit
+    „Stark“ simuliert) ist die belegte Grundlage. Die Regel empfiehlt Bettel jetzt genau dann, wenn
+    die Tabelle ihn über der Schwelle sieht; ein Test (`ansageTabelle.test.ts`) prüft das an
+    3000 Blättern, darunter solchen, die nicht gedeckt sind und trotzdem lohnen.
+  - **`ansage.tout.nur.sicher` (−13,6 ± 3,7 → +56,4 ± 4,3).** Die Regel erlaubte Tout nur bei
+    „praktisch sicher alle Stiche“. Die Tabelle sieht Tout schon bei weniger sicheren Blättern
+    vorn. Jetzt: das Spiel mit dem höchsten Tabellenwert, mit oder ohne Tout.
+  - **`karte.hinten.billig.stechen` (−6,4 ± 1,6 → −0,5 ± 1,3).** Mit weniger als 14 Augen im Stich
+    lohnt der Trumpf nicht; bei zehn Augen als Grenze lag der Wert noch bei −2,9 ± 1,5, bei 20
+    bei +0,4 ± 1,7. Die Regel gilt jetzt ab 14 Augen und hat damit keinen sicheren Schaden, aber
+    auch keinen messbaren Nutzen mehr.
+  - **`ansage.ruffarbe.kurz` – gestrichen.** (−13,6 ± 2,0.) Ohne die Zehn-Vorliebe blieb sie bei
+    −13,0 ± 2,7; „längste Ruffarbe“ −18,7, „kürzeste“ −18,1, „höchster Tabellenwert“ −13,6
+    (je 800 Lagen). Welche Sau man ruft, hängt von zu vielen Merkmalen ab (Länge, Zehn, Trümpfe,
+    Farben daneben), als dass eine einzelne Regel es träfe; die Suche und die Ansage-Tabelle
+    entscheiden besser. Die Regel ist samt Text, Denkanstoß und Messung entfernt.
+  - **`hochzeit.annehmen.trumpf` – gestrichen.** (−1,7 ± 0,7.) Auch mit strengerer Bedingung nie
+    besser als Ablehnen (Schwelle +0,5: −2,0 ± 2,1; +1,5: −3,5 ± 3,2 bei nur 43 Lagen; +3: keine
+    Lage). Max empfiehlt das Annehmen weiter, wenn die Suche es rechnet, nennt aber keine Regel;
+    `hochzeit.ablehnen.schwach` (+5,6 ct) bleibt.
+- **Nutzen entfallen:** `ansage.zu.schwach` (−0,6 ± 0,8, vorher 1,6 ± 0,5; nach T5 −0,3 ± 0,3).
+  Mit der Tabelle sagt die Heuristik schwache Blätter ohnehin nicht mehr an, die Regel
+  unterscheidet nichts mehr. In T5 an die Tabelle angeglichen (Bedingung „kein Spiel über der
+  Schwelle“); sie bleibt als Lehrstoff, Max nennt keinen Wert.
 - **Nutzen entstanden:** `spieler.farbe.nach.trumpf`, `spieler.trumpf.ziehen`, `bettel.spieler.drunter`,
   `bettel.gegner.klein`, `hochzeit.ablehnen.schwach` (5,6 ct, vorher 3,0) sind jetzt sicher positiv.
 - **Weiter ohne messbaren Nutzen:** `gegner.sau.frisch`, `mitspieler.trumpf.spielen`,
@@ -668,8 +664,8 @@ darum wurden alle Regeln neu gemessen. Zwischenstand vor B4 (nur zum Vergleich):
   `ramsch.durchmarsch.verhindern` (11 Lagen in 20 000 Spielen, vorher 83: Die Heuristik lässt den
   Durchmarsch kaum noch zu).
 
-Max nennt nur Werte, die sicher über null liegen; negativ gemessene Regeln ordnet er hinter die
-positiven, ohne Wert. Die Messung benutzt Heuristik-Mitspieler; wie weit die Zahlen auf Menschen
+Max nennt nur Werte, die sicher über null liegen; Regeln ohne sicheren Nutzen ordnet er hinter die
+positiven, ohne Wert. Seit T5 ist keine Regel im Katalog sicher negativ (Wert + 2 Fehler ≥ 0). Die Messung benutzt Heuristik-Mitspieler; wie weit die Zahlen auf Menschen
 übertragbar sind, ist offen.
 
 ### Messung wiederholen
@@ -1031,51 +1027,49 @@ werden zu Namen, Farben und Spielarten zu ihren Wörtern.
 
 ### Denkanstöße (`denkanstoss.<kennung>`)
 
-| Kennung                                          | Denkanstoß                                                                   |
-| ------------------------------------------------ | ---------------------------------------------------------------------------- |
-| `denkanstoss.ansage.zu.schwach`                  | Wie viele Stiche machst du mit diesem Blatt sicher selbst?                   |
-| `denkanstoss.ansage.sauspiel.grundblatt`         | Welche zwei Farben hättest du mit deinem Partner im Griff?                   |
-| `denkanstoss.ansage.ruffarbe.kurz`               | Wo landet deine {farbe}-Zehn, wenn du die passende Sau rufst?                |
-| `denkanstoss.ansage.solo.trumpflaenge`           | Wie viele Trümpfe haben die drei anderen zusammen noch?                      |
-| `denkanstoss.ansage.wenz.unter.und.farben`       | Wie kommst du im Wenz ans Spiel zurück – und woher kommen die Stiche?        |
-| `denkanstoss.ansage.bettel.nur.sicher`           | Gibt es eine Farbe, in der du nicht sicher drunter bleibst?                  |
-| `denkanstoss.ansage.tout.nur.sicher`             | Kann dir irgendein Gegner einen Stich abnehmen?                              |
-| `denkanstoss.zweikampf.eigener.wert`             | Gewinnst du das höhere Spiel – oder willst du nur {gegner} ausstechen?       |
-| `denkanstoss.hochzeit.zwei.sauen`                | Was bringst du deinem Partner mit, wenn er deinen Trumpf nimmt?              |
-| `denkanstoss.hochzeit.annehmen.trumpf`           | Wie stark wäre dein Blatt mit dem geschenkten Trumpf?                        |
-| `denkanstoss.hochzeit.ablehnen.schwach`          | Reicht dein Blatt für ein Spiel, in dem der Partner keinen Trumpf hat?       |
-| `denkanstoss.hochzeit.zurueckgeben.farbe.frei`   | Welche Farbe könntest du mit der Rückgabe frei machen?                       |
-| `denkanstoss.hochzeit.zurueckgeben.klein`        | Welche Karte kostet dich und deine Partei am wenigsten?                      |
-| `denkanstoss.kontra.gegen.partnerspiel`          | Wärst du mit diesem Blatt selbst gern Sauspieler?                            |
-| `denkanstoss.kontra.gegen.einzelspiel`           | Wie viel von der Trumpfstärke des Spielers hältst du?                        |
-| `denkanstoss.re.mit.reserve`                     | {kontra} glaubt, du verlierst. Hast du genug Reserve für das Doppelte?       |
-| `denkanstoss.spieler.solo.von.oben`              | Welcher Trumpf ist gerade der höchste im Spiel?                              |
-| `denkanstoss.spieler.trumpf.ziehen`              | Womit stechen die Gegner deine Sauen?                                        |
-| `denkanstoss.spieler.rufsau.nicht.selbst.suchen` | Wer sollte die Rufsau suchen – du oder die Gegner?                           |
-| `denkanstoss.spieler.farbe.nach.trumpf`          | Kann jetzt noch jemand einstechen?                                           |
-| `denkanstoss.mitspieler.trumpf.spielen`          | Wie zeigst du {spieler}, dass du zu ihm gehörst?                             |
-| `denkanstoss.gegner.rufsau.suchen`               | Wie findest du heraus, wer mit dem Spieler spielt?                           |
-| `denkanstoss.gegner.sau.frisch`                  | Wann ist eine Sau am sichersten?                                             |
-| `denkanstoss.gegner.kurzer.weg.lange.farbe`      | Wo sitzt der Spieler – direkt hinter dir oder als Letzter?                   |
-| `denkanstoss.gegner.kein.trumpf.anspielen`       | Wem hilft es, wenn du Trumpf spielst?                                        |
-| `denkanstoss.karte.schmieren`                    | {partner} hält den Stich. Kann ihn noch jemand holen?                        |
-| `denkanstoss.karte.nicht.vorschnell.schmieren`   | {partner} liegt vorn – aber ist der Stich schon sicher?                      |
-| `denkanstoss.karte.hinten.billig.stechen`        | Du bist der Letzte. Wie viel Trumpf brauchst du wirklich?                    |
-| `denkanstoss.karte.stechen.lohnt`                | {augen} Augen liegen im Stich. Kannst du ihn sicher holen?                   |
-| `denkanstoss.karte.farbe.freimachen`             | Welche Farbe könntest du mit diesem Abwurf frei machen?                      |
-| `denkanstoss.karte.abspatzen`                    | Der Stich ist verloren. Was gibst du am wenigsten gern her?                  |
-| `denkanstoss.karte.abspatzen.trumpf`             | Du musst Trumpf zugeben. Welcher Trumpf kostet die wenigsten Augen?          |
-| `denkanstoss.hochzeit.annehmen`                  | Wie viele Stiche würdest du mit dem Trumpf deines Partners selbst machen?    |
-| `denkanstoss.hochzeit.zurueck`                   | Welche Karte wirst du am leichtesten los?                                    |
-| `denkanstoss.bettel.spieler.drunter`             | Welche Karte wirst du jetzt gefahrlos los?                                   |
-| `denkanstoss.bettel.gegner.klein`                | Wie zwingst du den Bettelspieler, einen Stich zu nehmen?                     |
-| `denkanstoss.ramsch.durchmarsch.verhindern`      | {spieler} hat alle Stiche. Was hält ihn auf?                                 |
-| `denkanstoss.ramsch.hoch.drunter`                | Du bleibst drunter. Welche Karte willst du später nicht mehr haben?          |
-| `denkanstoss.ausnahme`                           | Die übliche Faustregel passt hier nicht ganz. Was ist an dieser Lage anders? |
-| `denkanstoss.ansage`                             | Wie viele Stiche traust du deinem Blatt zu?                                  |
-| `denkanstoss.kontra`                             | Wer hat hier die besseren Karten – der Spieler oder du?                      |
-| `denkanstoss.karte.anspielen`                    | Was soll dieser Stich für dich erreichen?                                    |
-| `denkanstoss.karte.zugeben`                      | Wer hält den Stich, und wie viele Augen liegen drin?                         |
+| Kennung                                          | Denkanstoß                                                                                      |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `denkanstoss.ansage.zu.schwach`                  | Wie viele Stiche machst du mit diesem Blatt sicher selbst?                                      |
+| `denkanstoss.ansage.sauspiel.grundblatt`         | Welche zwei Farben hättest du mit deinem Partner im Griff?                                      |
+| `denkanstoss.ansage.solo.trumpflaenge`           | Wie viele Trümpfe haben die drei anderen zusammen noch?                                         |
+| `denkanstoss.ansage.wenz.unter.und.farben`       | Wie kommst du im Wenz ans Spiel zurück – und woher kommen die Stiche?                           |
+| `denkanstoss.ansage.bettel.nur.sicher`           | Kommst du in jeder Farbe unter den Karten der Gegner durch – und wirst du hohe Karten früh los? |
+| `denkanstoss.ansage.tout.nur.sicher`             | Kann dir irgendein Gegner einen Stich abnehmen?                                                 |
+| `denkanstoss.zweikampf.eigener.wert`             | Gewinnst du das höhere Spiel – oder willst du nur {gegner} ausstechen?                          |
+| `denkanstoss.hochzeit.zwei.sauen`                | Was bringst du deinem Partner mit, wenn er deinen Trumpf nimmt?                                 |
+| `denkanstoss.hochzeit.ablehnen.schwach`          | Reicht dein Blatt für ein Spiel, in dem der Partner keinen Trumpf hat?                          |
+| `denkanstoss.hochzeit.zurueckgeben.farbe.frei`   | Welche Farbe könntest du mit der Rückgabe frei machen?                                          |
+| `denkanstoss.hochzeit.zurueckgeben.klein`        | Welche Karte kostet dich und deine Partei am wenigsten?                                         |
+| `denkanstoss.kontra.gegen.partnerspiel`          | Wärst du mit diesem Blatt selbst gern Sauspieler?                                               |
+| `denkanstoss.kontra.gegen.einzelspiel`           | Wie viel von der Trumpfstärke des Spielers hältst du?                                           |
+| `denkanstoss.re.mit.reserve`                     | {kontra} glaubt, du verlierst. Hast du genug Reserve für das Doppelte?                          |
+| `denkanstoss.spieler.solo.von.oben`              | Welcher Trumpf ist gerade der höchste im Spiel?                                                 |
+| `denkanstoss.spieler.trumpf.ziehen`              | Womit stechen die Gegner deine Sauen?                                                           |
+| `denkanstoss.spieler.rufsau.nicht.selbst.suchen` | Wer sollte die Rufsau suchen – du oder die Gegner?                                              |
+| `denkanstoss.spieler.farbe.nach.trumpf`          | Kann jetzt noch jemand einstechen?                                                              |
+| `denkanstoss.mitspieler.trumpf.spielen`          | Wie zeigst du {spieler}, dass du zu ihm gehörst?                                                |
+| `denkanstoss.gegner.rufsau.suchen`               | Wie findest du heraus, wer mit dem Spieler spielt?                                              |
+| `denkanstoss.gegner.sau.frisch`                  | Wann ist eine Sau am sichersten?                                                                |
+| `denkanstoss.gegner.kurzer.weg.lange.farbe`      | Wo sitzt der Spieler – direkt hinter dir oder als Letzter?                                      |
+| `denkanstoss.gegner.kein.trumpf.anspielen`       | Wem hilft es, wenn du Trumpf spielst?                                                           |
+| `denkanstoss.karte.schmieren`                    | {partner} hält den Stich. Kann ihn noch jemand holen?                                           |
+| `denkanstoss.karte.nicht.vorschnell.schmieren`   | {partner} liegt vorn – aber ist der Stich schon sicher?                                         |
+| `denkanstoss.karte.hinten.billig.stechen`        | Du bist der Letzte. Wie viel Trumpf brauchst du wirklich?                                       |
+| `denkanstoss.karte.stechen.lohnt`                | {augen} Augen liegen im Stich. Kannst du ihn sicher holen?                                      |
+| `denkanstoss.karte.farbe.freimachen`             | Welche Farbe könntest du mit diesem Abwurf frei machen?                                         |
+| `denkanstoss.karte.abspatzen`                    | Der Stich ist verloren. Was gibst du am wenigsten gern her?                                     |
+| `denkanstoss.karte.abspatzen.trumpf`             | Du musst Trumpf zugeben. Welcher Trumpf kostet die wenigsten Augen?                             |
+| `denkanstoss.hochzeit.annehmen`                  | Wie viele Stiche würdest du mit dem Trumpf deines Partners selbst machen?                       |
+| `denkanstoss.hochzeit.zurueck`                   | Welche Karte wirst du am leichtesten los?                                                       |
+| `denkanstoss.bettel.spieler.drunter`             | Welche Karte wirst du jetzt gefahrlos los?                                                      |
+| `denkanstoss.bettel.gegner.klein`                | Wie zwingst du den Bettelspieler, einen Stich zu nehmen?                                        |
+| `denkanstoss.ramsch.durchmarsch.verhindern`      | {spieler} hat alle Stiche. Was hält ihn auf?                                                    |
+| `denkanstoss.ramsch.hoch.drunter`                | Du bleibst drunter. Welche Karte willst du später nicht mehr haben?                             |
+| `denkanstoss.ausnahme`                           | Die übliche Faustregel passt hier nicht ganz. Was ist an dieser Lage anders?                    |
+| `denkanstoss.ansage`                             | Wie viele Stiche traust du deinem Blatt zu?                                                     |
+| `denkanstoss.kontra`                             | Wer hat hier die besseren Karten – der Spieler oder du?                                         |
+| `denkanstoss.karte.anspielen`                    | Was soll dieser Stich für dich erreichen?                                                       |
+| `denkanstoss.karte.zugeben`                      | Wer hält den Stich, und wie viele Augen liegen drin?                                            |
 
 Die Begründungen (`regel.<kennung>`) sind die Absätze **Begründung** im Katalog, für die Sprechblase
 auf ein, zwei Sätze gekürzt.
