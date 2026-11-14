@@ -1,17 +1,18 @@
 import {
   type Card,
   type Contract,
+  type CardOrder,
   type ContractKind,
   type DeckKind,
   type HandView,
   type LaufendeKind,
   type RuleSet,
   type Seat,
+  type Suit,
   MODES,
   SUITS,
   card,
   createDeck,
-  effectiveSuit,
   laufendeTrumpsFor,
   orderFor,
   pointsOf,
@@ -237,6 +238,49 @@ function bettelGaps(
   return { gaps, danger, klassen };
 }
 
+/**
+ * Was an einem Spiel nicht vom Blatt abhängt – Trümpfe, Farben, Rangfolge im verwendeten Blatt –,
+ * einmal je Spiel und Blatt berechnet. `merkmaleOf` läuft in der Gewichtung des starken Bots (B5)
+ * tausendfach je Entscheidung; ohne diesen Speicher kostete das die meiste Rechenzeit.
+ */
+interface Geometrie {
+  deck: readonly Card[];
+  order: CardOrder;
+  /** Trümpfe im Blatt, höchster zuerst, und als Menge. */
+  trumps: readonly Card[];
+  trumpSet: ReadonlySet<Card>;
+  /** Farben mit Nicht-Trümpfen; je Farbe ihre Karten in Rangfolge von oben. */
+  sides: readonly { suit: Suit; cards: readonly Card[] }[];
+  /** Hawaii-Habicht: Trümpfe nach dem Wechsel. */
+  late: readonly Card[];
+}
+
+const GEOMETRIE = new Map<string, Geometrie>();
+
+function geometrie(contract: Contract, deckKind: DeckKind): Geometrie {
+  const key = `${contract.kind}/${contract.suit ?? ''}/${contract.suit2 ?? ''}/${deckKind}`;
+  let g = GEOMETRIE.get(key);
+  if (g) return g;
+  const deck = createDeck(deckKind);
+  const order = orderFor(contract, 0);
+  const trumps = trumpsIn(contract, 0, deck);
+  const trumpSet = new Set(trumps);
+  const sides = SUITS.filter((s) => deck.some((c) => suitOf(c) === s && !trumpSet.has(c))).map(
+    (suit) => ({
+      suit,
+      cards: order.rankOrder
+        .map((r) => card(suit, r))
+        .filter((c) => deck.includes(c) && !trumpSet.has(c)),
+    }),
+  );
+  const late = contract.kind === 'hawaii' ? trumpsIn(contract, 99, deck) : [];
+  g = { deck, order, trumps, trumpSet, sides, late };
+  GEOMETRIE.set(key, g);
+  return g;
+}
+
+const NULL_MERKMALE = Object.fromEntries(MERKMALE.map((m) => [m, 0])) as Record<Merkmal, number>;
+
 /** Merkmale des Blatts `hand` für das Spiel `contract` (vor dem ersten Stich). */
 export function merkmaleOf(
   hand: readonly Card[],
@@ -245,53 +289,45 @@ export function merkmaleOf(
   position: number,
   players: number,
 ): Record<Merkmal, number> {
-  const deck = createDeck(deckKind);
-  const order = orderFor(contract, 0);
-  const trumps = trumpsIn(contract, 0, deck);
-  const mine = hand.filter((c) => trumps.includes(c));
-  const t = mine.length;
-  const has = (c: Card | undefined) => (c !== undefined && hand.includes(c) ? 1 : 0);
-  const sideSuits = SUITS.filter((s) => deck.some((c) => suitOf(c) === s && !trumps.includes(c)));
-  const f: Record<Merkmal, number> = Object.fromEntries(MERKMALE.map((m) => [m, 0])) as Record<
-    Merkmal,
-    number
-  >;
+  const { order, trumps, trumpSet, sides, late } = geometrie(contract, deckKind);
+  const own = new Set(hand);
+  let t = 0;
+  for (const c of hand) if (trumpSet.has(c)) t++;
+  const has = (c: Card | undefined) => (c !== undefined && own.has(c) ? 1 : 0);
+  const f: Record<Merkmal, number> = { ...NULL_MERKMALE };
   f.t = t;
   f.t2 = (t * t) / 8;
   f.top1 = has(trumps[0]);
   f.top2 = has(trumps[1]);
-  f.hoch = trumps.slice(0, 4).filter((c) => hand.includes(c)).length;
-  f.mittel = trumps.slice(4, 8).filter((c) => hand.includes(c)).length;
+  f.hoch = trumps.slice(0, 4).filter((c) => own.has(c)).length;
+  f.mittel = trumps.slice(4, 8).filter((c) => own.has(c)).length;
   f.lauf = runFromTop(hand, trumps);
-  for (const suit of sideSuits) {
-    const cards = hand.filter((c) => !trumps.includes(c) && effectiveSuit(c, order) === suit);
-    const hasRank = (r: string) => cards.some((c) => rankOf(c) === r);
-    if (hasRank('A')) f.sauen++;
-    if (hasRank('A') && hasRank('10')) f.sauZehn++;
-    if (hasRank('10') && !hasRank('A')) f.blankeZehn++;
-    if (cards.length === 0) f.frei++;
-    if (cards.length === 1 && !hasRank('A')) f.einzeln++;
-    f.lange = Math.max(f.lange, cards.length);
-    const ranks = order.rankOrder.filter((r) => {
-      const c = card(suit, r);
-      return deck.includes(c) && !trumps.includes(c);
-    });
+  for (const { suit, cards: ranked } of sides) {
+    let n = 0;
+    for (const c of hand) if (!trumpSet.has(c) && suitOf(c) === suit) n++;
+    const ace = card(suit, 'A');
+    const ten = card(suit, '10');
+    const hasAce = !trumpSet.has(ace) && own.has(ace);
+    const hasTen = !trumpSet.has(ten) && own.has(ten);
+    if (hasAce) f.sauen++;
+    if (hasAce && hasTen) f.sauZehn++;
+    if (hasTen && !hasAce) f.blankeZehn++;
+    if (n === 0) f.frei++;
+    if (n === 1 && !hasAce) f.einzeln++;
+    f.lange = Math.max(f.lange, n);
     let i = 0;
-    while (i < ranks.length && hasRank(ranks[i]!)) i++;
+    while (i < ranked.length && own.has(ranked[i]!)) i++;
     f.folge += i;
   }
   f.augen = hand.reduce((s, c) => s + pointsOf(c), 0) / 10;
   f.vorhand = position === 0 ? 1 : 0;
   f.hinterhand = position === players - 1 ? 1 : 0;
   if (MODES[contract.kind].parties === 'calledAce' && contract.suit) {
-    const called = hand.filter(
-      (c) => !trumps.includes(c) && effectiveSuit(c, order) === contract.suit,
-    );
+    const called = hand.filter((c) => !trumpSet.has(c) && suitOf(c) === contract.suit);
     f.ruf = called.length;
     f.rufZehn = called.some((c) => rankOf(c) === '10') ? 1 : 0;
   }
   if (contract.kind === 'hawaii') {
-    const late = trumpsIn(contract, 99, deck);
     f.spaet = hand.filter((c) => late.includes(c)).length;
     f.spaet2 = (f.spaet * f.spaet) / 8;
   }
@@ -411,8 +447,7 @@ export function alleSticheSicher(
 ): boolean {
   const mode = MODES[contract.kind];
   if (mode.goal !== 'points' || mode.parties !== 'alone' || trumpsChange(contract)) return false;
-  const deck = createDeck(deckKind);
-  const trumps = trumpsIn(contract, 0, deck);
+  const { deck, trumps } = geometrie(contract, deckKind);
   if (hand.every((c) => trumps.includes(c))) {
     const others = trumps.length - hand.length;
     return runFromTop(hand, trumps) >= Math.min(others, hand.length);
@@ -433,7 +468,7 @@ export function alleSticheSicher(
 function sureLaufende(hand: readonly Card[], contract: Contract, rules: RuleSet): number {
   const mode = MODES[contract.kind];
   if (!mode.hasLaufende) return 0;
-  const deck = createDeck(rules.deck);
+  const deck = geometrie(contract, rules.deck).deck;
   const trumps = laufendeTrumpsFor(contract).filter((c) => deck.includes(c));
   const threshold = rules.laufende[contract.kind as LaufendeKind];
   if (trumps.length === 0) return 0;
@@ -453,7 +488,9 @@ function sureLaufende(hand: readonly Card[], contract: Contract, rules: RuleSet)
 /** „Sie“: alle Ober und Unter im Solo – gewonnen, vierfacher Grundtarif. */
 function isSie(hand: readonly Card[], contract: Contract, rules: RuleSet): boolean {
   if (!rules.sie || contract.kind !== 'solo') return false;
-  const ou = createDeck(rules.deck).filter((c) => rankOf(c) === 'O' || rankOf(c) === 'U');
+  const ou = geometrie(contract, rules.deck).deck.filter(
+    (c) => rankOf(c) === 'O' || rankOf(c) === 'U',
+  );
   return hand.length === ou.length && ou.every((c) => hand.includes(c));
 }
 

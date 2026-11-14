@@ -20,22 +20,13 @@ import {
   createDeck,
   createRng,
   effectiveSuit,
-  legalCards,
   orderFor,
   sameContract,
   scoreHand,
   shuffle,
-  sumPoints,
-  trickWinnerIndex,
   tricksPlayed,
 } from '@schafkopf/core';
-import {
-  type Memory,
-  createHeuristicBot,
-  heuristicCard,
-  markVoid,
-  rateContract,
-} from './heuristicBot';
+import { type Memory, createHeuristicBot, markVoid, rateContract } from './heuristicBot';
 import {
   chooseWeddingGive,
   rateAcceptWedding,
@@ -43,6 +34,13 @@ import {
   weddingGiveScore,
   weddingSize,
 } from './hochzeit';
+import {
+  type Inference,
+  type InferenceParams,
+  INFERENCE_DEFAULTS,
+  createInference,
+} from './inference';
+import { playInPlace, playToEnd } from './probespiel';
 
 /**
  * Starker Bot (B2): sagt an wie der Heuristik-Bot, wählt seine Karten aber mit einer
@@ -84,11 +82,17 @@ export interface StrongBotOptions {
   /** Zeitbudget je Entscheidung in Millisekunden (nur mit `now`). */
   budgetMs?: number;
   /**
-   * Verteilungen, in denen der Ansager sein Spiel nach der Heuristik gar nicht angesagt hätte,
-   * werden verworfen (bis `PLAUSIBLE_TRIES` Versuche). Der starke Bot am Tisch rechnet ohne das;
-   * der Tutor (T1) schaltet es ein, damit er gegen ein Solo nicht mit einem schwachen Ansager rechnet.
+   * Gewichtete Verteilungen (B5, siehe `inference.ts`): Verteilungen, die zu Ansage, Kontra und
+   * den gespielten Karten der anderen passen, werden bevorzugt gezogen. Standard: an, mit
+   * `INFERENCE_DEFAULTS`; `false` ist der Stand vor B5 (alle passenden Verteilungen gleich
+   * wahrscheinlich).
    */
-  respectBids?: boolean;
+  inference?: boolean | Partial<InferenceParams>;
+  /**
+   * Nur für Messungen (Obergrenze der Gewichtung, B5): liefert die wahren Hände; dann rechnet
+   * die Suche nur auf dieser einen Verteilung. Am Tisch nie gesetzt.
+   */
+  peek?: () => Card[][];
   /**
    * Grundlage der Ansage (B4): Standard sind die Ansage-Tabellen der Heuristik; `'faustregel'`
    * ist der Stand vor B4 (Schwellen der Heuristik, knappe Blätter durchgespielt).
@@ -97,13 +101,14 @@ export interface StrongBotOptions {
 }
 
 /**
- * Standardaufwand: auf einem Entwicklerrechner im Schnitt unter 20 ms, höchstens etwa 60 ms je
- * Entscheidung (eine simulierte Karte kostet dort rund 30 µs).
+ * Standardaufwand (seit B5 wie beim Tutor): auf einem Entwicklerrechner mit gewichteten
+ * Verteilungen im Schnitt etwa 95 ms je Kartenwahl, höchstens etwa 160 ms (eine simulierte Karte
+ * kostet dort rund 12 µs). Vor B5: 2000 Karten, 6–40 Verteilungen.
  */
 export const STRONG_DEFAULTS = {
-  playBudget: 2000,
-  minSamples: 6,
-  maxSamples: 40,
+  playBudget: 5000,
+  minSamples: 10,
+  maxSamples: 60,
   bidBudget: 2000,
   minBidSamples: 4,
 } as const;
@@ -356,12 +361,23 @@ export function playOutHand(setup: PlayOutSetup, rng: Rng): HandState {
   return state;
 }
 
+interface Clock {
+  expired(): boolean;
+  /** Eine Uhr mit der Hälfte des Budgets, ab jetzt. */
+  half?(): Clock;
+}
+
+const NO_CLOCK: Clock = { expired: () => false };
+
 /** Zeitgrenze über die injizierte Uhr; ohne Uhr läuft nie etwas ab. */
-function startClock(options: StrongBotOptions): { expired(): boolean } {
+function startClock(options: StrongBotOptions): Clock {
   const { now, budgetMs } = options;
-  if (!now || budgetMs === undefined) return { expired: () => false };
+  if (!now || budgetMs === undefined) return NO_CLOCK;
   const start = now();
-  return { expired: () => now() - start > budgetMs };
+  return {
+    expired: () => now() - start > budgetMs,
+    half: () => startClock({ now, budgetMs: budgetMs / 2 }),
+  };
 }
 
 function rulesFor(options: StrongBotOptions, players: number, deckSize: number): RuleSet {
@@ -414,14 +430,27 @@ interface Knowledge {
   allowedFor: Map<Card, Seat[]>;
   /** Rufsau im Sauspiel, solange sie nicht gefallen ist. */
   calledAce: Card | null;
-  /** Nur mit `respectBids`: Hätte der Ansager mit dieser Verteilung so angesagt? */
-  plausible: ((hands: Card[][]) => boolean) | null;
+  /** Gewicht einer Verteilung (B5); `null` ohne Gewichtung oder ohne Beobachtung. */
+  infer: Inference | null;
+  /** Kandidaten je benötigter Verteilung. */
+  candidateFactor: number;
+  /**
+   * Geschätzte Kosten der Gewichtung je benötigter Verteilung in simulierten Karten: Jeder
+   * Kandidat spielt die Karten der anderen mit der Heuristik nach (im Schnitt bricht etwa die
+   * Hälfte früh ab, `REPLAY_SHARE`). Zählt ins Budget, damit die Rechenzeit gleich bleibt.
+   */
+  inferCost: number;
+  peek: (() => Card[][]) | undefined;
 }
+
+/** Anteil der nachgespielten Karten, den ein Kandidat im Schnitt kostet (früher Abbruch). */
+const REPLAY_SHARE = 0.5;
 
 function knowledge(
   view: HandView,
   log: TrickLog,
   options: StrongBotOptions,
+  rng: Rng,
   me: Seat = view.turn,
 ): Knowledge {
   const contract = view.contract!;
@@ -462,52 +491,99 @@ function knowledge(
       );
     }
   }
-  const plausible = options.respectBids ? bidPlausibility(view, me, playedBy, deckSize) : null;
-  return { me, players, rules, unseen, voids, playedBy, allowedFor, calledAce, plausible };
+  const params = inferenceParams(options);
+  const infer = params
+    ? createInference({ view, me, rules, tricks: log.tricks, playedBy }, rng, params)
+    : null;
+  const candidateFactor = params?.candidateFactor ?? 1;
+  const observed = playedBy.reduce((n, cards, s) => (s === me ? n : n + cards.length), 0);
+  const inferCost = infer ? candidateFactor * observed * REPLAY_SHARE : 0;
+  return {
+    me,
+    players,
+    rules,
+    unseen,
+    voids,
+    playedBy,
+    allowedFor,
+    calledAce,
+    infer,
+    candidateFactor,
+    inferCost,
+    peek: options.peek,
+  };
 }
 
-/** Mindestmarge der Heuristik, mit der ein Ansager sein Spiel plausibel angesagt hat. */
-const PLAUSIBLE_MARGIN = -2.0;
-/** So oft wird höchstens neu verteilt, bis der Ansager ein passendes Blatt hat. */
-const PLAUSIBLE_TRIES = 20;
-
-/**
- * Prüft, ob der Ansager (nicht man selbst) mit seinem Blatt aus dieser Verteilung sein Spiel
- * angesagt hätte: Marge der Heuristik für sein Ausgangsblatt (verbleibende plus gespielte Karten)
- * mindestens `PLAUSIBLE_MARGIN`. Ohne Ansager, für einen selbst, bei Spielen mit Vorspiel
- * (Hochzeit: getauschte Karten unbekannt) und im Bettel gibt es keine Prüfung.
- */
-function bidPlausibility(
-  view: HandView,
-  me: Seat,
-  playedBy: Card[][],
-  deckSize: number,
-): ((hands: Card[][]) => boolean) | null {
-  const contract = view.contract;
-  const declarer = view.declarer;
-  if (!contract || declarer === null || declarer === me) return null;
-  // Bettel bewertet die Heuristik nur als sicher/unsicher – zu streng als Filter.
-  if (MODES[contract.kind].prelude || MODES[contract.kind].goal !== 'points') return null;
-  const base: Contract = { ...contract, tout: false };
-  return (hands) =>
-    rateContract([...hands[declarer]!, ...playedBy[declarer]!], base, deckSize) >= PLAUSIBLE_MARGIN;
+function inferenceParams(options: StrongBotOptions): InferenceParams | null {
+  const o = options.inference ?? true;
+  if (o === false) return null;
+  return o === true ? INFERENCE_DEFAULTS : { ...INFERENCE_DEFAULTS, ...o };
 }
 
 function playedCount(view: HandView, log: TrickLog): number {
   return log.tricks.reduce((n, t) => n + t.cards.length, 0) + view.currentTrick.cards.length;
 }
 
+/** Eine Verteilung der verdeckten Karten mit ihrem Gewicht (Vielfachheit in der Stichprobe). */
+interface World {
+  hands: Card[][];
+  weight: number;
+}
+
+/** Unter dieser relativen Gewichtsschwelle (log) wird eine Verteilung nicht weiter gewichtet. */
+const LOG_CUTOFF = Math.log(1e-3);
+
 /**
- * Verteilt die ungesehenen Karten zufällig auf die anderen Sitze. Am stärksten eingeschränkte
- * Karten zuerst; geht es nicht auf, neuer Versuch, zuletzt ohne die Fehlfarben-Schlüsse.
+ * Zieht `count` Verteilungen. Ohne Gewichtung: `count` gleich wahrscheinliche Verteilungen
+ * (`sampleOnce`). Mit Gewichtung (B5): `candidateFactor × count` Kandidaten, jeder gewichtet nach
+ * `k.infer`, daraus `count` Stück nach Gewicht gezogen (systematisches Resampling). Mehrfach
+ * gezogene Verteilungen kommen einmal mit entsprechendem Gewicht zurück – so kostet ein
+ * dominanter Kandidat nur ein Probespiel. Die Gewichte summieren sich zu `count`.
  */
-function sampleHands(view: HandView, k: Knowledge, rng: Rng): Card[][] {
-  if (!k.plausible) return sampleOnce(view, k, rng);
-  for (let i = 0; i < PLAUSIBLE_TRIES; i++) {
-    const hands = sampleOnce(view, k, rng);
-    if (k.plausible(hands)) return hands;
+function sampleWorlds(
+  view: HandView,
+  k: Knowledge,
+  rng: Rng,
+  count: number,
+  clock: Clock = NO_CLOCK,
+): World[] {
+  if (k.peek) return [{ hands: k.peek().map((h) => [...h]), weight: count }];
+  if (!k.infer || count <= 0) {
+    return Array.from({ length: count }, () => ({ hands: sampleOnce(view, k, rng), weight: 1 }));
   }
-  return sampleOnce(view, k, rng);
+  const n = Math.max(count, Math.ceil(count * k.candidateFactor));
+  const candidates: Card[][][] = [];
+  const logs: number[] = [];
+  let best = -Infinity;
+  // Mit Uhr (langsame Geräte): höchstens die Hälfte der Zeit für die Kandidaten.
+  const half = clock.half?.() ?? NO_CLOCK;
+  for (let i = 0; i < n; i++) {
+    if (i >= count && half.expired()) break;
+    const hands = sampleOnce(view, k, rng);
+    const w = k.infer(hands, best + LOG_CUTOFF);
+    candidates.push(hands);
+    logs.push(w);
+    if (w > best) best = w;
+  }
+  const weights = logs.map((w) => (w < best + LOG_CUTOFF ? 0 : Math.exp(w - best)));
+  const total = weights.reduce((a, b) => a + b, 0);
+  const counts = new Array<number>(candidates.length).fill(0);
+  const step = total / count;
+  let x = rng() * step;
+  let acc = 0;
+  for (let i = 0, picked = 0; i < candidates.length && picked < count; i++) {
+    acc += weights[i]!;
+    while (x < acc && picked < count) {
+      counts[i]!++;
+      picked++;
+      x += step;
+    }
+  }
+  const worlds: World[] = [];
+  counts.forEach((c, i) => {
+    if (c > 0) worlds.push({ hands: candidates[i]!, weight: c });
+  });
+  return worlds;
 }
 
 function sampleOnce(view: HandView, k: Knowledge, rng: Rng): Card[][] {
@@ -615,92 +691,10 @@ function memoryOf(state: HandState, k: Knowledge): Memory {
   return memory;
 }
 
-/** Sicht eines Sitzes im Probespiel – nur die Felder, die die Heuristik beim Kartenspiel liest. */
-function simView(state: HandState, seat: Seat, legal: Card[], memory: Memory): HandView {
-  const tricksWon = state.hands.map(() => 0);
-  for (const t of state.tricks) tricksWon[t.winner]!++;
-  const parties = MODES[state.contract!.kind].parties;
-  const sau =
-    parties === 'calledAce' && state.contract!.suit ? card(state.contract!.suit, 'A') : null;
-  const partnerKnown =
-    state.partner !== null &&
-    (parties !== 'calledAce' ||
-      seat === state.partner ||
-      state.doubling.re === state.partner ||
-      (sau !== null && memory.played.has(sau)));
-  return {
-    phase: 'playing',
-    dealer: state.dealer,
-    turn: seat,
-    hand: state.hands[seat]!,
-    handSizes: state.hands.map((h) => h.length),
-    bids: state.bids,
-    auction: state.auction,
-    contract: state.contract,
-    declarer: state.declarer,
-    partner: partnerKnown ? state.partner : null,
-    prelude: null,
-    currentTrick: state.currentTrick,
-    lastTrick: state.tricks.at(-1) ?? null,
-    tricks: null,
-    tricksWon,
-    legalCards: legal,
-    legalCalls: [],
-    legalMoves: [],
-    doubling: state.doubling,
-    canDouble: false,
-    result: null,
-  };
-}
-
-/** Legt eine Karte; verändert `state` und `memory` (beides Kopien des Probespiels). */
-function playInPlace(state: HandState, memory: Memory, seat: Seat, c: Card): void {
-  const players = state.hands.length;
-  const order = orderFor(state.contract!, state.tricks.length);
-  state.hands[seat] = state.hands[seat]!.filter((x) => x !== c);
-  const trick = state.currentTrick;
-  const lead = trick.cards[0];
-  if (lead !== undefined) {
-    const leadSuit = effectiveSuit(lead, order);
-    if (effectiveSuit(c, order) !== leadSuit) markVoid(memory, seat, leadSuit, order);
-  }
-  trick.cards.push(c);
-  memory.played.add(c);
-  if (trick.cards.length < players) {
-    state.turn = (seat + 1) % players;
-    return;
-  }
-  const winner = (trick.leader + trickWinnerIndex(trick.cards, order)) % players;
-  state.tricks.push({
-    leader: trick.leader,
-    cards: trick.cards,
-    winner,
-    points: sumPoints(trick.cards),
-  });
-  memory.pointsWon[winner] = (memory.pointsWon[winner] ?? 0) + sumPoints(trick.cards);
-  memory.tricksSeen = state.tricks.length;
-  state.currentTrick = { leader: winner, cards: [] };
-  state.turn = winner;
-}
-
 /** Spielt von `state` aus mit der Heuristik zu Ende; Ergebnis aus Sicht von `me` in Cent. */
 function rollout(state: HandState, memory: Memory, me: Seat, rng: Rng): number {
   playToEnd(state, memory, rng);
   return scoreHand(state).payments[me]!;
-}
-
-/** Spielt von `state` aus mit der Heuristik zu Ende (verändert `state` und `memory`). */
-function playToEnd(state: HandState, memory: Memory, rng: Rng): void {
-  while (state.hands.some((h) => h.length > 0)) {
-    const seat = state.turn;
-    const legal = legalCards(state, seat);
-    const c =
-      legal.length === 1
-        ? legal[0]!
-        : heuristicCard(simView(state, seat, legal, memory), memory, rng);
-    playInPlace(state, memory, seat, c);
-  }
-  state.phase = 'finished';
 }
 
 function search(
@@ -732,36 +726,40 @@ function sampleCards(
   me: Seat,
   rng: Rng,
   options: StrongBotOptions,
-): { totals: number[]; done: number; values: number[][] } {
+): { totals: number[]; done: number; values: number[][]; weights: number[] } {
   const legal = view.legalCards;
-  const k = knowledge(view, log, options, me);
+  const k = knowledge(view, log, options, rng, me);
   const remaining = view.handSizes.reduce((a, b) => a + b, 0);
   const budget = options.playBudget ?? STRONG_DEFAULTS.playBudget;
   const minSamples = options.minSamples ?? STRONG_DEFAULTS.minSamples;
   const maxSamples = options.maxSamples ?? STRONG_DEFAULTS.maxSamples;
   const samples = Math.max(
     minSamples,
-    Math.min(maxSamples, Math.floor(budget / (legal.length * remaining))),
+    Math.min(maxSamples, Math.floor(budget / (legal.length * remaining + k.inferCost))),
   );
   const clock = startClock(options);
 
   const totals = legal.map(() => 0);
   const values: number[][] = legal.map(() => []);
+  const weights: number[] = [];
   let done = 0;
-  for (let i = 0; i < samples; i++) {
+  const worlds = sampleWorlds(view, k, rng, samples, clock);
+  for (let i = 0; i < worlds.length; i++) {
     if (i >= 2 && clock.expired()) break;
-    const base = determinize(view, log, k, sampleHands(view, k, rng));
+    const { hands, weight } = worlds[i]!;
+    const base = determinize(view, log, k, hands);
     legal.forEach((c, j) => {
       const state = cloneState(base);
       const memory = memoryOf(state, k);
       playInPlace(state, memory, k.me, c);
       const v = rollout(state, memory, k.me, rng);
-      totals[j]! += v;
+      totals[j]! += weight * v;
       values[j]!.push(v);
     });
-    done++;
+    weights.push(weight);
+    done += weight;
   }
-  return { totals, done, values };
+  return { totals, done, values, weights };
 }
 
 // ---------------------------------------------------------------------------
@@ -771,13 +769,18 @@ function sampleCards(
 export interface Evaluation<T> {
   option: T;
   cents: number;
-  /** Zahl der Kartenverteilungen, über die gemittelt wurde. */
+  /** Zahl der Kartenverteilungen, über die gemittelt wurde (mit Gewicht gezählt). */
   samples: number;
   /**
    * Ergebnis je Verteilung (gleiche Reihenfolge für alle Möglichkeiten einer Bewertung) – damit
    * lässt sich prüfen, ob ein Unterschied mehr ist als Zufall (gepaarter Vergleich).
    */
   values: number[];
+  /**
+   * Gewicht je Verteilung (B5: wie oft sie beim gewichteten Ziehen gewählt wurde); fehlt es,
+   * zählt jede gleich. `cents` ist das gewichtete Mittel von `values`.
+   */
+  weights?: number[];
 }
 
 /**
@@ -795,13 +798,14 @@ export function evaluateCards(
   if (view.phase !== 'playing' || !view.contract || view.legalCards.length === 0) return [];
   if (tricks.length !== tricksPlayed(view)) return [];
   const log: TrickLog = { tricks: [...tricks], complete: true };
-  const { totals, done, values } = sampleCards(view, log, view.turn, rng, options);
+  const { totals, done, values, weights } = sampleCards(view, log, view.turn, rng, options);
   if (done === 0) return [];
   return view.legalCards.map((c, j) => ({
     option: c,
     cents: totals[j]! / done,
     samples: done,
     values: values[j]!,
+    weights,
   }));
 }
 
@@ -819,7 +823,7 @@ export function evaluateDouble(
   if (view.phase !== 'playing' || !view.contract || view.declarer === null) return [];
   if (tricksPlayed(view) > 0 || view.currentTrick.cards.length > 0) return [];
   const log: TrickLog = { tricks: [], complete: true };
-  const k = knowledge(view, log, options, seat);
+  const k = knowledge(view, log, options, rng, seat);
   const remaining = view.handSizes.reduce((a, b) => a + b, 0);
   const budget = options.playBudget ?? STRONG_DEFAULTS.playBudget;
   const samples = Math.max(
@@ -831,21 +835,24 @@ export function evaluateDouble(
   const clock = startClock(options);
   const pass: number[] = [];
   const double: number[] = [];
+  const weights: number[] = [];
   let done = 0;
-  for (let i = 0; i < samples; i++) {
+  const worlds = sampleWorlds(view, k, rng, samples, clock);
+  for (let i = 0; i < worlds.length; i++) {
     if (i >= 2 && clock.expired()) break;
-    const state = determinize(view, log, k, sampleHands(view, k, rng));
+    const state = determinize(view, log, k, worlds[i]!.hands);
     const memory = memoryOf(state, k);
     rollout(state, memory, seat, rng);
     pass.push(scoreHand(state).payments[seat]!);
     double.push(scoreHand({ ...state, doubling: doubled }).payments[seat]!);
-    done++;
+    weights.push(worlds[i]!.weight);
+    done += worlds[i]!.weight;
   }
   if (done === 0) return [];
-  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const mean = (xs: number[]) => xs.reduce((a, x, i) => a + weights[i]! * x, 0) / done;
   return [
-    { option: true, cents: mean(double), samples: done, values: double },
-    { option: false, cents: mean(pass), samples: done, values: pass },
+    { option: true, cents: mean(double), samples: done, values: double, weights },
+    { option: false, cents: mean(pass), samples: done, values: pass, weights },
   ];
 }
 
@@ -1101,4 +1108,19 @@ export function evaluateWeddingGive(
     samples: done,
     values: values[j]!,
   }));
+}
+
+/**
+ * Die Verteilungen, auf denen die Suche für `view.turn` rechnen würde (mit Gewicht), ohne
+ * Probespiele – für Tests und Messungen der Gewichtung (B5).
+ */
+export function sampleDeals(
+  view: HandView,
+  tricks: readonly CompletedTrick[],
+  rng: Rng,
+  count: number,
+  options: StrongBotOptions = {},
+): { hands: Card[][]; weight: number }[] {
+  const log: TrickLog = { tricks: [...tricks], complete: true };
+  return sampleWorlds(view, knowledge(view, log, options, rng), rng, count);
 }

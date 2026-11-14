@@ -11,13 +11,15 @@ export interface CardOrder {
   trumps: readonly Card[];
   /** Stichreihenfolge der Ränge innerhalb einer Nicht-Trumpf-Farbe, höchster zuerst. */
   rankOrder: readonly Rank[];
+  /** Die Trümpfe als Menge (schnellere Abfrage); fehlt sie, gilt `trumps`. */
+  trumpSet?: ReadonlySet<Card>;
 }
 
 /** Trumpf zählt beim Bedienen als eigene "Farbe". */
 export type EffectiveSuit = Suit | 'trump';
 
 export function isTrump(c: Card, order: CardOrder): boolean {
-  return order.trumps.includes(c);
+  return order.trumpSet ? order.trumpSet.has(c) : order.trumps.includes(c);
 }
 
 export function effectiveSuit(c: Card, order: CardOrder): EffectiveSuit {

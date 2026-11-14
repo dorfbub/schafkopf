@@ -14,7 +14,8 @@ Inhalt:
 5. [Messung der Faustregeln](#messung-der-faustregeln-t4) – Wert je Regel in Cent
 6. [Didaktik](#didaktik) – wie der Tutor fragt, rät und bewertet
 7. [Wie der Tutor rechnet](#wie-der-tutor-rechnet) – Schwellen, Automatikmodus, Grenzen
-8. [Textvorschläge für die Oberfläche](#textvorschläge-für-die-oberfläche)
+8. [Gewichtete Verteilungen (B5)](#gewichtete-verteilungen-b5) – was die Suche aus dem Verhalten der anderen schließt
+9. [Textvorschläge für die Oberfläche](#textvorschläge-für-die-oberfläche)
 
 ---
 
@@ -62,10 +63,12 @@ Trumpfstärke des Spiels plus Sauen. Re nur mit deutlich mehr, als das Spiel bra
   Karten loswerden; Durchmarsch nur mit fast sicherem Blatt; hat ein anderer alle Stiche, einen
   sicheren Stich nehmen.
 
-**Stark (B2).** Bewertet jede erlaubte Karte mit Probespielen: Die ungesehenen Karten werden passend
-zu allem Bekannten (Kartenzahlen, Fehlfarben, Rufsau) zufällig verteilt und mit der Heuristik zu
-Ende gespielt; gezählt werden die Cent am Ende. Knappe Ansagen spielt er ebenso durch. Diese Suche
-ist die Rechnung des Tutors (siehe [unten](#wie-der-tutor-rechnet)).
+**Stark (B2, B5).** Bewertet jede erlaubte Karte mit Probespielen: Die ungesehenen Karten werden passend
+zu allem Bekannten (Kartenzahlen, Fehlfarben, Rufsau) verteilt und mit der Heuristik zu Ende
+gespielt; gezählt werden die Cent am Ende. Seit B5 sind die Verteilungen nicht mehr gleich
+wahrscheinlich: Bevorzugt werden die, die zu Ansage, Kontra und den gespielten Karten der anderen
+passen (siehe [unten](#gewichtete-verteilungen-b5)). Angesagt wird nach der Ansage-Tabelle wie bei
+der Heuristik. Diese Suche ist die Rechnung des Tutors (siehe [unten](#wie-der-tutor-rechnet)).
 
 ## Quellen
 
@@ -122,12 +125,14 @@ Begründungen hier sind eigene.
    Rauschen. **Entscheidung:** Sind zwei Möglichkeiten im Rahmen des Rauschens gleich gut, gewinnt
    die Faustregel (sie lässt sich lernen); ist eine deutlich besser, gewinnt die Rechnung, und die
    Regel erscheint als Ausnahme.
-8. **Was der Ansager hat.** Die Suche des starken Bots verteilt die verdeckten Karten, als hätte
-   der Ansager irgendein Blatt. Gegen ein Solo rechnet sie dann mit einem viel zu schwachen
-   Spieler und rät etwa, Sauen anzuspielen, die längst gestochen würden. **Entscheidung:** Der Tutor
-   verwirft Verteilungen, in denen der Ansager sein Spiel nach der Heuristik nicht angesagt hätte
-   (`respectBids`, Marge unter −2, nicht bei Bettel und Hochzeit). Der starke Bot am Tisch bleibt
-   unverändert.
+8. **Was der Ansager hat.** Die Suche des starken Bots verteilte die verdeckten Karten, als hätte
+   der Ansager irgendein Blatt. Gegen ein Solo rechnete sie dann mit einem viel zu schwachen
+   Spieler und riet etwa, Sauen anzuspielen, die längst gestochen würden. **Entscheidung (T1):** Der
+   Tutor verwarf Verteilungen, in denen der Ansager sein Spiel nach der Heuristik nicht angesagt
+   hätte (`respectBids`). **Seit B5** geht das in der Gewichtung der Verteilungen auf: Ansage aller
+   anderen (auch „weiter“), Kontra und gespielte Karten zählen als weiche Wahrscheinlichkeit, beim
+   starken Bot am Tisch wie bei Max; auch Bettel und die Mitspieler eines Hochzeitsspiels sind
+   eingeschlossen (siehe [Gewichtete Verteilungen](#gewichtete-verteilungen-b5)).
 
 ## Der Katalog
 
@@ -886,8 +891,10 @@ Rauschen. Gewählt ist **0** – spielen, sobald das Spiel im Schnitt mehr bring
   Daten kaum vor). Auf zufälligen Blättern liegt die direkte Messung im Schnitt etwas unter der
   Messung in den Daten (64 % statt 69 % gewonnen, acht Blätter, etwa 1,6 Standardfehler) – die
   Bettel-Werte sind eher etwas zu hoch.
-- Die **Ansage der anderen** fließt nicht ein: Hat vorher jemand „Ich würde“ gesagt, sind die Gegner
-  stärker als im Schnitt; haben alle „weiter“ gesagt, schwächer. Ebenso fehlen Kontra und Re.
+- Die **Ansage der anderen** fließt in die Tabelle nicht ein: Hat vorher jemand „Ich würde“ gesagt,
+  sind die Gegner stärker als im Schnitt; haben alle „weiter“ gesagt, schwächer. Ebenso fehlen
+  Kontra und Re. (Im Kartenspiel nutzt die Suche das seit B5, siehe
+  [Gewichtete Verteilungen](#gewichtete-verteilungen-b5).)
 - „Weiter“ zählt 0 (wie bisher beim starken Bot und bei Max).
 - Laufende mit Partner: nur die eigenen „mit“; dass der Partner sie verlängert, ist nicht geschätzt.
 - Seltene Ecken (Hawaii mit vier Königen, Tout ohne sichere Folge) schätzt die Tabelle unsicherer;
@@ -967,7 +974,8 @@ er nie; ein Test prüft, dass dieselbe Sicht mit anderen verdeckten Karten diese
 Fehlen Stiche (etwa nach dem Neuladen), rechnet er nicht, sondern rät nur mit Faustregeln und der
 Heuristik (`basis: 'faustregel'`).
 
-**Rechnung:** die Suche des starken Bots mit etwa dem Zweieinhalbfachen an Aufwand (`TUTOR_BUDGET`),
+**Rechnung:** die Suche des starken Bots, seit B5 mit gewichteten Verteilungen und demselben
+Aufwand wie er (`TUTOR_BUDGET`; vor B5 das Zweieinhalbfache),
 über die Bot-Funktionen `evaluateCards`, `evaluateContracts` und `evaluateDouble`. Werte sind
 erwartete Cent für den Fragenden. „Weiter“ zählt bei der Ansage 0 (Näherung wie beim starken Bot);
 eine _angesagte_ Hochzeit (Ansage) wird nicht simuliert, sondern aus der Heuristik geschätzt
@@ -985,13 +993,15 @@ plausibel heißt: Eine greifende Faustregel oder die Heuristik spricht dafür. A
 „hoch“.** Klare Entscheidungen, bei denen Regel, Heuristik und Rechnung übereinstimmen, haben
 keinen Einsatz – da braucht es keinen Lehrer.
 
-**Laufzeit:** unter 300 ms je Frage auf einem Entwicklerrechner (Test; gemessen etwa 20–150 ms).
+**Laufzeit:** unter 300 ms je Frage auf einem Entwicklerrechner (Test; gemessen nach B5 im Schnitt
+45 ms, höchstens etwa 120 ms).
 Für langsame Geräte nimmt `TutorOptions` eine Uhr und ein Zeitbudget wie der starke Bot; T2 rechnet
 bei Bedarf in einem Web Worker.
 
 **Grenzen:** Gegner und Partner spielen in den Probespielen wie die Heuristik, nicht wie Menschen.
-Was die Ansage der anderen verrät („Ich würde“, Zweikampf), nutzt die Rechnung nur für den Ansager
-selbst (`respectBids`).
+Was Ansage, Kontra und Kartenspiel der anderen verraten, gewichtet die Suche seit B5 mit der
+Heuristik als Modell (siehe [Gewichtete Verteilungen](#gewichtete-verteilungen-b5)); spielt jemand
+ganz anders, rechnet sie wie ohne Gewichtung.
 
 **Hochzeit annehmen und zurückgeben (T3):** über die Bot-Funktionen `evaluateWeddingOffer` und
 `evaluateWeddingGive`. Der Fragende kennt nur seine Karten; der Hochzeiter ist eine Stichprobe:
@@ -1003,6 +1013,148 @@ rechnet die höchstens sechs Rückgaben durch, die die Heuristik am besten finde
 Hochzeit sind es sonst bis zu 45), alle auf denselben Verteilungen. Die Frage „annehmen?“ stellt
 sich im Schritt `offer`, die Rückgabe im Schritt `exchange`; im Automatikmodus meldet sich Max hier
 nicht, weil Ablehnen selten eine plausible Alternative ist, die viel kostet.
+
+## Gewichtete Verteilungen (B5)
+
+Bis B4 verteilte die Suche von „Stark“ (und damit Max) die verdeckten Karten gleich
+wahrscheinlich, eingeschränkt nur durch harte Tatsachen: Kartenzahlen, erkannte Fehlfarben, Rufsau.
+Was die anderen angesagt und gespielt haben, sagt aber viel mehr. Seit B5 werden die Verteilungen
+danach gewichtet, wie gut sie dazu passen („policy-based inference“, beim Skat ein bekannter Hebel).
+
+### Verfahren
+
+Code: `packages/bots/src/inference.ts` (Gewicht einer Verteilung), `strongBot.ts` (`sampleWorlds`).
+
+1. **Modell: die Heuristik selbst.** Für jede Beobachtung fragt die Gewichtung, wie wahrscheinlich
+   sie mit dem Blatt wäre, das die Verteilung dem Sitz gibt (Blatt zu Spielbeginn = jetzige Karten
+   plus die schon gespielten):
+   - **Ansage** (alle anderen, Ansage-Tabelle aus B4): „weiter“ → kein Spiel über der Schwelle;
+     „Ich würde“ → eines; im Zweikampf genannt oder gehalten → eines mindestens dieser Höhe;
+     aufgegeben → keines; der Ansager → sein Spiel lohnt sich. Wahrscheinlichkeit
+     `0,05 + 0,9 · σ(Wert / Tarif)` bzw. eins minus das (`bidFloor`, `bidTemp`). Im Muss verrät das
+     erzwungene Spiel nichts; bei Hochzeiten fehlen Ansager und Partner (Karten getauscht).
+   - **Kontra und Re:** wie der Heuristik-Bot doppelt (`kontraStrength`, Re-Marge), ebenso weich.
+   - **Kartenspiel:** Alle Stiche werden mit den Händen der Verteilung vom ersten an nachgespielt;
+     bei jeder Karte eines anderen (mit mehr als einer erlaubten) wird die Heuristik gefragt. Spielt
+     sie dieselbe Karte, Faktor 1, sonst `cardMiss` = 0,2. Darin stecken Schmieren, Abwerfen,
+     Davonlaufen, nicht Einstechen, das Ausspiel des Spielers (von oben, also hat er die höheren
+     Trümpfe nicht) usw. – ohne dass jede Regel einzeln beschrieben werden muss.
+2. **Weich statt Filter.** Keine Beobachtung schließt eine Verteilung aus. Spielt jemand ganz
+   anders als die Heuristik (ein Mensch), kostet das alle Verteilungen etwa gleich, und die Suche
+   rechnet wie ohne Gewichtung weiter – sie läuft nie leer. Ein Test spielt dafür mit
+   „Wildfängen“, die zufällig ansagen, doppeln und spielen (`strengthLegality.test.ts`).
+3. **Ziehen nach Gewicht.** Je benötigter Verteilung werden sechs Kandidaten gezogen
+   (`candidateFactor`) und gewichtet; daraus wird die benötigte Zahl nach Gewicht gezogen
+   (systematisches Resampling). Mehrfach gezogene Verteilungen werden nur einmal durchgespielt und
+   zählen mit ihrem Gewicht; der Tutor rechnet den Standardfehler mit diesen Gewichten
+   (effektive Zahl der Verteilungen). Kandidaten weit unter dem besten (Faktor 1/1000) werden
+   nicht zu Ende gewichtet.
+4. **Kosten.** Das Nachspielen zählt ins Budget der Suche (`inferCost`), die Ansage-Werte werden
+   nur für Spiele mit genug Trümpfen berechnet. Der Kern merkt sich die Kartenordnung je Spiel samt
+   Trumpf-Menge (`orderFor`), die Ansage-Merkmale ihre Spielgeometrie – beides ändert keine
+   Entscheidung, macht aber Heuristik und Suche etwa 2,5-mal schneller. Das erlaubt „Stark“ das
+   Budget von Max (5000 simulierte Karten, 10–60 Verteilungen statt 2000 und 6–40).
+
+### Ergebnis
+
+**Wie gut die Gewichtung die Karten trifft** (3200 Kartenwahlen in Spielen mit vier Normal-Bots,
+Anteil der verdeckten Karten, die in der Stichprobe beim richtigen Sitz liegen):
+
+| Verteilungen                                     | richtig | effektive Zahl |
+| ------------------------------------------------ | ------: | -------------: |
+| gleich wahrscheinlich (vor B5)                   |  40,2 % |             30 |
+| nur Ansage gewichtet                             |  43,8 % |             24 |
+| Ansage und Karten (3 Kandidaten)                 |  50,5 % |             14 |
+| Ansage und Karten (6 Kandidaten, `cardMiss` 0,1) |  52,1 % |             16 |
+
+Den größten Teil liefert das Kartenspiel. Strengere Gewichte treffen mehr Karten, lassen aber
+weniger verschiedene Verteilungen übrig (effektive Zahl).
+
+**Entscheidungsverlust gegen die wahre Verteilung** (`gewichtungVerlust.test.ts`, 20 250
+Kartenwahlen, gepaart; Verlust = was die gewählte Karte auf der wahren Verteilung weniger bringt
+als die beste, in Cent):
+
+| Budget              | ohne Gewichtung |                  6 Kandidaten | 10 Kandidaten |
+| ------------------- | --------------: | ----------------------------: | ------------: |
+| Stark vor B5 (2000) |            5,86 | −0,01 ± 0,21 (`cardMiss` 0,1) |  −0,35 ± 0,20 |
+| Max (5000, 10–60)   |            5,67 |                  −0,47 ± 0,18 |  −0,58 ± 0,18 |
+
+Mit kleinem Budget frisst die geringere Zahl verschiedener Verteilungen den Gewinn fast auf; mit
+dem Budget von Max sinkt der Verlust um gut 8 % (fast drei Standardfehler).
+
+**Gepaarter Vergleich** (`strengthGewichtung.test.ts`, wie B2/B4: beide Fassungen auf demselben
+Platz, dieselben Karten, Normal-Bots als Mitspieler, 16 000 Spiele):
+
+| Vergleich                                                          | Vorteil (ct je Spiel) |
+| ------------------------------------------------------------------ | --------------------: |
+| Stark heute (Gewichtung, Budget 5000) gegen Stark vor B5           |          +2,03 ± 0,35 |
+| nur das Budget (5000, ohne Gewichtung) gegen Stark vor B5          |          +1,57 ± 0,33 |
+| nur die Gewichtung (beide Budget 5000)                             |          +0,46 ± 0,34 |
+| zum Vergleich: Stark kennt die wahren Karten (Mogeln, 8000 Spiele) |           +10,0 ± 0,5 |
+
+Ehrlich eingeordnet: Das neue „Stark“ ist messbar besser (Schwelle im großen Lauf: mehr als
+1 Cent und drei Standardfehler). Der größte Teil kommt aber vom höheren Budget, das erst die
+Beschleunigung bezahlbar macht. Die Gewichtung allein bringt im ganzen Spiel etwa einen halben
+Cent – nicht sicher von null verschieden, obwohl sie deutlich mehr Karten richtig verteilt und den
+Entscheidungsverlust messbar senkt. Volle Kenntnis der Karten wäre zehn Cent wert; die
+Gewichtung schöpft davon wenig ab. Vermutlich, weil sie vor allem leicht zu erratende Karten
+richtig setzt, während die entscheidenden (wo genau der eine hohe Trumpf sitzt) unsicher bleiben,
+und weil sie die Zahl verschiedener Verteilungen senkt. Parameter (strenger, milder, mehr
+Kandidaten, Ansage breiter oder schmaler) lagen in Läufen zu 4000 Spielen alle im Rauschen.
+
+**Max** rechnet mit derselben Suche; die Gewichtung ersetzt `respectBids`. Bei seinem Budget ist
+der Gewinn am klarsten (Entscheidungsverlust oben). Gegen Menschen, die anders spielen als die
+Heuristik, wird die Gewichtung schwächer, schadet aber nicht (weich).
+
+**Laufzeit** (AMD Ryzen 7 7800X3D, Node 26, je Entscheidung):
+
+| Wer                                            | Kartenwahl im Schnitt | 95 % unter | längste |
+| ---------------------------------------------- | --------------------: | ---------: | ------: |
+| Stark vor B5 (Budget 2000)                     |                 34 ms |      60 ms |   74 ms |
+| dasselbe mit den Beschleunigungen aus B5       |                 11 ms |      17 ms |   26 ms |
+| Stark heute (5000, Gewichtung)                 |                 94 ms |     131 ms |  158 ms |
+| Max, alle Testlagen (Bestwert aus drei Läufen) |                 45 ms |          – |  119 ms |
+
+Damit bleiben beide unter 300 ms (Tests: Max jede Lage, Stark längste Entscheidung). Auf langsamen
+Geräten schützt das Zeitbudget der Web-App (200 ms): Die Kandidaten bekommen höchstens die Hälfte
+davon, die Probespiele brechen danach ab.
+
+**Faustregelwerte** nach B5 neu gemessen: alle 23 Regeln, deren Wert von der Suche abhängt
+(Kartenspiel, Zugeben, Kontra und Re, Bettel, Ramsch; 20 000 Spiele, bis 1500 Lagen, wie T4, 11
+Minuten auf 16 Threads). Die Ansage- und Hochzeitsregeln rechnen mit der Ansage-Tabelle bzw. eigenen
+Plausibilitätsprüfungen und sind unverändert. **Keine Regel verschiebt sich um mehr als zwei
+Standardfehler** (Unterschied geteilt durch den gemeinsamen Fehler höchstens 0,9:
+`gegner.rufsau.suchen` 1,0 → 1,5 ± 0,4; `bettel.gegner.klein` 2,7 → 3,5 ± 0,8;
+`spieler.farbe.nach.trumpf` 15,8 → 14,7 ± 2,6; `spieler.trumpf.ziehen` 11,8 → 10,8 ± 2,3;
+`gegner.kurzer.weg.lange.farbe` 2,5 → 1,5 ± 1,2). Die Kontra-Regeln kommen auf genau dieselben
+Werte. `werte.ts` und die Tabelle oben bleiben deshalb beim Stand von T5. Knapp an der Grenze:
+`gegner.kurzer.weg.lange.farbe` lag mit 2,5 ± 1,2 gerade über zwei Fehlern („nützlich“), neu
+gemessen läge es darunter – im Rauschen, darum nicht geändert.
+
+### Grenzen
+
+- Das Modell ist die Heuristik. Gegen „Stark“, Max-Nutzer oder Menschen passt es schlechter; die
+  Gewichte sind mit Normal-Bots als Mitspielern gewählt und gemessen.
+- Die Gewichtung schaut nur, ob die Heuristik _genau diese_ Karte gespielt hätte. Wer „richtig
+  schmiert“, aber die Zehn statt der Sau nimmt, zählt als Abweichung.
+- „Weiter“ zählt bei der eigenen Ansage weiter 0; in die Ansage-Tabelle selbst fließt die Ansage
+  der anderen nicht ein (Ansage von Stark und Max kommt weiter aus der Tabelle).
+- Die Hochzeit-Bewertung (`evaluateWeddingOffer`, `evaluateWeddingGive`) nutzt weiter ihre eigenen
+  Plausibilitätsprüfungen.
+
+### Messung wiederholen
+
+```bash
+# Stärke: 16 Teile parallel (etwa 20 Minuten), dann zusammenrechnen
+for i in $(seq 0 15); do B5_TEIL=$i/16 npx vitest run packages/bots/test/strengthGewichtung.test.ts & done; wait
+B5_ZUSAMMEN=1 npx vitest run packages/bots/test/strengthGewichtung.test.ts
+# Entscheidungsverlust je Variante (etwa 15 Minuten)
+for i in $(seq 0 15); do B5_VERLUST=$i/16 npx vitest run packages/bots/test/gewichtungVerlust.test.ts & done; wait
+B5_VERLUST_ZUSAMMEN=1 npx vitest run packages/bots/test/gewichtungVerlust.test.ts
+```
+
+Varianten über `B5_NEU`, `B5_ALT`, `B5_PARAMETER` bzw. `B5_VERLUST_VARIANTEN` (JSON, siehe Kopf der
+Testdateien).
 
 ## Textvorschläge für die Oberfläche
 

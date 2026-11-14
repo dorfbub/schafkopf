@@ -381,8 +381,11 @@ export const FAELLE: Fall[] = [
     lage: () => {
       const hands = deal({
         0: ['GA', 'G9', 'E8', 'E7', 'S9', 'S8', 'GK', 'EK'],
-        1: ['G10', 'G8', 'E9', 'E10', 'S10', 'S7', 'SA', 'EA'],
-        2: ['EO', 'GO', 'HO', 'SO', 'EU', 'HA', 'H10', 'SK'],
+        // Seit B5 mit der Schellen-Sau statt des Königs beim Spieler: Mit einem sicheren
+        // Verlierer (Schellen-König) rechnet die gewichtete Suche das Abwerfen jetzt knapp besser
+        // (Schneider bleibt eher) – ein Sonderfall, keine Lage für die Faustregel.
+        1: ['G10', 'G8', 'E9', 'E10', 'S10', 'S7', 'SK', 'EA'],
+        2: ['EO', 'GO', 'HO', 'SO', 'EU', 'HA', 'H10', 'SA'],
       });
       return at(play(declare(fixedHand(hands), 2, SOLO_HERZ), 'GA', 'G10'), 2);
     },

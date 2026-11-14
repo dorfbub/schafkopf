@@ -615,7 +615,7 @@ lässt sich als Erwartungswert in Cent ausrechnen.
   Bettel-Blätter der Verteilung 2-2-2-2 ohne freie Farbe (siehe STRATEGIEN, „Grenzen“). Offen: die
   Faustregel-Werte aus T4 mit den neuen Bots nachmessen.
 
-### B5 · „Stark“ mit gewichteten Verteilungen
+### B5 · „Stark“ mit gewichteten Verteilungen (erledigt)
 
 Heute verteilt „Stark“ die unbekannten Karten gleich wahrscheinlich (Perfect Information Monte
 Carlo). Besser: Verteilungen danach gewichten, wie gut sie zu dem passen, was die anderen bisher
@@ -631,6 +631,19 @@ gespielt und angesagt haben („policy-based inference“, beim Skat ein großer
 - **Abnahme:** Gepaarter Vergleich gegen das heutige „Stark“ mit fester Schwelle; Regeltreue;
   Entscheidungszeit im Browser weiter unter 300 ms (Budget anpassen); Max nutzt die neue Suche
   automatisch, seine Tests bleiben grün.
+- **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`. Gewichtung in
+  `packages/bots/src/inference.ts`: Ansage aller anderen (Ansage-Tabelle), Kontra/Re und jede
+  gespielte Karte (Heuristik nachgespielt) als weiche Wahrscheinlichkeit; je Verteilung sechs
+  Kandidaten, gezogen nach Gewicht. Ersetzt `respectBids` im Tutor. Kern und Ansage-Merkmale
+  merken sich Kartenordnung bzw. Spielgeometrie (gleiche Ergebnisse, Heuristik und Suche etwa
+  2,5-mal schneller); damit bekommt „Stark“ das Budget von Max (5000). Gepaart gegen „Stark“ vor
+  B5 (16 000 Spiele): **+2,03 ± 0,35 ct je Spiel**; davon das Budget allein +1,57 ± 0,33, die
+  Gewichtung allein +0,46 ± 0,34 (nicht sicher von null verschieden). Bei Max' Budget senkt die
+  Gewichtung den Entscheidungsverlust gegen die wahre Verteilung um 0,47 ± 0,18 ct je Kartenwahl
+  (gut 8 %). Laufzeit: Stark im Schnitt 94 ms, höchstens 158 ms je Kartenwahl; Max im Schnitt
+  45 ms, höchstens 119 ms. Faustregeln neu gemessen (23 von der Suche abhängige Regeln): keine
+  verschiebt sich um mehr als zwei Standardfehler, `werte.ts` unverändert. Einzelheiten:
+  `docs/STRATEGIEN.md`, „Gewichtete Verteilungen (B5)“.
 
 ### B6 · Neuronales Netz aus Spielen gegen sich selbst (Forschung)
 
