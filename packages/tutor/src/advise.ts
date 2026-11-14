@@ -46,8 +46,9 @@ import type {
 } from './types';
 
 /**
- * Aufwand der Rechnung: etwa das Zweieinhalbfache des starken Bots, damit die Werte ruhiger
- * sind. Auf einem Entwicklerrechner bleibt eine Antwort damit deutlich unter 300 ms (Test).
+ * Aufwand der Rechnung: seit B5 derselbe wie beim starken Bot (`STRONG_DEFAULTS`), mit
+ * gewichteten Verteilungen. Auf einem Entwicklerrechner bleibt eine Antwort damit deutlich unter
+ * 300 ms (Test; gemessen im Schnitt etwa 45 ms, höchstens etwa 120 ms).
  */
 export const TUTOR_BUDGET = {
   playBudget: 5000,
@@ -213,6 +214,8 @@ interface Analysis {
 /** Wert einer Möglichkeit mit den Ergebnissen je Verteilung (`null`: kein Rauschen bekannt). */
 interface Valued extends OptionValue {
   samples: number[] | null;
+  /** Gewicht je Verteilung (B5, gewichtetes Ziehen); `null`/fehlend: alle gleich. */
+  weights?: number[] | null;
 }
 
 /**
@@ -226,9 +229,16 @@ function pairedError(a: Valued, b: Valued): number {
   const ys = b.samples ?? new Array<number>(n).fill(b.cents ?? 0);
   if (xs.length !== ys.length) return 0;
   const d = xs.map((x, i) => x - ys[i]!);
-  const mean = d.reduce((s, x) => s + x, 0) / n;
-  const variance = d.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1);
-  return Math.sqrt(variance / n);
+  // Gewichtet (B5): Mehrfach gezogene Verteilungen zählen mehrfach, die effektive Zahl der
+  // Verteilungen ist (Σw)² / Σw². Ohne Gewichte ist das der gewöhnliche Standardfehler.
+  const w = a.weights ?? b.weights ?? new Array<number>(n).fill(1);
+  if (w.length !== n) return 0;
+  const total = w.reduce((s, x) => s + x, 0);
+  const effective = total ** 2 / w.reduce((s, x) => s + x * x, 0);
+  if (effective <= 1) return 0;
+  const mean = d.reduce((s, x, i) => s + w[i]! * x, 0) / total;
+  const variance = d.reduce((s, x, i) => s + w[i]! * (x - mean) ** 2, 0) / total;
+  return Math.sqrt(variance / (effective - 1));
 }
 
 function askOf(move: TutorOption): AskKind {
@@ -277,7 +287,6 @@ function strongOptions(input: TutorInput, options: TutorOptions): StrongBotOptio
   return {
     ...TUTOR_BUDGET,
     rules: input.rules,
-    respectBids: true,
     playBudget: options.playBudget ?? TUTOR_BUDGET.playBudget,
     bidBudget: options.bidBudget ?? TUTOR_BUDGET.bidBudget,
     ...(options.now && options.budgetMs !== undefined
@@ -470,7 +479,13 @@ function evaluate(
   const from = <T>(evals: Evaluation<T>[], pick: (o: TutorOption) => Evaluation<T> | undefined) =>
     opts.map((option): Valued => {
       const e = pick(option);
-      return { option, cents: e?.cents ?? null, estimated: false, samples: e?.values ?? null };
+      return {
+        option,
+        cents: e?.cents ?? null,
+        estimated: false,
+        samples: e?.values ?? null,
+        weights: e?.weights ?? null,
+      };
     });
   if (ask === 'card') {
     if (!lage.historyComplete) return none();

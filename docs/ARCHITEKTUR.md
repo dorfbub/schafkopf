@@ -285,7 +285,9 @@ mitgibt (ohne sie gelten die Standardregeln). `createRandomBot` ist der Platzhal
 - **Wissen:** nur die eigene Sicht und die selbst gemerkten Stiche. Daraus: ungesehene Karten,
   Fehlfarben je Sitz (Bedienpflicht), Rufsau beim bekannten Mitspieler bzw. nicht beim Ansager.
   Fremde Karten kennt er nur als Stichprobe („Determinisierung“): Die ungesehenen Karten werden
-  passend zu Kartenzahlen und Fehlfarben zufällig verteilt (stark eingeschränkte Karten zuerst).
+  passend zu Kartenzahlen und Fehlfarben verteilt (stark eingeschränkte Karten zuerst). Seit B5
+  zieht er je benötigter Verteilung mehrere Kandidaten und wählt sie nach ihrem Gewicht: wie gut
+  sie zu Ansage, Kontra und Kartenspiel der anderen passen (`inference.ts`, siehe unten).
 - **Kartenspiel:** Jede erlaubte Karte wird auf denselben Verteilungen bis zum Ende gespielt, alle
   Sitze nach der Heuristik (`heuristicCard` mit einem gemeinsamen, öffentlichen Gedächtnis).
   Bewertet wird mit `scoreHand` – also in Cent samt Schneider, Laufenden, Kontra, im Ramsch ebenso.
@@ -294,10 +296,13 @@ mitgibt (ohne sie gelten die Standardregeln). `createRandomBot` ist der Platzhal
   `ansage: 'faustregel'` wie vor B4: Klare Blätter (Marge der Heuristik über 3) und klar schwache
   (unter −2) entscheidet die Heuristik, knappe spielt er durch (klassisch, ohne Vorspiel, ohne
   Tout; weiter = 0).
-- **Aufwand:** feste Budgets in simulierten Karten (`STRONG_DEFAULTS`: 2000 je Entscheidung, Ansage
-  ebenso), deterministisch über den Seed. Eine Uhr gibt es nur von außen (`now`, `budgetMs`); die
-  Web-App gibt `performance.now` und 200 ms mit, damit auch langsame Handys unter 300 ms bleiben.
-  Auf einem Entwicklerrechner: Schnitt ≈ 16 ms, längste Entscheidung ≈ 65 ms.
+- **Aufwand:** feste Budgets in simulierten Karten (`STRONG_DEFAULTS`: seit B5 5000 je
+  Kartenwahl mit 10–60 Verteilungen, das Nachspielen der Gewichtung eingerechnet; Ansage 2000),
+  deterministisch über den Seed. Eine Uhr gibt es nur von außen (`now`, `budgetMs`); die Web-App
+  gibt `performance.now` und 200 ms mit, damit auch langsame Handys unter 300 ms bleiben (die
+  Kandidaten der Gewichtung bekommen höchstens die Hälfte). Auf einem Entwicklerrechner: Kartenwahl
+  im Schnitt ≈ 95 ms, längste ≈ 160 ms. Der Kern merkt sich dafür die Kartenordnung je Spiel
+  (`orderFor` mit `trumpSet`), die Ansage-Merkmale ihre Spielgeometrie.
 - **Nach dem Neuladen** fehlen ihm die früheren Stiche; dann spielt er das Spiel wie die Heuristik
   zu Ende.
 - **Zeit und Zufall:** ESLint verbietet in `packages/bots/src` `Math.random`, `Date.now` und
@@ -342,8 +347,17 @@ packages/bots`.
 Ergebnis je Kartenverteilung, für einen gepaarten Vergleich). `search` nutzt denselben Kern; der
 starke Bot spielt unverändert. Für die Hochzeit (T3) gibt es `evaluateWeddingOffer` (annehmen oder
 ablehnen) und `evaluateWeddingGive` (welche Karten zurück): Probespiele nach dem Vorspiel, mit
-einem Hochzeiter, der `n` Trümpfe hatte und zu seiner Ansage passt. Die Option `respectBids` verwirft Verteilungen, in denen der
-Ansager sein Spiel nach der Heuristik nicht angesagt hätte (nur der Tutor schaltet sie ein).
+einem Hochzeiter, der `n` Trümpfe hatte und zu seiner Ansage passt.
+
+**Gewichtete Verteilungen (B5):** `inference.ts` bewertet, wie gut eine Verteilung der verdeckten
+Karten zu Ansage, Kontra/Re und den gespielten Karten der anderen passt – mit der Heuristik als
+Modell (Ansage-Tabelle, `kontraStrength`, `heuristicCard` beim Nachspielen der Stiche), weich statt
+als Filter. `strongBot.ts` zieht dafür mehrere Kandidaten je benötigter Verteilung und wählt nach
+Gewicht (`sampleWorlds`, systematisches Resampling; mehrfach gezogene Verteilungen zählen mit
+Gewicht). `Evaluation.weights` trägt die Gewichte für den gepaarten Vergleich des Tutors.
+Option `inference` (`false` = Stand vor B5); `probespiel.ts` enthält die gemeinsamen Bausteine der
+Probespiele (`simView`, `playInPlace`, `playToEnd`). `sampleDeals` und die Option `peek` dienen
+nur Messungen.
 
 ### packages/tutor
 
@@ -363,9 +377,9 @@ Fachlicher Hintergrund, Faustregeln und Didaktik stehen in `docs/STRATEGIEN.md`.
 - **Rechnung:** `evaluateCards`, `evaluateContracts` und `evaluateDouble` aus `packages/bots`
   (die Suche des starken Bots, mit Werten je Möglichkeit und je Kartenverteilung). Bei der Ansage
   die Ansage-Tabellen (`ansageWertInSicht`, B4); `Advice.ansage` trägt das wertvollste Spiel samt
-  Wert, das die Oberfläche in der Begründung nennt. Der Tutor
-  schaltet `respectBids` ein: Verteilungen, in denen der Ansager sein Spiel nicht angesagt hätte,
-  werden verworfen. Der starke Bot am Tisch rechnet ohne.
+  Wert, das die Oberfläche in der Begründung nennt. Die Verteilungen sind gewichtet wie beim
+  starken Bot (B5, ersetzt das frühere `respectBids`); der Standardfehler eines Unterschieds
+  rechnet mit diesen Gewichten (`pairedError`).
 - **Antwort:** Werte in Cent, Empfehlung, bis zu zwei begründende Faustregeln, Ausnahmen, ein
   Denkanstoß und die Wichtigkeit. Texte gibt es im Paket keine, nur Kennungen mit Platzhaltern
   (`denkanstoss.<regel>`, `frage.…`); die Texte stehen in `apps/web/src/i18n/de.ts`

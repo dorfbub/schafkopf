@@ -398,9 +398,22 @@ export function davonlaufenAb(deck: DeckKind): number {
 
 /** Stich- und Bedienordnung für den Stich mit Index `trick` (0-basiert). */
 export function orderFor(contract: Contract, trick: number): CardOrder {
-  const mode = MODES[contract.kind];
-  return { trumps: mode.trumps(contract, trick), rankOrder: mode.rankOrder ?? RANKS };
+  // Gemerkt je Spiel (und beim Trumpfwechsel je Stich): Die Ordnung hängt nur davon ab, und die
+  // Bots fragen sie sehr oft ab. Die Ordnung ist unveränderlich (`readonly`), also teilbar.
+  const key = `${contract.kind}/${contract.suit ?? ''}/${contract.suit2 ?? ''}/${
+    MODES[contract.kind].suitCount === 2 ? trick : ''
+  }`;
+  let order = ORDERS.get(key);
+  if (!order) {
+    const mode = MODES[contract.kind];
+    const trumps = mode.trumps(contract, trick);
+    order = { trumps, rankOrder: mode.rankOrder ?? RANKS, trumpSet: new Set(trumps) };
+    ORDERS.set(key, order);
+  }
+  return order;
 }
+
+const ORDERS = new Map<string, CardOrder>();
 
 /** Trümpfe, über die Laufende zählen. */
 export function laufendeTrumpsFor(contract: Contract): Card[] {

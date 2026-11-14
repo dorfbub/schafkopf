@@ -88,13 +88,20 @@ export function compare(
   b: (seed: number) => Bot,
   reference: (seed: number) => Bot,
   rules: RuleSet = DEFAULT_RULES,
-): Pick<DuelResult, 'paired' | 'stdError' | 'differing'> {
+  part: { index: number; of: number } = { index: 0, of: 1 },
+): Pick<DuelResult, 'paired' | 'stdError' | 'differing'> & {
+  games: number;
+  sum: number;
+  sq: number;
+} {
   let diff = 0;
   let sq = 0;
   let differing = 0;
+  let count = 0;
   const n = rules.players;
   const seats = Array.from({ length: n }, (_, s) => s);
-  for (let i = 0; i < games; i++) {
+  // `part`: nur jedes `of`-te Spiel ab `index` (für parallele Läufe; zusammen dieselben Spiele).
+  for (let i = part.index; i < games; i += part.of) {
     const seat = i % n;
     const dealer = Math.floor(i / n) % n;
     const play = (candidate: Bot) => {
@@ -104,9 +111,17 @@ export function compare(
     const d = play(a(1000 + i)) - play(b(1000 + i));
     diff += d;
     sq += d * d;
+    count++;
     if (d !== 0) differing++;
   }
-  const paired = diff / games;
-  const variance = Math.max(0, sq / games - paired ** 2);
-  return { paired, stdError: Math.sqrt(variance / games), differing };
+  const paired = diff / Math.max(1, count);
+  const variance = Math.max(0, sq / Math.max(1, count) - paired ** 2);
+  return {
+    paired,
+    stdError: Math.sqrt(variance / Math.max(1, count)),
+    differing,
+    games: count,
+    sum: diff,
+    sq,
+  };
 }

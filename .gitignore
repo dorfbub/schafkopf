@@ -16,3 +16,7 @@ playwright-report/
 
 # Rohdaten der Ansage-Tabellen (B4), reproduzierbar über den Seed
 packages/bots/messungen/ansage/roh/
+
+# Teilergebnisse des gepaarten Vergleichs B5 (gewichtete Verteilungen)
+packages/bots/messungen/b5/
+packages/bots/messungen/b5-verlust/
