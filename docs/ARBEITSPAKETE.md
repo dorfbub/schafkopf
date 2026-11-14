@@ -20,7 +20,7 @@ Pakete verschiedener Buchstaben können parallel laufen, sofern keine Abhängigk
 | 3     | Ausbau                    | K3a–K3d, K4, K5, K6, B2            |
 | 4     | Hausregeln                | H1, H2, H3, B3                     |
 | 5     | Besser werden             | T1, T2                             |
-| 6     | Stärkere Bots und Max     | T3, T4, B4, B5, B6                 |
+| 6     | Stärkere Bots und Max     | T3, T4, B4, B5, B6, T5             |
 
 ## Welches Modell für welches Paket
 
@@ -32,7 +32,7 @@ Haiku für rein mechanische Handgriffe.
 | ------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | Fable  | Eingriffe in die Architektur; Entwurf vor der Umsetzung      | Entwurf K3/K5/Hausregeln (erledigt), Entwurf B6                                 |
 | Opus   | Knifflige Logik, Gestaltung, Netz, alles mit Urteilsvermögen | D1–D4, K1, K3a, K3b, K4, K5, K6, N1, N2, N3, B1, B2, B3, B4, B5, B6, H2, T1, T2 |
-| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3, T3, T4                            |
+| Sonnet | Klar beschriebene Umsetzung nach vorhandenem Muster          | K2, K3c, K3d, K7, N4, U2, U4, U5, I2, H1, H3, T3, T4, T5                        |
 | Haiku  | Mechanisches ohne Entscheidungen                             | I1, I3                                                                          |
 
 Hinweise dazu:
@@ -788,7 +788,7 @@ bringt es im Schnitt, sie zu befolgen?
 - **Modell:** Sonnet.
 - **Abnahme:** Tabelle in `STRATEGIEN.md` mit Wert, Fehler und Häufigkeit je Regel; Messung
   reproduzierbar (Seed, Befehl dokumentiert); Max gewichtet nach Wert (Test).
-- **Stand:** umgesetzt (November 2026), auf dem Branch noch nicht in `main`. Messskript
+- **Stand:** erledigt (November 2026), in `main`. Messskript
   `packages/tutor/scripts/messen.ts` (läuft als Test hinter `TUTOR_MESSEN=1`, nicht in CI),
   Ergebnisse in `packages/tutor/messungen/`, Werte für Max in `packages/tutor/src/werte.ts`.
   Tabelle und Verfahren in `STRATEGIEN.md`, „Messung der Faustregeln“. 34 von 36 Regeln gemessen (neu gemessen nach T3 und nach B4, am 13.11.2026);
@@ -796,6 +796,32 @@ bringt es im Schnitt, sie zu befolgen?
   Wert und nennt ihn, wenn er sicher über null liegt. Nach B4 schaden `ansage.ruffarbe.kurz` (−13,6 ct),
   `ansage.tout.nur.sicher`, `ansage.bettel.nur.sicher` (Widerspruch zur Ansage-Tabelle, ungeklärt) und
   `karte.hinten.billig.stechen`; weitere Kandidaten stehen in der Einordnung.
+
+### T5 · Schädliche Faustregeln überarbeiten
+
+Die Neumessung nach B4 (T4, Stand 13.11.2026) zeigt Regeln, die im Schnitt Geld kosten. Max bringt
+sie trotzdem noch als Lehrstoff. Sie sollen umformuliert, an die Ansage-Tabelle angeglichen oder
+gestrichen werden.
+
+- **Umfang:**
+  - `ansage.bettel.nur.sicher` (−9,5 ± 1,7 ct, vorher +7,2) und `ansage.tout.nur.sicher`
+    (−13,6 ± 3,7 ct): Die Regeln widersprechen der Ansage-Tabelle aus B4. Klären, wer recht hat
+    (Tabelle mit Simulation durch „Stark“ ist die belegte Grundlage). Regel so umformulieren, dass
+    sie zur Tabelle passt, oder streichen und Max bei Bettel/Tout auf die Tabelle verweisen lassen.
+  - `ansage.ruffarbe.kurz` (−13,6 ± 2,0 ct): Vorliebe für die Sau zur eigenen Zehn streichen, nur
+    „kurze Ruffarbe“ behalten; neu messen.
+  - `karte.hinten.billig.stechen` (−6,4 ± 1,6 ct): Lage enger fassen (wann lohnt billiges Stechen
+    hinten wirklich?) oder streichen.
+  - `hochzeit.annehmen.trumpf` (−1,7 ± 0,7 ct) und `ansage.zu.schwach` (kein Nutzen mehr): prüfen,
+    ob die Bedingung zur neuen Ansage passt; umformulieren oder streichen.
+  - Nach jeder Änderung die betroffenen Regeln mit dem T4-Skript (`TUTOR_MESSEN=1`) neu messen.
+- **Grenzen:** Ansage-Tabellen und Bots bleiben unverändert; geändert werden nur die Regeln in
+  `packages/tutor` und ihre Texte. Gestrichene Regeln aus `STRATEGIEN.md` mit Begründung entfernen,
+  nicht stillschweigend.
+- **Modell:** Sonnet.
+- **Abnahme:** Keine Regel im Katalog misst sicher negativ (Wert + 2 Fehler ≥ 0) oder sie ist mit
+  Begründung gestrichen. Max widerspricht bei der Ansage nie der Tabelle (Test mit den
+  Bettel-/Tout-Grenzfällen). Tabelle und Einordnung in `STRATEGIEN.md` und `werte.ts` aktuell.
 
 ---
 
