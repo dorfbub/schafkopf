@@ -1,38 +1,38 @@
 | Regel                                | Wert (ct) | ± Fehler | Lagen | Vorkommen je Spiel | Urteil                |
 | ------------------------------------ | --------: | -------: | ----: | -----------------: | --------------------- |
-| `ansage.wenz.unter.und.farben`       |      49,6 |      3,3 |  1500 |              0,254 | nützlich              |
-| `ansage.solo.trumpflaenge`           |      44,4 |      3,0 |  1500 |              1,017 | nützlich              |
-| `kontra.gegen.einzelspiel`           |      32,2 |      1,4 |  1500 |              0,215 | nützlich              |
-| `ansage.sauspiel.grundblatt`         |      26,3 |      2,2 |  1500 |              1,324 | nützlich              |
-| `zweikampf.eigener.wert`             |      22,1 |      2,5 |  1500 |              1,542 | nützlich              |
-| `karte.stechen.lohnt`                |      17,1 |      2,2 |  1500 |              0,839 | nützlich              |
-| `kontra.gegen.partnerspiel`          |      13,9 |      0,6 |  1500 |              0,273 | nützlich              |
-| `bettel.spieler.drunter`             |       7,7 |      7,7 |    39 |              0,011 | kein messbarer Nutzen |
-| `ansage.bettel.nur.sicher`           |       7,2 |      1,0 |  1223 |              0,066 | nützlich              |
-| `hochzeit.zwei.sauen`                |       6,3 |      0,6 |  1113 |              0,147 | nützlich              |
-| `spieler.farbe.nach.trumpf`          |       6,0 |      2,8 |  1500 |              0,563 | nützlich              |
-| `spieler.trumpf.ziehen`              |       4,3 |      1,7 |  1500 |              2,688 | nützlich              |
-| `gegner.kein.trumpf.anspielen`       |       3,7 |      0,8 |  1500 |              1,712 | nützlich              |
-| `hochzeit.ablehnen.schwach`          |       3,0 |      1,1 |   815 |              0,041 | nützlich              |
-| `karte.schmieren`                    |       2,7 |      0,6 |  1500 |              1,456 | nützlich              |
-| `ramsch.hoch.drunter`                |       2,7 |      0,7 |  1500 |              0,497 | nützlich              |
-| `karte.farbe.freimachen`             |       2,3 |      1,5 |  1500 |              1,556 | kein messbarer Nutzen |
-| `karte.abspatzen`                    |       2,3 |      0,8 |  1500 |              3,916 | nützlich              |
-| `karte.nicht.vorschnell.schmieren`   |       2,2 |      0,6 |  1500 |              0,867 | nützlich              |
-| `hochzeit.annehmen.trumpf`           |       1,7 |      0,9 |   682 |              0,034 | kein messbarer Nutzen |
-| `ansage.zu.schwach`                  |       1,6 |      0,5 |  1500 |              1,895 | nützlich              |
-| `spieler.solo.von.oben`              |       1,2 |      3,2 |  1500 |              0,415 | kein messbarer Nutzen |
-| `karte.abspatzen.trumpf`             |       1,2 |      0,4 |  1500 |              2,403 | nützlich              |
-| `ramsch.durchmarsch.verhindern`      |       1,1 |      3,3 |    83 |              0,004 | kein messbarer Nutzen |
-| `gegner.rufsau.suchen`               |       1,0 |      0,4 |  1500 |              0,528 | nützlich              |
-| `hochzeit.zurueckgeben.farbe.frei`   |       1,0 |      0,6 |   577 |              0,029 | kein messbarer Nutzen |
-| `hochzeit.zurueckgeben.klein`        |       0,9 |      0,6 |   675 |              0,034 | kein messbarer Nutzen |
-| `spieler.rufsau.nicht.selbst.suchen` |       0,9 |      0,5 |  1500 |              0,632 | kein messbarer Nutzen |
-| `gegner.sau.frisch`                  |       0,8 |      0,8 |  1500 |              0,764 | kein messbarer Nutzen |
-| `mitspieler.trumpf.spielen`          |       0,6 |      0,5 |  1500 |              0,335 | kein messbarer Nutzen |
-| `gegner.kurzer.weg.lange.farbe`      |       0,1 |      1,3 |  1500 |              0,342 | kein messbarer Nutzen |
-| `bettel.gegner.klein`                |       0,0 |      0,0 |   117 |              0,022 | kein messbarer Nutzen |
-| `karte.hinten.billig.stechen`        |      -1,7 |      1,3 |  1500 |              0,663 | kein messbarer Nutzen |
-| `ansage.tout.nur.sicher`             |      -3,9 |      4,1 |  1500 |              0,165 | kein messbarer Nutzen |
-| `ansage.ruffarbe.kurz`               |      -8,7 |      1,7 |  1500 |              0,307 | schadet               |
+| `ansage.wenz.unter.und.farben`       |      65,1 |      3,3 |  1500 |              0,281 | nützlich              |
+| `ansage.solo.trumpflaenge`           |      55,1 |      3,2 |  1500 |              1,152 | nützlich              |
+| `ansage.sauspiel.grundblatt`         |      31,1 |      2,5 |  1500 |              1,276 | nützlich              |
+| `kontra.gegen.einzelspiel`           |      30,3 |      1,4 |  1500 |              0,326 | nützlich              |
+| `karte.stechen.lohnt`                |      26,4 |      2,6 |  1500 |              0,797 | nützlich              |
+| `bettel.spieler.drunter`             |      20,1 |      4,6 |   626 |              0,160 | nützlich              |
+| `zweikampf.eigener.wert`             |      17,0 |      2,6 |  1500 |              2,416 | nützlich              |
+| `spieler.farbe.nach.trumpf`          |      15,8 |      2,5 |  1500 |              0,623 | nützlich              |
+| `kontra.gegen.partnerspiel`          |      13,2 |      0,6 |  1500 |              0,189 | nützlich              |
+| `spieler.trumpf.ziehen`              |      11,8 |      2,2 |  1500 |              2,688 | nützlich              |
+| `hochzeit.zwei.sauen`                |       7,0 |      1,1 |  1113 |              0,135 | nützlich              |
+| `hochzeit.ablehnen.schwach`          |       5,6 |      0,9 |  1217 |              0,061 | nützlich              |
+| `gegner.kein.trumpf.anspielen`       |       4,8 |      0,9 |  1500 |              1,671 | nützlich              |
+| `spieler.solo.von.oben`              |       3,4 |      3,0 |  1500 |              0,719 | kein messbarer Nutzen |
+| `bettel.gegner.klein`                |       2,7 |      0,7 |  1500 |              0,360 | nützlich              |
+| `ramsch.hoch.drunter`                |       2,7 |      0,8 |   785 |              0,115 | nützlich              |
+| `gegner.kurzer.weg.lange.farbe`      |       2,5 |      1,2 |  1500 |              0,547 | nützlich              |
+| `karte.schmieren`                    |       2,4 |      0,6 |  1500 |              1,476 | nützlich              |
+| `karte.nicht.vorschnell.schmieren`   |       2,4 |      0,7 |  1500 |              0,816 | nützlich              |
+| `karte.abspatzen`                    |       1,9 |      0,8 |  1500 |              4,192 | nützlich              |
+| `hochzeit.zurueckgeben.farbe.frei`   |       1,9 |      0,5 |  1121 |              0,056 | nützlich              |
+| `hochzeit.zurueckgeben.klein`        |       1,6 |      0,5 |  1287 |              0,064 | nützlich              |
+| `karte.farbe.freimachen`             |       1,3 |      1,3 |  1500 |              1,640 | kein messbarer Nutzen |
+| `karte.abspatzen.trumpf`             |       1,2 |      0,4 |  1500 |              2,424 | nützlich              |
+| `gegner.rufsau.suchen`               |       1,0 |      0,4 |  1500 |              0,410 | nützlich              |
+| `spieler.rufsau.nicht.selbst.suchen` |       0,6 |      0,5 |  1500 |              0,519 | kein messbarer Nutzen |
+| `mitspieler.trumpf.spielen`          |       0,4 |      0,4 |  1500 |              0,243 | kein messbarer Nutzen |
+| `gegner.sau.frisch`                  |       0,1 |      0,9 |  1500 |              0,781 | kein messbarer Nutzen |
+| `ansage.zu.schwach`                  |      -0,6 |      0,8 |  1500 |              2,133 | kein messbarer Nutzen |
+| `hochzeit.annehmen.trumpf`           |      -1,7 |      0,7 |  1288 |              0,064 | schadet               |
+| `karte.hinten.billig.stechen`        |      -6,4 |      1,6 |  1500 |              0,637 | schadet               |
+| `ansage.bettel.nur.sicher`           |      -9,5 |      1,7 |  1223 |              0,089 | schadet               |
+| `ansage.tout.nur.sicher`             |     -13,6 |      3,7 |  1500 |              0,154 | schadet               |
+| `ansage.ruffarbe.kurz`               |     -13,6 |      2,0 |  1500 |              0,275 | schadet               |
 | `re.mit.reserve`                     |         – |        – |     0 |              0,000 | zu selten             |
+| `ramsch.durchmarsch.verhindern`      |         – |        – |    11 |              0,001 | zu selten             |

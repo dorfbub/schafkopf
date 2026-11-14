@@ -584,72 +584,93 @@ Lage für ein Re (0 Vorkommen in 20 000 Spielen). Auch **`bettel.spieler.drunter
 – die Zahlen stehen mit großem Fehler in der Tabelle, ein Wert wird dafür nicht genannt.
 Die Hochzeitsregeln und `karte.abspatzen`/`karte.abspatzen.trumpf` sind nach dem Merge von T3 neu gemessen; alle übrigen Regeln hat T3 nicht verändert (Vergleich von `rules.ts`).
 
-### Ergebnis (Stand: 20 000 Spiele, alle 36 Regeln)
+### Ergebnis (Stand: 20 000 Spiele, alle 36 Regeln, nach B4)
 
 | Regel                                | Wert (ct) | ± Fehler | Lagen | Vorkommen je Spiel | Urteil                |
 | ------------------------------------ | --------: | -------: | ----: | -----------------: | --------------------- |
-| `ansage.wenz.unter.und.farben`       |      49,6 |      3,3 |  1500 |              0,254 | nützlich              |
-| `ansage.solo.trumpflaenge`           |      44,4 |      3,0 |  1500 |              1,017 | nützlich              |
-| `kontra.gegen.einzelspiel`           |      32,2 |      1,4 |  1500 |              0,215 | nützlich              |
-| `ansage.sauspiel.grundblatt`         |      26,3 |      2,2 |  1500 |              1,324 | nützlich              |
-| `zweikampf.eigener.wert`             |      22,1 |      2,5 |  1500 |              1,542 | nützlich              |
-| `karte.stechen.lohnt`                |      17,1 |      2,2 |  1500 |              0,839 | nützlich              |
-| `kontra.gegen.partnerspiel`          |      13,9 |      0,6 |  1500 |              0,273 | nützlich              |
-| `bettel.spieler.drunter`             |       7,7 |      7,7 |    39 |              0,011 | kein messbarer Nutzen |
-| `ansage.bettel.nur.sicher`           |       7,2 |      1,0 |  1223 |              0,066 | nützlich              |
-| `hochzeit.zwei.sauen`                |       6,3 |      0,6 |  1113 |              0,147 | nützlich              |
-| `spieler.farbe.nach.trumpf`          |       6,0 |      2,8 |  1500 |              0,563 | nützlich              |
-| `spieler.trumpf.ziehen`              |       4,3 |      1,7 |  1500 |              2,688 | nützlich              |
-| `gegner.kein.trumpf.anspielen`       |       3,7 |      0,8 |  1500 |              1,712 | nützlich              |
-| `hochzeit.ablehnen.schwach`          |       3,0 |      1,1 |   815 |              0,041 | nützlich              |
-| `karte.schmieren`                    |       2,7 |      0,6 |  1500 |              1,456 | nützlich              |
-| `ramsch.hoch.drunter`                |       2,7 |      0,7 |  1500 |              0,497 | nützlich              |
-| `karte.farbe.freimachen`             |       2,3 |      1,5 |  1500 |              1,556 | kein messbarer Nutzen |
-| `karte.abspatzen`                    |       2,3 |      0,8 |  1500 |              3,916 | nützlich              |
-| `karte.nicht.vorschnell.schmieren`   |       2,2 |      0,6 |  1500 |              0,867 | nützlich              |
-| `hochzeit.annehmen.trumpf`           |       1,7 |      0,9 |   682 |              0,034 | kein messbarer Nutzen |
-| `ansage.zu.schwach`                  |       1,6 |      0,5 |  1500 |              1,895 | nützlich              |
-| `spieler.solo.von.oben`              |       1,2 |      3,2 |  1500 |              0,415 | kein messbarer Nutzen |
-| `karte.abspatzen.trumpf`             |       1,2 |      0,4 |  1500 |              2,403 | nützlich              |
-| `ramsch.durchmarsch.verhindern`      |       1,1 |      3,3 |    83 |              0,004 | kein messbarer Nutzen |
-| `gegner.rufsau.suchen`               |       1,0 |      0,4 |  1500 |              0,528 | nützlich              |
-| `hochzeit.zurueckgeben.farbe.frei`   |       1,0 |      0,6 |   577 |              0,029 | kein messbarer Nutzen |
-| `hochzeit.zurueckgeben.klein`        |       0,9 |      0,6 |   675 |              0,034 | kein messbarer Nutzen |
-| `spieler.rufsau.nicht.selbst.suchen` |       0,9 |      0,5 |  1500 |              0,632 | kein messbarer Nutzen |
-| `gegner.sau.frisch`                  |       0,8 |      0,8 |  1500 |              0,764 | kein messbarer Nutzen |
-| `mitspieler.trumpf.spielen`          |       0,6 |      0,5 |  1500 |              0,335 | kein messbarer Nutzen |
-| `gegner.kurzer.weg.lange.farbe`      |       0,1 |      1,3 |  1500 |              0,342 | kein messbarer Nutzen |
-| `bettel.gegner.klein`                |       0,0 |      0,0 |   117 |              0,022 | kein messbarer Nutzen |
-| `karte.hinten.billig.stechen`        |      -1,7 |      1,3 |  1500 |              0,663 | kein messbarer Nutzen |
-| `ansage.tout.nur.sicher`             |      -3,9 |      4,1 |  1500 |              0,165 | kein messbarer Nutzen |
-| `ansage.ruffarbe.kurz`               |      -8,7 |      1,7 |  1500 |              0,307 | schadet               |
+| `ansage.wenz.unter.und.farben`       |      65,1 |      3,3 |  1500 |              0,281 | nützlich              |
+| `ansage.solo.trumpflaenge`           |      55,1 |      3,2 |  1500 |              1,152 | nützlich              |
+| `ansage.sauspiel.grundblatt`         |      31,1 |      2,5 |  1500 |              1,276 | nützlich              |
+| `kontra.gegen.einzelspiel`           |      30,3 |      1,4 |  1500 |              0,326 | nützlich              |
+| `karte.stechen.lohnt`                |      26,4 |      2,6 |  1500 |              0,797 | nützlich              |
+| `bettel.spieler.drunter`             |      20,1 |      4,6 |   626 |              0,160 | nützlich              |
+| `zweikampf.eigener.wert`             |      17,0 |      2,6 |  1500 |              2,416 | nützlich              |
+| `spieler.farbe.nach.trumpf`          |      15,8 |      2,5 |  1500 |              0,623 | nützlich              |
+| `kontra.gegen.partnerspiel`          |      13,2 |      0,6 |  1500 |              0,189 | nützlich              |
+| `spieler.trumpf.ziehen`              |      11,8 |      2,2 |  1500 |              2,688 | nützlich              |
+| `hochzeit.zwei.sauen`                |       7,0 |      1,1 |  1113 |              0,135 | nützlich              |
+| `hochzeit.ablehnen.schwach`          |       5,6 |      0,9 |  1217 |              0,061 | nützlich              |
+| `gegner.kein.trumpf.anspielen`       |       4,8 |      0,9 |  1500 |              1,671 | nützlich              |
+| `spieler.solo.von.oben`              |       3,4 |      3,0 |  1500 |              0,719 | kein messbarer Nutzen |
+| `bettel.gegner.klein`                |       2,7 |      0,7 |  1500 |              0,360 | nützlich              |
+| `ramsch.hoch.drunter`                |       2,7 |      0,8 |   785 |              0,115 | nützlich              |
+| `gegner.kurzer.weg.lange.farbe`      |       2,5 |      1,2 |  1500 |              0,547 | nützlich              |
+| `karte.schmieren`                    |       2,4 |      0,6 |  1500 |              1,476 | nützlich              |
+| `karte.nicht.vorschnell.schmieren`   |       2,4 |      0,7 |  1500 |              0,816 | nützlich              |
+| `karte.abspatzen`                    |       1,9 |      0,8 |  1500 |              4,192 | nützlich              |
+| `hochzeit.zurueckgeben.farbe.frei`   |       1,9 |      0,5 |  1121 |              0,056 | nützlich              |
+| `hochzeit.zurueckgeben.klein`        |       1,6 |      0,5 |  1287 |              0,064 | nützlich              |
+| `karte.farbe.freimachen`             |       1,3 |      1,3 |  1500 |              1,640 | kein messbarer Nutzen |
+| `karte.abspatzen.trumpf`             |       1,2 |      0,4 |  1500 |              2,424 | nützlich              |
+| `gegner.rufsau.suchen`               |       1,0 |      0,4 |  1500 |              0,410 | nützlich              |
+| `spieler.rufsau.nicht.selbst.suchen` |       0,6 |      0,5 |  1500 |              0,519 | kein messbarer Nutzen |
+| `mitspieler.trumpf.spielen`          |       0,4 |      0,4 |  1500 |              0,243 | kein messbarer Nutzen |
+| `gegner.sau.frisch`                  |       0,1 |      0,9 |  1500 |              0,781 | kein messbarer Nutzen |
+| `ansage.zu.schwach`                  |      -0,6 |      0,8 |  1500 |              2,133 | kein messbarer Nutzen |
+| `hochzeit.annehmen.trumpf`           |      -1,7 |      0,7 |  1288 |              0,064 | schadet               |
+| `karte.hinten.billig.stechen`        |      -6,4 |      1,6 |  1500 |              0,637 | schadet               |
+| `ansage.bettel.nur.sicher`           |      -9,5 |      1,7 |  1223 |              0,089 | schadet               |
+| `ansage.tout.nur.sicher`             |     -13,6 |      3,7 |  1500 |              0,154 | schadet               |
+| `ansage.ruffarbe.kurz`               |     -13,6 |      2,0 |  1500 |              0,275 | schadet               |
 | `re.mit.reserve`                     |         – |        – |     0 |              0,000 | zu selten             |
+| `ramsch.durchmarsch.verhindern`      |         – |        – |    11 |              0,001 | zu selten             |
 
 „Vorkommen je Spiel“ zählt alle vier Sitze zusammen, jedes Vorkommen. „Kein messbarer Nutzen“
 heißt: Der Wert liegt innerhalb von zwei Standardfehlern um null.
 
 ### Einordnung
 
-- **Ganz vorn: die Ansage.** Wenz, Solo, Sauspiel-Grundblatt und Zweikampf bringen 20–50 Cent je
-  Vorkommen, auch Kontra gegen ein Einzelspiel (32 Cent) und gegen ein Partnerspiel (14 Cent).
-  Hier entscheidet sich der Gewinn eines Spiels – deshalb stehen diese Regeln bei Max vorn.
-- **Kartenspiel: klein, aber messbar.** Stechen, wenn es lohnt (17 Cent), und Farbe nach dem Trumpf
-  (6 Cent) tragen; die meisten übrigen Kartenregeln bringen 1–4 Cent je Vorkommen. Sie kommen dafür
-  oft vor (`karte.abspatzen` mehr als sechsmal je Spiel am Tisch).
-- **Schadet: `ansage.ruffarbe.kurz` (−8,7 ± 1,7).** Die Regel zieht die Sau zur eigenen Zehn vor;
-  die Heuristik rechnet eine Zehn in der Ruffarbe als Kostenpunkt – und liegt nach der Messung
-  richtig. **Kandidat zum Umformulieren:** die Zehn-Vorliebe streichen, nur „kurze Ruffarbe“ behalten.
-  Bis dahin steht die Regel weiter im Katalog (nichts stillschweigend gelöscht).
-- **Kein messbarer Nutzen:** `spieler.solo.von.oben`, `spieler.rufsau.nicht.selbst.suchen`,
-  `gegner.sau.frisch`, `mitspieler.trumpf.spielen`, `gegner.kurzer.weg.lange.farbe`,
-  `karte.farbe.freimachen`, `karte.hinten.billig.stechen` (−1,7 ± 1,3), `ansage.tout.nur.sicher`,
-  `bettel.spieler.drunter`, `bettel.gegner.klein`, `ramsch.durchmarsch.verhindern`. Sie bleiben
-  als Lehrstoff im Katalog, Max nennt keinen Wert dazu und ordnet sie hinter die gemessenen. **Kandidaten
-  zum Streichen oder Umformulieren** nach Prüfung mit anderen Mitspielern als der Heuristik:
-  `karte.hinten.billig.stechen` und `gegner.kurzer.weg.lange.farbe` (Wert ≈ 0 bei 1500 Lagen),
-  `ansage.tout.nur.sicher` (bei den Tout-Entscheidungen liegt der Fehler bei über 4 Cent).
-- **Hochzeit (T3):** „Zwei Sauen“ bringt 6 Cent; Annehmen, Ablehnen und Zurückgeben liegen bei 1–3 Cent, davon liegt nur `hochzeit.ablehnen.schwach` (3,0 ± 1,1) sicher über null. Die Lagen sind selten (0,03–0,04 je Spiel); zu den übrigen nennt Max keinen Wert.
-- **Zu selten:** `re.mit.reserve` (keine Lage mit Heuristik-Gegnern).
+Stand nach B4 (Ansage-Tabellen und Bettel-Korrektur): Die Heuristik spielt und sagt jetzt anders an,
+darum wurden alle Regeln neu gemessen. Zwischenstand vor B4 (nur zum Vergleich): Spalte „vorher“.
+
+- **Ganz vorn: die Ansage.** Wenz (65 ct, vorher 50), Solo (55, vorher 44), Sauspiel-Grundblatt (31, vorher 26),
+  Zweikampf (17, vorher 22) und Kontra gegen ein Einzelspiel (30) bzw. Partnerspiel (13). Mit
+  stärkerer Heuristik wiegt „Wenz/Solo/Sauspiel nur mit solidem Blatt“ noch mehr.
+- **Kartenspiel: oft klein, zwei Ausreißer nach oben.** Stechen, wenn es lohnt: 26 ct (vorher 17);
+  Farbe nach dem Trumpf: 16 ct (vorher 6); Trumpf ziehen: 12 ct (vorher 4). Das Spielen mit der
+  Heuristik als Mitspieler macht diese Regeln wertvoller. Die übrigen Kartenregeln bringen 1–5 ct.
+- **Bettel jetzt messbar:** `bettel.spieler.drunter` 20 ± 5 ct (626 Lagen, vorher 39 Lagen),
+  `bettel.gegner.klein` 2,7 ± 0,7 ct. Grund: Die Bettel-Korrektur (B4) lässt die Heuristik deutlich
+  weniger Bettel-Spiele ansagen, die verbleibenden sind besser – und kommen öfter vor als vorher gemessen.
+- **Vorzeichen gekippt, schadet jetzt:**
+  - **`ansage.bettel.nur.sicher` (−9,5 ± 1,7, vorher +7,2).** Die Regel („nur sicher ansagen“, Test
+    `bettelSafe`) und die neue Ansage-Tabelle sind jetzt uneins. **Widerspruch zur Ansage-Tabelle,
+    nicht angepasst** – klären, ob die Regel (strenger als die Tabelle) oder die Tabelle gilt.
+  - **`ansage.tout.nur.sicher` (−13,6 ± 3,7, vorher −3,9 ± 4,1).** Jetzt deutlich.
+    Widerspruch zur Ansage-Tabelle prüfen (nicht angepasst).
+  - **`ansage.ruffarbe.kurz` (−13,6 ± 2,0, vorher −8,7).** Die Zehn-Vorliebe der Regel
+    widerspricht der Heuristik (sie rechnet eine Zehn in der Ruffarbe als Kostenpunkt). **Kandidat
+    zum Umformulieren:** Zehn-Vorliebe streichen. Nichts wurde geändert.
+  - **`karte.hinten.billig.stechen` (−6,4 ± 1,6, vorher −1,7 ± 1,3).** Jetzt sicher schädlich:
+    Kandidat zum Streichen oder Umformulieren.
+  - **`hochzeit.annehmen.trumpf` (−1,7 ± 0,7, vorher +1,7 ± 0,9).** Kleiner Betrag, Vorzeichen gekippt;
+    selten (0,06 je Spiel). Beobachten.
+- **Nutzen entfallen:** `ansage.zu.schwach` (−0,6 ± 0,8, vorher 1,6 ± 0,5): Mit der Tabelle sagt die
+  Heuristik schwache Blätter ohnehin nicht mehr an, die Regel unterscheidet nichts mehr.
+- **Nutzen entstanden:** `spieler.farbe.nach.trumpf`, `spieler.trumpf.ziehen`, `bettel.spieler.drunter`,
+  `bettel.gegner.klein`, `hochzeit.ablehnen.schwach` (5,6 ct, vorher 3,0) sind jetzt sicher positiv.
+- **Weiter ohne messbaren Nutzen:** `gegner.sau.frisch`, `mitspieler.trumpf.spielen`,
+  `spieler.rufsau.nicht.selbst.suchen`, `karte.farbe.freimachen`, `spieler.solo.von.oben` (3,4 ± 3,0),
+  `gegner.kurzer.weg.lange.farbe` (2,5 ± 1,2). Sie bleiben als Lehrstoff im Katalog, Max nennt keinen
+  Wert dazu und ordnet sie hinter die gemessenen. Kandidaten zum Umformulieren oder Streichen nach
+  Prüfung mit anderen Mitspielern als der Heuristik.
+- **Zu selten:** `re.mit.reserve` (keine Lage mit Heuristik-Gegnern) und
+  `ramsch.durchmarsch.verhindern` (11 Lagen in 20 000 Spielen, vorher 83: Die Heuristik lässt den
+  Durchmarsch kaum noch zu).
+
+Max nennt nur Werte, die sicher über null liegen; negativ gemessene Regeln ordnet er hinter die
+positiven, ohne Wert. Die Messung benutzt Heuristik-Mitspieler; wie weit die Zahlen auf Menschen
+übertragbar sind, ist offen.
 
 ### Messung wiederholen
 
