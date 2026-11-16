@@ -5,6 +5,10 @@ Lage tut und warum – in eigenen Worten, mit Quelle. Der Tutor (`packages/tutor
 Faustregeln in der Lage, begründet damit seine Empfehlung und stellt Denkanstöße. Kennungen hier
 und im Code (`RULE_IDS` in `packages/tutor/src/rules.ts`) sind dieselben; ein Test prüft das.
 
+Zum Ausdrucken: [Schafkopf-Faustregeln.pdf](Schafkopf-Faustregeln.pdf) fasst Katalog und Messwerte im
+Design der Website zusammen. Quelle ist `docs/faustregeln/build.py` (Texte und Werte von Hand
+übernommen); nach einer neuen Messung dort nachziehen und `npm run faustregeln:pdf` ausführen.
+
 Inhalt:
 
 1. [Was die Bots schon wissen](#was-die-bots-schon-wissen)
